@@ -89,6 +89,85 @@ This means the data source strategy needs to change. Below are the options, rank
 
 ---
 
+### 3. Shofo TikTok General (HuggingFace) — NEW FIND
+**URL:** https://huggingface.co/datasets/Shofo/shofo-tiktok-general-small
+**What:** 58K TikTok videos with full video files, transcripts, descriptions, hashtags, sticker text, comments, and rich engagement metrics
+**Format:** Parquet (~500GB with video files)
+
+| Feature | Included? |
+|---------|-----------|
+| Video files | Yes |
+| Transcripts | Yes |
+| Descriptions + hashtags | Yes |
+| Engagement metrics | Yes — play, like, comment, share, collect, repost, download counts |
+| Video duration/resolution/fps | Yes |
+| Comments with metadata | Yes |
+| AI-generated flag | Yes |
+| Language | English + Spanish |
+
+**Why it's great for us:** This is arguably the single best dataset for our use case. It has *everything* — transcripts for hook/pacing analysis, engagement metrics to define "viral," video metadata, and even comments for audience reaction analysis. Transcripts are the key differentiator — we can analyze exactly what's said in viral videos.
+
+**Limitations:** ~500GB if downloading video files (but we mainly need the transcripts + metadata). Custom license.
+
+### 4. YouTube/TikTok Trends 2025 (HuggingFace) — NEW FIND
+**URL:** https://huggingface.co/datasets/tarekmasryo/youtube-tiktok-trends-dataset-2025
+**What:** 98K short-form videos from YouTube Shorts AND TikTok (Jan-Aug 2025)
+**Format:** CSV/Parquet (44.1 MB — lightweight!)
+**License:** CC BY 4.0 (most permissive of all datasets found)
+
+| Feature | Included? |
+|---------|-----------|
+| Title + hashtags + tags | Yes |
+| Sample comments | Yes |
+| Sound type + music track + genre | Yes |
+| Duration | Yes |
+| Engagement metrics | Yes — views, likes, comments, shares, saves, dislikes |
+| **Completion rate** | **Yes — critical for hook/pacing analysis** |
+| **Average watch time** | **Yes — reveals content retention** |
+| Engagement velocity | Yes — pre-computed |
+| Creator tier | Yes |
+| Traffic source | Yes |
+| Trend labels | Yes |
+| Cross-platform | Yes — YouTube Shorts + TikTok |
+
+**Why it's great for us:** The only dataset with **completion rate and average watch time** — these are the two most important signals for understanding hooks and pacing. If viewers drop off in the first 2 seconds, the hook failed. If they watch to the end, the structure worked. Also uniquely provides cross-platform comparison. CC BY 4.0 license means no restrictions. Only 44MB — can load instantly.
+
+### 5. Gopher-Lab TikTok Transcript Sets (HuggingFace) — NEW FIND
+Three complementary datasets of transcripts from high-performing TikTok videos:
+
+| Dataset | URL | Size | Focus |
+|---------|-----|------|-------|
+| Most-Commented Transcripts | https://huggingface.co/datasets/Gopher-Lab/TikTok_MostComment_Video_Transcription_Example | 4,580 videos | What generates discussion |
+| Most-Shared Transcripts | https://huggingface.co/datasets/Gopher-Lab/TikTok_Most_Shared_Video_Transcription_Example | 3,222 videos | What people spread |
+| Hottest/Trending Transcripts | https://huggingface.co/datasets/Gopher-Lab/TikTok_Hottest_Video_Transcript_Example | 363 videos | What's currently trending |
+
+**Combined:** ~8,165 transcripts from proven viral TikTok content. MIT license.
+**Format:** Parquet/CSV/JSON. Fields: video ID, URL, title, country, duration, cover image, full transcription text, detected language, confidence score.
+
+**Why it's great for us:** A curated corpus of proven viral scripts — exactly the kind of content we want S1 to learn patterns from. These are transcripts from videos that have already demonstrated they generate engagement. MIT license is maximally permissive.
+
+**Limitation:** No engagement counts beyond the selection criterion (most commented/shared/trending).
+
+### 6. MicroLens (Academic — Jilin University) — NEW FIND
+**URL:** https://github.com/westlake-repl/MicroLens
+**Paper:** "MicroLens: A Content-Driven Micro-Video Recommendation Dataset at Scale" (2024)
+**What:** 100K users, 1M+ short videos, 100M+ interactions with actual video files AND multimodal features
+
+| Feature | Included? |
+|---------|-----------|
+| Raw video files | Yes |
+| Visual features (pre-extracted) | Yes |
+| Audio features | Yes |
+| Text descriptions | Yes |
+| Engagement metrics | Yes — click, like, follow, share, comment, watch time |
+| Cover images | Yes |
+
+**Why it's great for us:** One of the only academic datasets with actual video files alongside engagement metrics at scale. The multimodal features (visual + audio + text) enable the richest content analysis possible.
+
+**Access:** Open download after agreement.
+
+---
+
 ## Tier 2: Good Supplementary Sources
 
 ### 3. FineVideo (HuggingFace, by HuggingFace team)
@@ -142,20 +221,23 @@ These are recommender system evaluation datasets. They answer "who watched what"
 
 ## Recommendation
 
-**Primary dataset: Tsinghua ShortVideo Dataset (WWW 2025)**
-- Closest to the original spec
-- Has transcripts (English), visual features, engagement metrics, and video categories
-- Academic credibility for a course project
-- We don't need to download 3.2TB — just the transcripts, features, and interaction data
+### For the MVP (start immediately)
 
-**Supplementary dataset: TikTok-10M**
-- Massive TikTok-specific data with captions and engagement
-- Good for validating patterns across platforms
-- Easy to load (Parquet via HuggingFace)
+**YouTube/TikTok Trends 2025** — 44MB CSV, CC BY 4.0, loads in seconds. Has completion_rate and avg_watch_time which are the most important signals for hook/pacing analysis. Use the top 100 videos by engagement as S1 input. Feed titles + hashtags + sound metadata + engagement metrics to the LLM.
 
-**Updated spec language:**
+**Gopher-Lab transcript sets** — ~8K transcripts from proven viral TikTok content. MIT license. Combine all three sets for a corpus of what viral scripts actually sound like. Feed directly to S3 for pattern learning.
+
+### For the full distributed system
+
+**Shofo TikTok General** — 58K videos with transcripts + engagement. The richest single dataset for content analysis. Use transcripts as S1 input for deep hook/pacing/structure extraction.
+
+**TikTok-10M** — 6.65M videos for statistical validation. Cross-reference patterns found in smaller datasets against massive engagement data.
+
+**Tsinghua ShortVideo** — Academic credibility. Has English ASR transcripts + visual features. Good for the course write-up since it's from Tsinghua.
+
+### Suggested spec language update
 > ~~"100 videos from Tsinghua/Kuaishou 10K user preference dataset"~~
-> → "Top 100 videos by engagement from the Tsinghua ShortVideo Dataset (WWW 2025), using English ASR transcripts and pre-extracted visual features. Supplemented by TikTok-10M for cross-platform pattern validation."
+> → "Top 100 videos by engagement, sourced from the YouTube/TikTok Trends 2025 dataset (completion rate + watch time signals) and Gopher-Lab TikTok transcript corpus (proven viral scripts). Supplemented by Shofo TikTok transcripts and TikTok-10M for large-scale pattern validation."
 
 ---
 
@@ -170,4 +252,10 @@ These are recommender system evaluation datasets. They answer "who watched what"
 - [YouTube/TikTok Trends 2025 (Kaggle)](https://www.kaggle.com/datasets/tarekmasryo/youtube-shorts-and-tiktok-trends-2025)
 - [KuaiRec (GitHub)](https://github.com/chongminggao/KuaiRec)
 - [KuaiRand (GitHub)](https://github.com/chongminggao/KuaiRand)
+- [Shofo TikTok General (HuggingFace)](https://huggingface.co/datasets/Shofo/shofo-tiktok-general-small)
+- [YouTube/TikTok Trends 2025 (HuggingFace)](https://huggingface.co/datasets/tarekmasryo/youtube-tiktok-trends-dataset-2025)
+- [Gopher-Lab Most-Commented Transcripts](https://huggingface.co/datasets/Gopher-Lab/TikTok_MostComment_Video_Transcription_Example)
+- [Gopher-Lab Most-Shared Transcripts](https://huggingface.co/datasets/Gopher-Lab/TikTok_Most_Shared_Video_Transcription_Example)
+- [Gopher-Lab Hottest Transcripts](https://huggingface.co/datasets/Gopher-Lab/TikTok_Hottest_Video_Transcript_Example)
+- [MicroLens (GitHub)](https://github.com/westlake-repl/MicroLens)
 - [datahiveai TikTok-Videos (HuggingFace)](https://huggingface.co/datasets/datahiveai/Tiktok-Videos)
