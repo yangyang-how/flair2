@@ -4,7 +4,7 @@
 |---|---|
 | **Authors** | Sam Wu · Jess |
 | **Course** | CS6650 — Distributed Systems |
-| **Version** | v3.0 — March 2026 (multi-user + all-AWS revision) |
+| **Version** | v3.1 — March 2026 (multi-user + all-AWS + feedback loop revision) |
 | **Status** | Draft — under review |
 | **Repo** | https://github.com/yangyang-how/flair2 |
 | **Supersedes** | spec_v2.md (single-user, Railway) |
@@ -20,10 +20,14 @@ V2 was designed for a single user running one pipeline at a time. V3 assumes **m
 | ALB + multiple ECS instances | "Demonstrates horizontal scaling" | Required — concurrent users need concurrent API capacity |
 | Celery task queue | "Distributes one user's 100 map tasks" | Required — isolates and schedules tasks across many concurrent pipeline runs |
 | Redis rate limiter | "Prevents one pipeline from flooding the LLM" | Required — many users share one API key's quota |
-| DynamoDB | Non-goal in v2 | Required — ECS containers have ephemeral filesystems, results must persist across runs and users |
+| DynamoDB | Non-goal in v2 | Required — run metadata, performance tracking, queryable index |
+| S3 | Not mentioned | Required — pipeline output files (results JSON, video mp4s), input dataset |
 | Redis key namespacing | Not needed (one run at a time) | Required — concurrent runs must not collide |
+| Feedback loop | Not in scope | Core feature — real video performance data improves pipeline over iterations |
 
 V3 also moves all infrastructure to AWS (no Railway) to align with the course and showcase AWS skills.
+
+V3 adds a **two-track development strategy**: an MVP track (built on V1 hackathon code) to start generating and posting videos immediately, and an infrastructure track to build the distributed AWS system in parallel. The feedback loop connects the two — real performance data from posted videos feeds back into the pipeline to improve script quality, prompt quality, and audience persona calibration.
 
 ---
 
@@ -53,14 +57,19 @@ This system automates the pattern-extraction phase and the generation phase, whi
 | **Frontend** | Astro + React islands (TypeScript), Framer Motion | Cloudflare Pages | Input forms, pipeline visualization, voting animation, output display |
 | **Backend** | Python 3.11+, FastAPI, Redis, Celery | AWS ECS Fargate + ALB | AI pipeline, worker coordination, LLM provider routing |
 | **Redis** | Redis 7 | AWS ElastiCache (single node) | Shared state: task queues, checkpoints, rate limiter, cache, SSE events |
-| **Persistent storage** | DynamoDB | AWS DynamoDB (single-region, PAY_PER_REQUEST) | Final results, pipeline run history |
-| **Video generation** | Lambda function (optional) | AWS Lambda | On-demand video generation (S7), bursty workload |
+| **File storage** | S3 | AWS S3 | Pipeline output files (results JSON, video mp4s), input dataset |
+| **Metadata & tracking** | DynamoDB | AWS DynamoDB (single-region, PAY_PER_REQUEST) | Run metadata, performance tracking, queryable index |
+| **Video generation** | Lambda function | AWS Lambda | On-demand video generation (S7), bursty workload. Fallback to ECS workers if external API exceeds 15-min Lambda timeout. |
 
 **Why Cloudflare Pages for frontend:** Instant deploy with preview URLs on every PR. AWS hosting (S3 + CloudFront) adds complexity without benefit for a static frontend. The frontend is not where we demonstrate AWS skills — the backend is.
 
 **Why ALB + multiple ECS instances:** Multiple concurrent users each hold open SSE connections while their pipeline runs. A single API instance becomes the bottleneck under concurrent load. The ALB distributes incoming HTTP and SSE connections across ECS tasks. This is real horizontal scaling driven by real traffic, not a demonstration exercise.
 
-**Why Lambda for S7:** Video generation is user-triggered, bursty, and expensive. Most of the time zero users are generating videos; occasionally several trigger at once. Lambda's pay-per-invocation model fits this pattern perfectly, and it showcases a second AWS compute service alongside ECS.
+**Why S3 for file storage:** Pipeline outputs are files — results JSON (~50KB) and video clips (~2-10MB). S3 is built for this: no size limits, dirt cheap, accessible from any ECS task or Lambda function. DynamoDB has a 400KB item size limit and can't store video files. S3 serves videos directly to the frontend via presigned URLs — no need to proxy through the API.
+
+**Why DynamoDB for metadata:** S3 stores files but can't efficiently answer "list all runs for this session sorted by date" or "which videos performed best." DynamoDB provides the queryable index layer — run metadata, performance tracking, S3 pointers. Different tools for different access patterns.
+
+**Why Lambda for S7:** Video generation is user-triggered, bursty, and expensive. Most of the time zero users are generating videos; occasionally several trigger at once. Lambda's pay-per-invocation model fits this pattern perfectly — no idle ECS containers burning money waiting for the rare video request. Estimated external API response time: 5-10 minutes (4-8s clips). If actual response times exceed Lambda's 15-minute limit during testing, fall back to ECS workers.
 
 **Communication:** SSE (Server-Sent Events) for real-time pipeline status. The frontend opens an SSE connection when generation starts; the backend streams stage completion events and individual vote events for the voting animation.
 
@@ -110,7 +119,66 @@ OUTPUT:
 
 **Concurrency model:** When 5 users each start a pipeline, the system has 5 independent runs in flight. Celery workers pull tasks from any run's queue — whichever task is next. All 5 runs share the LLM API rate limit. S3 (sequential bottleneck) runs per-pipeline, not globally — each user's S3 blocks only their own pipeline.
 
-### 2.4 Module Responsibilities
+### 2.4 Performance Feedback Loop
+
+The pipeline is not a one-shot process — it's an **iterative learning system**. Videos generated by the pipeline are posted to social media, and real performance data (views, likes, comments, shares, watch time) feeds back into subsequent pipeline runs to improve output quality.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  Pipeline  ──►  Scripts  ──►  Videos  ──►  Post to  ──►  Collect │
+│  (S1-S7)       + prompts     (S7)        social        metrics   │
+│                                           media                  │
+│     ▲                                                     │      │
+│     │                                                     │      │
+│     │         views, likes, comments, shares,             │      │
+│     │         watch time, completion rate                  │      │
+│     │                                                     │      │
+│     └──── Feed historical performance data ◄──────────────┘      │
+│            into S3/S4/S6 prompts                                 │
+│                                                                  │
+│  Each iteration: pipeline gets better at predicting              │
+│  what content will actually perform well                         │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**How feedback improves each stage:**
+
+| Stage | Without feedback | With feedback |
+|-------|-----------------|---------------|
+| **S3 Generate** | Generates scripts based on pattern analysis only | Includes historical performance: "These script patterns got X views. Generate more like the high performers." |
+| **S4 Vote** | Personas vote based on generic criteria | Calibrated personas: "In past runs, the committee predicted A would rank #1 but C outperformed it 10:1. Adjust your evaluation criteria." |
+| **S6 Personalize** | Style injection only | Prompt refinement: "These prompt styles produced higher-performing videos. Adjust prompt templates toward what actually works." |
+
+**Data collection:** Manual entry initially. Users submit performance metrics via a web form or API endpoint after posting videos and observing results. Automation (TikTok/YouTube API integration) is a future enhancement, not required for the course project.
+
+**Data storage:** Performance metrics are stored in DynamoDB (see Section 5.5), linked to the pipeline run and script that generated the video. Historical performance data is queried at the start of each new pipeline run and injected into LLM prompts.
+
+### 2.5 Two-Track Development Strategy
+
+The feedback loop requires real performance data, which requires real posted videos, which requires a working pipeline. Waiting until the full distributed system is built to start posting means losing weeks of data collection. Therefore:
+
+**Track 1 — MVP Pipeline (immediate priority)**
+- Built on the V1 hackathon codebase (`gemini-social-asset`)
+- Single-user, runs locally, end-to-end: input → scripts → videos
+- Goal: start generating and posting videos within days
+- No AWS infrastructure needed — runs on a laptop
+- Output: daily posted videos + manual performance data collection
+
+**Track 2 — Distributed Infrastructure (parallel)**
+- Full multi-user AWS architecture (ECS, ALB, ElastiCache, S3, DynamoDB, Lambda)
+- All distributed systems features (MapReduce, rate limiting, checkpoints, experiments)
+- Performance tracking endpoints and feedback loop integration
+- Goal: production system ready by end of course
+
+**Timeline:**
+- **Week 1:** MVP pipeline generating videos daily. Infrastructure design finalized.
+- **Weeks 2-3:** Infrastructure built. MVP performance data (~15-20 videos) available to feed into the distributed pipeline.
+- **Week 3+:** Distributed system running with real feedback data. Experiments executed. Write-up includes measurable improvement from the feedback loop.
+
+**Work split:** Sam focuses on frontend + MVP video generation. Jess focuses on infrastructure. Both contribute to backend pipeline logic. Formal task assignment happens after spec is finalized and a backlog is created.
+
+### 2.6 Module Responsibilities
 
 | **Stage** | Responsibility | Provider Group |
 |-----------|---------------|---------------|
@@ -122,10 +190,11 @@ OUTPUT:
 | **S6 Personalize + Prompt** | For each of top 10: (a) rewrite script to match creator voice, (b) generate structured video prompt. All text — no video generation here. | Reasoning |
 | **S7 Generate Video (on-demand)** | User selects 1-3 scripts from results and explicitly triggers video generation. Runs on AWS Lambda. One 4-8s clip per selected script. Not part of the automated pipeline. | Video |
 | **Redis** | Shared state for all workers across all runs. Task queues (BRPOP/RPUSH), result storage, token bucket rate limiter, SETNX cache lock. All keys namespaced by `{run_id}` except shared caches. | — |
-| **DynamoDB** | Persistent storage for completed pipeline results. Written at end of S6. Read by results page. Keyed by `run_id`. | — |
+| **S3** | File storage for pipeline outputs (results JSON, video mp4s) and input dataset. Accessible from any ECS task or Lambda via presigned URLs. | — |
+| **DynamoDB** | Run metadata index + performance tracking. Written at end of S6 (metadata) and after posting (performance metrics). Keyed by `run_id`. | — |
 | **Orchestrator** | Starts workers, monitors stage completion per run, streams SSE events to the correct user's frontend connection, handles timeouts. | — |
 
-### 2.5 LLM Provider Architecture
+### 2.7 LLM Provider Architecture
 
 The system uses a **two-group configurable provider model**, selectable from the web UI before each pipeline run.
 
@@ -183,6 +252,8 @@ All providers implement the appropriate interface. The orchestrator reads the us
 | **/vote/{run_id}** | Voting visualization. 100 simulated audience members appear as avatars. Each evaluates the 50 candidate **scripts** and casts votes in real-time (animated). Votes aggregate into a leaderboard showing the top 10 scripts. This is the visual centerpiece. |
 | **/results/{run_id}** | Final output display. Tab view: Scripts / Video Prompts. Each of the top 10 results shown with the creator's personalized version alongside the original. Each script has a "Generate Video" button — user picks 1-3 to generate, video appears when ready (async, may take 1-3 minutes). |
 | **/runs** | List of the current session's pipeline runs with status (running / completed / failed). Links to each run's pipeline/results page. |
+| **/track/{run_id}** | Performance tracking form. For each posted video from this run: enter platform, post URL, and metrics (views, likes, comments, shares, watch time). Manual entry for now — automation is a future enhancement. |
+| **/insights** | Dashboard showing performance data across all tracked videos. Which script patterns perform best? How has pipeline output quality improved over iterations? Comparison of committee predictions vs actual performance. |
 
 ### 3.2 Interactive Components (React Islands)
 
@@ -203,9 +274,11 @@ Only three components need React hydration — the rest is static Astro:
 | **S3 → S4** | Redis: `scripts:candidates:{run_id}`, 50 JSON script objects. |
 | **S4 → S5** | Redis: `result:s4:{run_id}:{persona_id}`, each a list of 5 script IDs. SSE events streamed to frontend per vote. |
 | **S5 → S6** | Redis: `top_scripts:{run_id}`, array of top 10 script IDs + scores. |
-| **S6 → DynamoDB** | DynamoDB: `pipeline_run_id` = `{run_id}`, contains 10 objects each with personalized script + video prompt. Also written to Redis at `results:final:{run_id}` for immediate SSE delivery. |
-| **S7 (on-demand)** | User triggers via `/api/video/generate`. Lambda generates clip. Result stored at DynamoDB `results:video:{run_id}:{script_id}` and Redis `results:video:{run_id}:{script_id}`. Frontend polls until ready. |
+| **S6 → S3 + DynamoDB** | Results JSON written to `s3://bucket/{run_id}/results.json`. Run metadata written to DynamoDB. Also written to Redis at `results:final:{run_id}` for immediate SSE delivery. |
+| **S7 (on-demand)** | User triggers via `/api/video/generate`. Lambda generates clip. Video stored at `s3://bucket/{run_id}/videos/{script_id}.mp4`. Status updated in DynamoDB. Frontend gets presigned URL for playback. |
 | **Creator Voice** | Input via web form or file upload: `creator_profile.json`. Fields: tone, vocabulary, catchphrases, topics_to_avoid. |
+| **Performance data** | Manual entry via `/track/{run_id}` form or `POST /api/performance`. Stored in DynamoDB `video_performance` table. Queried at start of next pipeline run and injected into S3/S4/S6 prompts. |
+| **Feedback → Pipeline** | At pipeline start, query DynamoDB for historical performance data. Top-performing and worst-performing scripts (with their patterns, prompts, and metrics) are included in LLM prompts for S3, S4, and S6. |
 
 ### 4.1 Cross-User Cache
 
@@ -269,12 +342,35 @@ session:{session_id}:runs      LIST   — run_ids belonging to this session
 | `/api/runs` | GET | List current session's pipeline runs with status |
 | `/api/video/generate` | POST | User-triggered: generate video for a specific script. Body: `{ run_id, script_id }`. Invokes Lambda. |
 | `/api/video/status/{run_id}/{job_id}` | GET | Poll video generation status (processing / complete / failed) |
+| `/api/performance` | POST | Submit performance metrics for a posted video. Body: `{ run_id, script_id, platform, post_url, metrics: { views, likes, comments, shares, watch_time_avg, completion_rate } }` |
+| `/api/performance/{run_id}` | GET | Get all performance data for a run's posted videos |
+| `/api/insights` | GET | Aggregated insights across all tracked videos — top patterns, prediction accuracy, improvement over time |
 | `/api/providers` | GET | List available reasoning and video providers (for frontend dropdowns) |
 | `/api/health` | GET | Health check |
 
-### 5.4 DynamoDB Schema
+### 5.4 S3 Bucket Structure
 
-**Table: `pipeline_runs`**
+```
+s3://flair2-pipeline/
+  dataset/
+    videos/                          ← Kuaishou input dataset (shared)
+  runs/
+    {run_id}/
+      config.json                    ← run config (models, creator profile)
+      results.json                   ← 10 scripts + 10 prompts (~50KB)
+      videos/
+        {script_id}.mp4              ← generated video clips (~2-10MB each)
+```
+
+**Access patterns:**
+- Write results at end of S6 → `PutObject`
+- Write video from Lambda → `PutObject`
+- Read results for display → `GetObject` or presigned URL
+- Play video in frontend → presigned URL (temporary, time-limited link — frontend plays directly from S3, no API proxy)
+
+### 5.5 DynamoDB Schema
+
+**Table: `pipeline_runs`** — run metadata and S3 pointers
 
 | Attribute | Type | Key | Description |
 |-----------|------|-----|-------------|
@@ -282,18 +378,43 @@ session:{session_id}:runs      LIST   — run_ids belonging to this session
 | `session_id` | String | GSI partition key | Session that owns this run |
 | `status` | String | — | pending / running / completed / failed |
 | `config` | Map | — | `{ reasoning_model, video_model, creator_profile }` |
-| `results` | List | — | Array of 10 `{ script, prompt }` objects (written at end of S6) |
-| `videos` | Map | — | `{ script_id: { status, video_url } }` (updated by S7 Lambda) |
+| `s3_results_key` | String | — | S3 key for results.json |
+| `s3_video_keys` | Map | — | `{ script_id: s3_key }` for generated videos |
 | `created_at` | String (ISO 8601) | GSI sort key | Timestamp |
 | `completed_at` | String (ISO 8601) | — | Timestamp (null until complete) |
 
 **Access patterns:**
 - Get run by `run_id` → `GetItem` (partition key)
 - List runs by session → `Query` on GSI (`session_id`, sorted by `created_at`)
-- Write results at end of S6 → `UpdateItem`
-- Write video result from Lambda → `UpdateItem`
+- Write metadata at end of S6 → `UpdateItem`
+- Write video S3 pointer from Lambda → `UpdateItem`
 
-Single-region, eventual consistency. Acceptable because users read results after pipeline completes, not during. No concurrent writes to the same run's results.
+**Table: `video_performance`** — real-world performance tracking for feedback loop
+
+| Attribute | Type | Key | Description |
+|-----------|------|-----|-------------|
+| `run_id` | String (UUID) | Partition key | Which pipeline run generated this video |
+| `script_id` | String | Sort key | Which script this video came from |
+| `platform` | String | — | tiktok / youtube / instagram |
+| `post_url` | String | — | Link to the actual post |
+| `posted_at` | String (ISO 8601) | — | When it was posted |
+| `metrics_updated_at` | String (ISO 8601) | — | Last time metrics were refreshed |
+| `views` | Number | — | Total views |
+| `likes` | Number | — | Total likes |
+| `comments` | Number | — | Total comments |
+| `shares` | Number | — | Total shares |
+| `watch_time_avg` | Number | — | Average watch time in seconds |
+| `completion_rate` | Number | — | % of viewers who watched to end (0-100) |
+| `script_pattern` | Map | — | Copy of the script's pattern metadata (hook type, pacing, etc.) for correlation analysis |
+| `committee_rank` | Number | — | What rank the S4/S5 committee predicted for this script |
+
+**Access patterns:**
+- Get performance by run + script → `GetItem` (partition + sort key)
+- List all tracked videos for a run → `Query` (partition key)
+- Scan for top performers across all runs → `Scan` with filter (acceptable at small scale — ~20-60 records total over the project lifetime)
+- Feed into next pipeline run → query recent performance data, sort by views, inject top/bottom performers into prompts
+
+Single-region, eventual consistency for both tables. Acceptable because data is written once and read later, with no concurrent writes to the same record.
 
 ---
 
@@ -361,8 +482,8 @@ Single-region, eventual consistency. Acceptable because users read results after
 - S4 produces votes from exactly 100 simulated personas, with SSE events visible in the frontend voting animation.
 - S5 produces a ranked top-10 list with scores attached.
 - S6 produces 10 final results, each containing: personalized script + video prompt.
-- S6 writes final results to DynamoDB. Results are readable after Redis restart.
-- Video generation (S7) successfully produces a clip via Lambda when user triggers it.
+- S6 writes results to S3 and metadata to DynamoDB. Results are readable after Redis restart.
+- Video generation (S7) successfully produces a clip via Lambda, stored in S3, playable via presigned URL.
 - Full pipeline (S1–S6) completes in under 60 minutes with 10 workers per run.
 - **3 concurrent pipeline runs complete without interfering with each other.**
 - **A worker crash in one run does not affect other concurrent runs.**
@@ -370,18 +491,21 @@ Single-region, eventual consistency. Acceptable because users read results after
 - Pipeline survives a simulated worker crash without manual intervention.
 - Frontend displays real-time pipeline progress and voting animation.
 - LLM provider can be selected from the web UI per run without restarting the backend.
-- Pipeline runs persist in DynamoDB and are retrievable after completion.
+- Pipeline runs persist in S3 + DynamoDB and are retrievable after completion.
+- **Performance metrics can be submitted via the tracking form and are stored in DynamoDB.**
+- **At least one pipeline run uses historical performance data in its prompts, demonstrating the feedback loop.**
+- **MVP pipeline generates at least 15 posted videos with tracked performance data before the final presentation.**
 
 ---
 
 ## 9. Non-Goals
 
-- No real TikTok/Kuaishou API integration — data comes from the research dataset only.
-- No relational database — final results stored in DynamoDB, ephemeral pipeline state in Redis.
+- No automated social media API integration — performance data is entered manually. Automation (TikTok/YouTube API) is a future enhancement.
+- No real TikTok/Kuaishou API for video input — data comes from the research dataset only.
+- No relational database — file storage in S3, metadata in DynamoDB, ephemeral pipeline state in Redis.
 - No auto-scaling — ECS task count and ElastiCache node size are fixed for the course project. (Production would add ECS auto-scaling policies and ElastiCache scaling.)
 - No user authentication — session-based identity only. Production would add AWS Cognito.
-- Not optimizing content quality — the goal is distributed systems behavior + configurable AI pipeline architecture.
-- Not polishing the script → prompt → video quality funnel. Each transition introduces quality decay. Optimizing prompt templates and evaluating video fidelity is V3+ scope.
+- Not polishing the script → prompt → video quality funnel beyond what the feedback loop naturally improves. Manual prompt engineering optimization is out of scope.
 - No fair scheduling between users — single shared Celery queue, FIFO. Noted as a limitation. Production would add per-user priority queuing.
 
 ---
@@ -395,7 +519,8 @@ Single-region, eventual consistency. Acceptable because users read results after
 | Reasoning LLM | Kimi 2.5, Google Gemini, OpenAI GPT-4o-mini | User-selectable per run via provider interface |
 | Video generation | Seedance 2.0 via PiAPI, Google Veo | User-selectable per run, or skip |
 | Coordination | Redis 7 (AWS ElastiCache) | Task queues, checkpoints, rate limiter, cache, SSE events |
-| Persistent storage | AWS DynamoDB | Final results, run history. PAY_PER_REQUEST. |
+| File storage | AWS S3 | Pipeline output files (results, videos), input dataset |
+| Metadata & tracking | AWS DynamoDB | Run metadata, performance tracking. PAY_PER_REQUEST. |
 | Task queue | Celery (backed by Redis) | Async pipeline execution, retry, monitoring |
 | Backend framework | FastAPI | Async-native, OpenAPI docs, Pydantic integration |
 | Frontend framework | Astro + React islands, Framer Motion | Small bundle, interactive where needed |
@@ -417,8 +542,11 @@ Single-region, eventual consistency. Acceptable because users read results after
 | ECS Fargate | Backend API + Celery workers | Horizontal scaling, container orchestration |
 | Application Load Balancer | Distribute requests across ECS tasks | Load balancing, health checks |
 | ElastiCache (Redis) | Shared state, task queues, caching | Coordination, atomicity (SETNX), rate limiting |
-| DynamoDB | Persistent results storage | CAP theorem (eventual consistency), single-key access patterns |
-| Lambda | On-demand video generation (S7) | Serverless compute, event-driven architecture |
+| S3 | Pipeline output files, video storage, dataset | Object storage, presigned URLs |
+| DynamoDB | Run metadata, performance tracking | CAP theorem (eventual consistency), single-key access patterns |
+| Lambda | On-demand video generation (S7) | Serverless compute, pay-per-invocation vs always-on containers |
+| CloudWatch | Logging and metrics from all services | Observability, structured logging with run_id correlation |
+| IAM | Least-privilege roles per service | Security, principle of least privilege |
 
 ---
 
@@ -430,10 +558,12 @@ Single-region, eventual consistency. Acceptable because users read results after
 2. What does the Kuaishou dataset actually contain per record? Do we need to preprocess it before S1?
 3. Kimi 2.5 rate limits — what are they? Confirm before Experiment 1 setup.
 4. Seedance 2.0 API pricing via PiAPI — what's the cost per 4-8s clip? Budget for 1-3 clips per run × N concurrent users.
-5. How will we divide implementation work between Sam and Jess?
-6. Terraform — who sets up the initial AWS infrastructure? Do we have an AWS account with sufficient permissions for ECS, ALB, ElastiCache, DynamoDB, Lambda?
+5. ~~How will we divide implementation work?~~ **Decided:** Sam focuses on frontend + MVP video gen. Jess focuses on infrastructure. Both do backend. Formal task assignment after backlog is created from this spec.
+6. Terraform — who sets up the initial AWS infrastructure? Do we have an AWS account with sufficient permissions for ECS, ALB, ElastiCache, S3, DynamoDB, Lambda?
 7. Cost controls — with many concurrent users, LLM costs multiply. Do we need per-session rate limits or a global budget cap?
-8. Data insights feedback loop — Jess mentioned using published video performance data to improve the pipeline. Is this in V3 scope or deferred?
+8. ~~Data insights feedback loop~~ **Decided:** In scope. Manual data entry, feedback into prompts. See Section 2.4.
+9. Which social media platforms will we post to? TikTok? YouTube Shorts? Instagram Reels? All three? (Affects the performance tracking form fields.)
+10. What V1 hackathon code is reusable for the MVP? Need to audit `gemini-social-asset` to identify what carries over vs what needs rewriting.
 
 ---
 
@@ -443,6 +573,7 @@ Single-region, eventual consistency. Acceptable because users read results after
 |---------|------|---------|
 | v1.0 | 2026-03 | Jess's initial draft |
 | v2.0 | 2026-03 | Sam's revision — 7-stage pipeline, multi-provider LLM, 3 experiments, detailed spec |
-| v3.0 | 2026-03 | Multi-user + all-AWS revision. Railway → ECS Fargate. Added DynamoDB, Lambda, run isolation, cross-user caching, session model. Experiments updated for multi-tenant scenarios. Redis keys namespaced by run_id. |
+| v3.0 | 2026-03-23 | Multi-user + all-AWS revision. Railway → ECS Fargate. Added DynamoDB, Lambda, run isolation, cross-user caching, session model. Experiments updated for multi-tenant scenarios. Redis keys namespaced by run_id. |
+| v3.1 | 2026-03-23 | Added S3 for file storage (DynamoDB stores metadata only, not files). Added performance feedback loop (Section 2.4) — manual data entry, metrics stored in DynamoDB, fed into pipeline prompts. Added two-track dev strategy (Section 2.5) — MVP on V1 code + distributed infra in parallel. Added /track and /insights pages. Added video_performance DynamoDB table. Added performance API endpoints. Updated AWS services to 8 (added S3, CloudWatch, IAM). |
 
 *This spec is the source of truth. Update it when architecture changes — don't let it drift from the code.*
