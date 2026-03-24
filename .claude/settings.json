@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash(npm run *)",
+      "Bash(bun run *)",
+      "Bash(uvicorn *)",
+      "Bash(pytest *)",
+      "Bash(python -m pytest *)",
+      "Bash(ruff *)",
+      "Bash(git *)",
+      "Bash(gh pr *)",
+      "Bash(gh issue *)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(mkdir *)",
+      "Bash(echo *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(curl *)",
+      "Read(.env)",
+      "Read(.env.*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit:*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$branch\" = \"main\" ] || [ \"$branch\" = \"master\" ]; then echo 'BLOCKED: Do not commit directly to main/master. Create a feature branch first.' >&2; exit 1; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git push:*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$branch\" = \"main\" ] || [ \"$branch\" = \"master\" ]; then echo 'BLOCKED: Do not push directly to main/master. Use a PR.' >&2; exit 1; fi"
+          },
+          {
+            "type": "command",
+            "command": "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); merged=$(gh pr list --state merged --head \"$branch\" --json number --jq 'length' 2>/dev/null); if [ -z \"$merged\" ]; then echo \"BLOCKED: Could not check merged PR status for '$branch'. Verify gh auth and try again.\" >&2; exit 1; fi; if [ \"$merged\" -gt 0 ]; then echo \"BLOCKED: Branch '$branch' already has a merged PR. Create a new branch.\" >&2; exit 1; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qE 'git commit'; then if [ -f pyproject.toml ] || [ -f setup.py ]; then ruff check . 2>&1; if [ $? -ne 0 ]; then echo 'BLOCKED: Linter failed. Fix lint errors before committing.' >&2; exit 2; fi; fi; fi",
+            "description": "Linter gate — run ruff before any git commit, block if it fails"
+          },
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qE 'gh pr create'; then echo 'Running pre-PR checklist...'; PASS=true; ruff check . 2>&1 || PASS=false; pytest 2>&1 || PASS=false; grep -rn 'API_KEY=\\|SECRET=\\|password=\\|token=' --include='*.py' --include='*.ts' --include='*.json' --exclude-dir=node_modules --exclude-dir=__pycache__ --exclude='*.lock' . 2>/dev/null && echo 'WARNING: Possible hardcoded secrets detected.' && PASS=false; if [ \"$PASS\" = false ]; then echo 'BLOCKED: Pre-PR checks failed. Fix issues before creating PR.' >&2; exit 2; fi; echo 'All pre-PR checks passed.'; fi",
+            "description": "Pre-PR gate — run tests, linter, and secret scan before gh pr create"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(echo \"$TOOL_INPUT\" | grep -oE '\"?[^\"]*\\.(py|ts|tsx|json|astro|md)[\"\\s]?' | head -1 | tr -d '\"'); if [ -n \"$FILE\" ]; then SECRETS=$(grep -nE '(API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE_KEY)\\s*[=:]\\s*[\"'\\''\\`][^\"'\\''\\`]{8,}' \"$FILE\" 2>/dev/null); if [ -n \"$SECRETS\" ]; then echo \"⚠ POTENTIAL SECRET DETECTED in $FILE:\" >&2; echo \"$SECRETS\" >&2; echo 'Review immediately — do not commit this file without removing secrets.' >&2; fi; fi",
+            "description": "Secret scanner — check for hardcoded secrets after every file write/edit"
+          }
+        ]
+      }
+    ]
+  }
+}
