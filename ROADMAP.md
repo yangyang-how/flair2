@@ -158,10 +158,10 @@ The longest dependency chain determines the project deadline:
 
 **Total issues:** 29
 **Sam's issues:** 14 (M1 + M4)
-**Jess's issues:** 10 (M2 + parts of M3)
-**Both:** 5 (M3 integration + M5 experiments)
+**Jess's issues:** 9 (M2×6 + M3 #30, #31 + M5 #44)
+**Both:** 6 (M3 #29, #32, #33 + M5 #41, #42, #43)
 
-**Size breakdown:** 5 Small (half day) · 15 Medium (1 day) · 9 Large (2-3 days)
+**Size breakdown:** 6 Small (half day) · 15 Medium (1 day) · 8 Large (2-3 days)
 
 **Where to start right now:**
 - **Sam:** Merge PR #15, then #21 (download dataset, first real run)
