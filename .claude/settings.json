@@ -61,6 +61,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qE 'git push'; then branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$branch\" = \"main\" ] || [ \"$branch\" = \"master\" ]; then echo 'BLOCKED: Do not push directly to main/master. Use a PR.' >&2; exit 2; fi; merged=$(gh pr list --state merged --head \"$branch\" --json number --jq 'length' 2>/dev/null); if [ -z \"$merged\" ]; then echo \"BLOCKED: Could not check merged PR status for '$branch'. Verify gh auth and try again.\" >&2; exit 2; fi; if [ \"$merged\" -gt 0 ]; then echo \"BLOCKED: Branch '$branch' already has a merged PR. Create a new branch.\" >&2; exit 2; fi; fi",
+            "description": "Catch-all push guard — catches git push in chained commands (&&) that bypass the Bash(git push:*) matcher"
+          },
+          {
+            "type": "command",
             "command": "if echo \"$TOOL_INPUT\" | grep -qE 'git commit'; then if [ -f pyproject.toml ] || [ -f setup.py ]; then ruff check . 2>&1; if [ $? -ne 0 ]; then echo 'BLOCKED: Linter failed. Fix lint errors before committing.' >&2; exit 2; fi; fi; fi",
             "description": "Linter gate — run ruff before any git commit, block if it fails"
           },
