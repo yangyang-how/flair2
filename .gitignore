@@ -39,6 +39,9 @@ node_modules/
 *.swp
 *.swo
 
+# Claude Code
+.claude/settings.json
+
 # OS
 .DS_Store
 Thumbs.db
