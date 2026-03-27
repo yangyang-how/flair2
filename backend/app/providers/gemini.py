@@ -28,7 +28,7 @@ def _extract_json(text: str) -> str:
 class GeminiProvider:
     name = "gemini"
 
-    def __init__(self, api_key: str | None = None, model: str = "gemini-2.0-flash"):
+    def __init__(self, api_key: str | None = None, model: str = "gemini-2.5-flash"):
         self._api_key = api_key or settings.gemini_api_key
         self._model = model
         self._client = None

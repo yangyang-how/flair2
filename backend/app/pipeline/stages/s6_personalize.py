@@ -32,11 +32,21 @@ async def s6_personalize(
     try:
         response = await provider.generate_text(prompt, schema=S6Response)
         data = json.loads(response)
+
+        # LLM sometimes returns video_prompt as a nested object instead of string
+        video_prompt = data["video_prompt"]
+        if isinstance(video_prompt, dict):
+            video_prompt = json.dumps(video_prompt)
+
+        personalized_script = data["personalized_script"]
+        if isinstance(personalized_script, dict):
+            personalized_script = json.dumps(personalized_script)
+
         return FinalResult(
             script_id=script.script_id,
             original_script=script,
-            personalized_script=data["personalized_script"],
-            video_prompt=data["video_prompt"],
+            personalized_script=personalized_script,
+            video_prompt=video_prompt,
         )
     except json.JSONDecodeError as e:
         raise InvalidResponseError(
