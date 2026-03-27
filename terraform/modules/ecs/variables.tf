@@ -93,3 +93,9 @@ variable "worker_memory" {
   type        = number
   default     = 2048
 }
+
+variable "aws_region" {
+  description = "AWS region — used for CloudWatch log configuration"
+  type        = string
+  default     = "us-west-2"
+}

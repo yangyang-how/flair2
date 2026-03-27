@@ -252,6 +252,7 @@ module "ecs" {
   source                   = "./modules/ecs"
   project                  = var.project
   env                      = var.env
+  aws_region               = var.aws_region
   vpc_id                   = aws_vpc.main.id
   private_subnet_ids       = aws_subnet.private[*].id
   security_group_id        = aws_security_group.ecs.id

@@ -63,7 +63,7 @@ resource "aws_ecs_task_definition" "api" {
       logDriver = "awslogs"
       options = {
         "awslogs-group"         = aws_cloudwatch_log_group.api.name
-        "awslogs-region"        = "us-west-2"
+        "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "api"
       }
     }
@@ -144,7 +144,7 @@ resource "aws_ecs_task_definition" "worker" {
       logDriver = "awslogs"
       options = {
         "awslogs-group"         = aws_cloudwatch_log_group.worker.name
-        "awslogs-region"        = "us-west-2"
+        "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "worker"
       }
     }
