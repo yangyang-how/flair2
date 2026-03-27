@@ -49,3 +49,10 @@ dump.rdb
 # Celery
 celerybeat-schedule
 celerybeat.pid
+
+# Dataset files (large, downloaded via scripts/prep_dataset.py)
+data/*.json
+data/*.parquet
+
+# Claude Code
+.claude/settings.json

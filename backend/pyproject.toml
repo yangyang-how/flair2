@@ -20,6 +20,10 @@ dev = [
     "pytest-cov>=4.1",
     "ruff>=0.3",
 ]
+data = [
+    "pyarrow>=15.0",
+    "huggingface-hub>=0.21",
+]
 
 [tool.ruff]
 target-version = "py311"
