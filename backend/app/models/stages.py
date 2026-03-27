@@ -65,6 +65,13 @@ class S5Rankings(BaseModel):
     total_votes_cast: int
 
 
+class S6Response(BaseModel):
+    """What the LLM actually returns for S6 — just the two generated fields."""
+
+    personalized_script: str
+    video_prompt: str
+
+
 class FinalResult(BaseModel):
     script_id: str
     original_script: CandidateScript

@@ -59,7 +59,7 @@ async def s4_vote(
         raise InvalidResponseError(
             f"S4 failed to parse vote from {persona_id}",
             provider=provider.name,
-            raw_response=str(e),
+            raw_response=response,
             stage="S4",
         ) from e
     except (InvalidResponseError, StageError):

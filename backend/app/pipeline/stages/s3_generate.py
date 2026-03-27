@@ -75,4 +75,15 @@ async def s3_generate(
     if not scripts:
         raise StageError("S3 generated zero scripts", stage="S3")
 
+    if len(scripts) < target:
+        logger.error(
+            "s3_insufficient_scripts",
+            generated=len(scripts),
+            target=target,
+        )
+        raise StageError(
+            f"S3 generated only {len(scripts)}/{target} scripts",
+            stage="S3",
+        )
+
     return scripts[:target]

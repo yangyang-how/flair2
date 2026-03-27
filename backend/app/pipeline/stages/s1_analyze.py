@@ -30,7 +30,7 @@ async def s1_analyze(video: VideoInput, provider: ReasoningProvider) -> S1Patter
         raise InvalidResponseError(
             f"S1 failed to parse LLM response for {video.video_id}",
             provider=provider.name,
-            raw_response=str(e),
+            raw_response=response,
             stage="S1",
         ) from e
     except (InvalidResponseError, StageError):

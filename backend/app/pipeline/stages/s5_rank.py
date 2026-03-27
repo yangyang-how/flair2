@@ -1,11 +1,12 @@
 from collections import Counter
 
-from app.config import settings
 from app.models.stages import PersonaVote, RankedScript, S5Rankings
 
+DEFAULT_TOP_N = 10
 
-def s5_rank(votes: list[PersonaVote]) -> S5Rankings:
-    """Aggregate votes into ranked top 10. No LLM — pure algorithmic.
+
+def s5_rank(votes: list[PersonaVote], top_n: int = DEFAULT_TOP_N) -> S5Rankings:
+    """Aggregate votes into ranked top N. No LLM — pure algorithmic.
 
     Scoring: Each vote position gets a weighted score.
     1st pick = 5pts, 2nd = 4pts, 3rd = 3pts, 4th = 2pts, 5th = 1pt.
@@ -20,7 +21,6 @@ def s5_rank(votes: list[PersonaVote]) -> S5Rankings:
             scores[script_id] += score_weights.get(position, 1)
             vote_counts[script_id] += 1
 
-    top_n = settings.s6_top_n
     top_scripts = scores.most_common(top_n)
 
     ranked = [

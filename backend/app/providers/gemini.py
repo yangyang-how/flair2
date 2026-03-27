@@ -48,7 +48,8 @@ class GeminiProvider:
         client = self._get_client()
         for attempt in range(MAX_RETRIES):
             try:
-                response = client.models.generate_content(
+                response = await asyncio.to_thread(
+                    client.models.generate_content,
                     model=self._model,
                     contents=prompt,
                 )

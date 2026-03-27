@@ -67,7 +67,7 @@ async def run_pipeline(
 
     # S5: Rank
     logger.info("s5_start")
-    rankings = s5_rank(votes)
+    rankings = s5_rank(votes, top_n=_top_n)
     logger.info("s5_complete", top_scripts=[r.script_id for r in rankings.top_10])
 
     # S6: Personalize top N
