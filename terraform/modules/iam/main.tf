@@ -67,8 +67,8 @@ resource "aws_iam_policy" "ecs_task_policy" {
           "s3:ListBucket"
         ]
         Resource = [
-          "arn:aws:s3:::${var.project}-pipeline-*",
-          "arn:aws:s3:::${var.project}-pipeline-*/*"
+          "arn:aws:s3:::${var.project}-pipeline-${var.env}",
+          "arn:aws:s3:::${var.project}-pipeline-${var.env}/*"
         ]
       },
       {
@@ -84,6 +84,7 @@ resource "aws_iam_policy" "ecs_task_policy" {
         ]
         Resource = [
           "arn:aws:dynamodb:*:*:table/${var.project}-${var.env}-pipeline-runs",
+          "arn:aws:dynamodb:*:*:table/${var.project}-${var.env}-pipeline-runs/index/session_id-index",
           "arn:aws:dynamodb:*:*:table/${var.project}-${var.env}-video-performance"
         ]
       },
@@ -94,7 +95,10 @@ resource "aws_iam_policy" "ecs_task_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
-        Resource = "arn:aws:logs:*:*:log-group:/ecs/${local.prefix}/*"
+        Resource = [
+          "arn:aws:logs:*:*:log-group:/ecs/${local.prefix}/*",
+          "arn:aws:logs:*:*:log-group:/ecs/${local.prefix}/*:log-stream:*"
+        ]
       }
     ]
   })
