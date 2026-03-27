@@ -19,9 +19,9 @@ variable "s3_bucket_name" {
 }
 
 variable "timeout" {
-  description = "Lambda function timeout in seconds (video generation can take a while)"
+  description = "Lambda function timeout in seconds — issue #28 specifies 15 min max (Lambda ceiling is 900s)"
   type        = number
-  default     = 300
+  default     = 900
 }
 
 variable "memory_size" {
