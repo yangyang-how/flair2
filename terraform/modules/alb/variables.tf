@@ -24,6 +24,7 @@ variable "security_group_id" {
 }
 
 variable "acm_certificate_arn" {
-  description = "ACM certificate ARN for HTTPS listener (provision manually in AWS Console)"
+  description = "ACM certificate ARN for HTTPS listener. Leave empty ('') for HTTP-only (e.g. Learner Lab)."
   type        = string
+  default     = ""
 }

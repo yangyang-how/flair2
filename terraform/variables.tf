@@ -44,6 +44,7 @@ variable "availability_zones" {
 }
 
 variable "acm_certificate_arn" {
-  description = "ACM certificate ARN for the ALB HTTPS listener (provision manually in AWS Console)"
+  description = "ACM certificate ARN for the ALB HTTPS listener. Leave empty for HTTP-only (e.g. Learner Lab)."
   type        = string
+  default     = ""
 }
