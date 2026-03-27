@@ -42,3 +42,8 @@ variable "availability_zones" {
   type        = list(string)
   default     = ["us-west-2a", "us-west-2b"]
 }
+
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN for the ALB HTTPS listener (provision manually in AWS Console)"
+  type        = string
+}

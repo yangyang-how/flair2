@@ -239,12 +239,13 @@ module "elasticache" {
 }
 
 module "alb" {
-  source            = "./modules/alb"
-  project           = var.project
-  env               = var.env
-  vpc_id            = aws_vpc.main.id
-  public_subnet_ids = aws_subnet.public[*].id
-  security_group_id = aws_security_group.alb.id
+  source              = "./modules/alb"
+  project             = var.project
+  env                 = var.env
+  vpc_id              = aws_vpc.main.id
+  public_subnet_ids   = aws_subnet.public[*].id
+  security_group_id   = aws_security_group.alb.id
+  acm_certificate_arn = var.acm_certificate_arn
 }
 
 module "ecs" {
