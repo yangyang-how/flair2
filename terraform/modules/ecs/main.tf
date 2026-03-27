@@ -102,7 +102,11 @@ resource "aws_ecs_service" "api" {
     container_port   = 8000
   }
 
-  # Allow Terraform to update task definition without recreating the service
+  # Terraform manages infrastructure; CI/CD manages deployments.
+  # ignore_changes on task_definition prevents terraform apply from reverting
+  # the service to the original placeholder image after CI/CD has deployed a
+  # real image. New task definition revisions are rolled out by ECS via CI/CD
+  # (push to ECR → update service), not by Terraform.
   lifecycle {
     ignore_changes = [task_definition]
   }
@@ -169,6 +173,7 @@ resource "aws_ecs_service" "worker" {
     assign_public_ip = false
   }
 
+  # Same deployment model as API service — CI/CD owns image rollouts.
   lifecycle {
     ignore_changes = [task_definition]
   }
