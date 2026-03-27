@@ -8,10 +8,14 @@ terraform {
     }
   }
 
-  # Remote state in S3 — bucket must be created manually before first apply
+  # Remote state in S3 — bucket must be created manually before first apply.
+  # The key is a partial configuration — pass the env-specific key at init time:
+  #   terraform init -backend-config="key=env/dev/terraform.tfstate"
+  #   terraform init -backend-config="key=env/prod/terraform.tfstate"
+  # This keeps dev and prod state isolated in the same bucket.
   backend "s3" {
     bucket = "flair2-terraform-state"
-    key    = "terraform.tfstate"
+    key    = "env/dev/terraform.tfstate"
     region = "us-west-2"
   }
 }
