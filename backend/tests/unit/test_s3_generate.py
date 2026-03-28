@@ -34,15 +34,17 @@ async def test_s3_generate_returns_scripts(sample_library, mock_provider):
     async def mock_gen(prompt, schema=None):
         nonlocal call_count
         call_count += 1
-        return json.dumps({
-            "script_id": f"script_{call_count:03d}",
-            "pattern_used": "question + fast_slow_fast",
-            "hook": "Did you know most people waste their morning?",
-            "body": "Here are 3 things you can do instead...",
-            "payoff": "Start tomorrow. You won't regret it.",
-            "estimated_duration": 25.0,
-            "structural_notes": "Question hook with list structure",
-        })
+        return json.dumps(
+            {
+                "script_id": f"script_{call_count:03d}",
+                "pattern_used": "question + fast_slow_fast",
+                "hook": "Did you know most people waste their morning?",
+                "body": "Here are 3 things you can do instead...",
+                "payoff": "Start tomorrow. You won't regret it.",
+                "estimated_duration": 25.0,
+                "structural_notes": "Question hook with list structure",
+            }
+        )
 
     mock_provider.generate_text = mock_gen
     result = await s3_generate(sample_library, mock_provider, feedback=None, num_scripts=5)
@@ -54,15 +56,17 @@ async def test_s3_generate_returns_scripts(sample_library, mock_provider):
 @pytest.mark.asyncio
 async def test_s3_generate_assigns_unique_ids(sample_library, mock_provider):
     async def mock_gen(prompt, schema=None):
-        return json.dumps({
-            "script_id": "will_be_overridden",
-            "pattern_used": "question + fast_slow_fast",
-            "hook": "hook",
-            "body": "body",
-            "payoff": "payoff",
-            "estimated_duration": 20.0,
-            "structural_notes": "notes",
-        })
+        return json.dumps(
+            {
+                "script_id": "will_be_overridden",
+                "pattern_used": "question + fast_slow_fast",
+                "hook": "hook",
+                "body": "body",
+                "payoff": "payoff",
+                "estimated_duration": 20.0,
+                "structural_notes": "notes",
+            }
+        )
 
     mock_provider.generate_text = mock_gen
     result = await s3_generate(sample_library, mock_provider, feedback=None, num_scripts=3)

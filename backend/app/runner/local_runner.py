@@ -13,8 +13,21 @@ from app.pipeline.stages.s4_vote import s4_vote
 from app.pipeline.stages.s5_rank import s5_rank
 from app.pipeline.stages.s6_personalize import s6_personalize
 from app.providers.base import ReasoningProvider
+from app.providers.usage import UsageTracker
 
 logger = structlog.get_logger()
+
+
+def _record_usage(tracker: UsageTracker, stage: str, provider) -> None:
+    """Capture last_usage from provider if available."""
+    usage = getattr(provider, "last_usage", None)
+    if usage:
+        tracker.record(
+            stage,
+            input_tokens=usage.get("input_tokens", 0),
+            output_tokens=usage.get("output_tokens", 0),
+            latency_ms=0,
+        )
 
 
 async def run_pipeline(
@@ -25,6 +38,7 @@ async def run_pipeline(
     num_scripts: int | None = None,
     num_personas: int | None = None,
     top_n: int | None = None,
+    tracker: UsageTracker | None = None,
 ) -> S6Output:
     """Run full pipeline locally. No Redis, no Celery.
     Same stage functions as distributed mode.
@@ -34,6 +48,7 @@ async def run_pipeline(
     _num_scripts = num_scripts or settings.s3_script_count
     _num_personas = num_personas or settings.s4_persona_count
     _top_n = top_n or settings.s6_top_n
+    _tracker = tracker or UsageTracker()
 
     logger.info("pipeline_start", run_id=config.run_id, videos=len(videos))
 
@@ -42,8 +57,14 @@ async def run_pipeline(
     patterns = []
     for i, video in enumerate(videos):
         pattern = await s1_analyze(video, provider)
+        _record_usage(_tracker, "S1", provider)
         patterns.append(pattern)
-        logger.info("s1_progress", completed=i + 1, total=len(videos))
+        logger.info(
+            "s1_progress",
+            completed=i + 1,
+            total=len(videos),
+            usage=_tracker.progress("S1", i + 1, len(videos)),
+        )
     logger.info("s1_complete", patterns=len(patterns))
 
     # S2: Aggregate
@@ -54,6 +75,7 @@ async def run_pipeline(
     # S3: Generate scripts
     logger.info("s3_start", target=_num_scripts)
     scripts = await s3_generate(library, provider, feedback, num_scripts=_num_scripts)
+    _record_usage(_tracker, "S3", provider)
     logger.info("s3_complete", scripts=len(scripts))
 
     # S4: Vote
@@ -61,8 +83,14 @@ async def run_pipeline(
     votes = []
     for i in range(_num_personas):
         vote = await s4_vote(scripts, f"persona_{i}", provider, feedback)
+        _record_usage(_tracker, "S4", provider)
         votes.append(vote)
-        logger.info("s4_progress", completed=i + 1, total=_num_personas)
+        logger.info(
+            "s4_progress",
+            completed=i + 1,
+            total=_num_personas,
+            usage=_tracker.progress("S4", i + 1, _num_personas),
+        )
     logger.info("s4_complete", votes=len(votes))
 
     # S5: Rank
@@ -74,16 +102,26 @@ async def run_pipeline(
     actual_top_n = min(_top_n, len(rankings.top_10))
     logger.info("s6_start", count=actual_top_n)
     results = []
-    for ranked in rankings.top_10[:actual_top_n]:
+    for i, ranked in enumerate(rankings.top_10[:actual_top_n]):
         script = next((s for s in scripts if s.script_id == ranked.script_id), None)
         if script is None:
             logger.warning("script_not_found", script_id=ranked.script_id)
             continue
         result = await s6_personalize(script, config.creator_profile, provider)
+        _record_usage(_tracker, "S6", provider)
         result.rank = ranked.rank
         result.vote_score = ranked.score
         results.append(result)
+        logger.info(
+            "s6_progress",
+            completed=i + 1,
+            total=actual_top_n,
+            usage=_tracker.progress("S6", i + 1, actual_top_n),
+        )
     logger.info("s6_complete", results=len(results))
+
+    # Print usage summary
+    logger.info("usage_summary", table="\n" + _tracker.summary_table())
 
     output = S6Output(
         run_id=config.run_id,

@@ -15,6 +15,18 @@ def test_get_gemini_provider():
     assert hasattr(provider, "analyze_content")
 
 
+def test_list_providers_includes_kimi():
+    providers = list_providers()
+    assert "kimi" in providers["reasoning"]
+
+
+def test_get_kimi_provider():
+    provider = get_reasoning_provider("kimi")
+    assert provider.name == "kimi"
+    assert hasattr(provider, "generate_text")
+    assert hasattr(provider, "analyze_content")
+
+
 def test_get_unknown_provider_raises():
     with pytest.raises(ValueError, match="Unknown reasoning provider"):
         get_reasoning_provider("nonexistent")

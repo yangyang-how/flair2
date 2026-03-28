@@ -18,7 +18,7 @@ def main():
     parser = argparse.ArgumentParser(description="Flair2 MVP Pipeline — Local Mode")
     parser.add_argument("--data", required=True, help="Path to video dataset (JSON)")
     parser.add_argument("--profile", required=True, help="Path to creator_profile.json")
-    parser.add_argument("--provider", default="gemini", help="Reasoning provider (default: gemini)")
+    parser.add_argument("--provider", default="kimi", help="Reasoning provider (default: kimi)")
     parser.add_argument("--output", default="output.json", help="Output file path")
     parser.add_argument("--limit", type=int, default=100, help="Number of videos to analyze")
     args = parser.parse_args()
