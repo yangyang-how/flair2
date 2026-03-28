@@ -48,3 +48,13 @@ variable "acm_certificate_arn" {
   type        = string
   default     = ""
 }
+
+variable "kimi_api_key_secret_arn" {
+  description = "Secrets Manager ARN for the Kimi API key — create manually before apply: aws secretsmanager create-secret --name flair2/dev/kimi-api-key"
+  type        = string
+}
+
+variable "gemini_api_key_secret_arn" {
+  description = "Secrets Manager ARN for the Gemini API key (video generation) — create manually before apply: aws secretsmanager create-secret --name flair2/dev/gemini-api-key"
+  type        = string
+}

@@ -99,3 +99,13 @@ variable "aws_region" {
   type        = string
   default     = "us-west-2"
 }
+
+variable "kimi_api_key_secret_arn" {
+  description = "Secrets Manager ARN for the Kimi (Moonshot) API key"
+  type        = string
+}
+
+variable "gemini_api_key_secret_arn" {
+  description = "Secrets Manager ARN for the Gemini API key (video generation only)"
+  type        = string
+}

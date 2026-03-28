@@ -28,6 +28,25 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_managed" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Allow ECS agent to read API keys from Secrets Manager at container startup
+resource "aws_iam_role_policy" "ecs_execution_secrets" {
+  name = "${local.prefix}-ecs-execution-secrets"
+  role = aws_iam_role.ecs_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid    = "ReadApiKeySecrets"
+      Effect = "Allow"
+      Action = "secretsmanager:GetSecretValue"
+      Resource = [
+        "arn:aws:secretsmanager:*:*:secret:${var.project}/${var.env}/kimi-api-key*",
+        "arn:aws:secretsmanager:*:*:secret:${var.project}/${var.env}/gemini-api-key*"
+      ]
+    }]
+  })
+}
+
 # ── ECS Task Role ─────────────────────────────────────────────────────────────
 # Used by the app code running inside the container (FastAPI + Celery workers) to:
 # - Read/write S3 (pipeline results, dataset, generated videos)

@@ -59,6 +59,11 @@ resource "aws_ecs_task_definition" "api" {
       { name = "ENV", value = var.env }
     ]
 
+    secrets = [
+      { name = "KIMI_API_KEY", valueFrom = var.kimi_api_key_secret_arn },
+      { name = "GEMINI_API_KEY", valueFrom = var.gemini_api_key_secret_arn }
+    ]
+
     logConfiguration = {
       logDriver = "awslogs"
       options = {
@@ -142,6 +147,11 @@ resource "aws_ecs_task_definition" "worker" {
       { name = "REDIS_URL", value = var.redis_url },
       { name = "S3_BUCKET", value = var.s3_bucket_name },
       { name = "ENV", value = var.env }
+    ]
+
+    secrets = [
+      { name = "KIMI_API_KEY", valueFrom = var.kimi_api_key_secret_arn },
+      { name = "GEMINI_API_KEY", valueFrom = var.gemini_api_key_secret_arn }
     ]
 
     logConfiguration = {
