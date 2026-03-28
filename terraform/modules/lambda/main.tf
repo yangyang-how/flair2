@@ -21,13 +21,15 @@ resource "aws_cloudwatch_log_group" "lambda" {
 # actual code is deployed separately via CI/CD (aws lambda update-function-code).
 
 resource "aws_lambda_function" "s7_video_gen" {
+  count = var.enable_lambda ? 1 : 0
+
   function_name = local.function_name
   role          = var.execution_role_arn
 
   # Placeholder — CI/CD replaces this with the real deployment package
-  filename      = "${path.module}/placeholder.zip"
-  handler       = "handler.lambda_handler"
-  runtime       = "python3.11"
+  filename = "${path.module}/placeholder.zip"
+  handler  = "handler.lambda_handler"
+  runtime  = "python3.11"
 
   timeout     = var.timeout
   memory_size = var.memory_size

@@ -29,3 +29,9 @@ variable "memory_size" {
   type        = number
   default     = 512
 }
+
+variable "enable_lambda" {
+  description = "Set to true to create the Lambda function. Default false so CI plan/validate succeeds without a local zip artifact."
+  type        = bool
+  default     = false
+}

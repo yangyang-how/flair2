@@ -59,3 +59,7 @@ data/*.parquet
 
 # Claude Code
 .claude/settings.json
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
