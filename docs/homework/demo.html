@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flair2 — AI Campaign Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0c;
+    --surface: #131318;
+    --surface-2: #1a1a22;
+    --border: #2a2a35;
+    --text: #e8e6e3;
+    --text-dim: #7a7880;
+    --accent: #ff6b35;
+    --accent-glow: #ff6b3540;
+    --green: #34d399;
+    --green-dim: #34d39930;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'Outfit', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    height: 100%; width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    overflow: hidden;
+    cursor: default;
+  }
+
+  /* ── Slide System ── */
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide.active {
+    opacity: 1; transform: translateY(0);
+    pointer-events: all; z-index: 1;
+  }
+  .slide.exiting {
+    opacity: 0; transform: translateY(-30px);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── Global Grain Overlay ── */
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.03; pointer-events: none; z-index: 9999;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 100;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 8px 16px;
+    backdrop-filter: blur(20px);
+  }
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    border: none; cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .nav-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+    width: 24px; border-radius: 4px;
+  }
+
+  .key-hint {
+    position: fixed; bottom: 36px; right: 40px;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-dim); z-index: 100;
+    letter-spacing: 0.5px;
+  }
+  .key-hint kbd {
+    display: inline-block;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2px 7px;
+    font-family: var(--font-mono); font-size: 10px;
+    margin: 0 2px;
+  }
+
+  .slide-counter {
+    position: fixed; top: 32px; right: 40px;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--text-dim); z-index: 100;
+    letter-spacing: 1px;
+  }
+
+  /* ── Typography ── */
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: 72px; line-height: 1.1;
+    letter-spacing: -1px;
+    text-align: center;
+  }
+  .hero-title em { color: var(--accent); font-style: italic; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .slide-title {
+    font-family: var(--font-display);
+    font-size: 44px; line-height: 1.2;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .body-text {
+    font-size: 18px; line-height: 1.7;
+    color: var(--text-dim);
+    max-width: 640px;
+    text-align: center;
+  }
+
+  /* ── Slide 1: Hero ── */
+  .hero-sub {
+    font-family: var(--font-mono);
+    font-size: 14px; color: var(--text-dim);
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-top: 24px;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 8px 20px;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--text-dim); margin-top: 40px;
+  }
+  .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+  .glow-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.15;
+    pointer-events: none;
+  }
+  .glow-orb.orange { width: 400px; height: 400px; background: var(--accent); top: 10%; right: 15%; }
+  .glow-orb.blue { width: 300px; height: 300px; background: var(--blue); bottom: 20%; left: 10%; }
+
+  /* ── Slide 2: Problem ── */
+  .problem-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 24px; max-width: 800px; width: 100%;
+    margin-top: 8px;
+  }
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px;
+    transition: all 0.3s ease;
+  }
+  .problem-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .problem-card .icon { font-size: 28px; margin-bottom: 12px; }
+  .problem-card h3 {
+    font-family: var(--font-body); font-weight: 600;
+    font-size: 16px; margin-bottom: 8px;
+  }
+  .problem-card p {
+    font-size: 13px; color: var(--text-dim); line-height: 1.6;
+  }
+
+  /* ── Slide 3: Pipeline ── */
+  .pipeline {
+    display: flex; align-items: center; gap: 0;
+    max-width: 1000px; width: 100%;
+    margin-top: 16px; position: relative;
+  }
+  .stage {
+    flex: 1; text-align: center; position: relative;
+    padding: 16px 8px;
+  }
+  .stage-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 8px;
+    transition: all 0.4s ease;
+    position: relative;
+    min-height: 100px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .stage-box.highlighted {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .stage-num {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 2px;
+    color: var(--accent); margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .stage-name {
+    font-weight: 600; font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .stage-desc {
+    font-size: 10px; color: var(--text-dim);
+    font-family: var(--font-mono);
+  }
+  .stage-arrow {
+    position: absolute; right: -8px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim); font-size: 14px;
+    z-index: 2;
+  }
+  .mr-label {
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase;
+    white-space: nowrap; padding: 2px 10px;
+    border-radius: 4px;
+  }
+  .mr-label.cycle1 { color: var(--blue); background: #60a5fa15; }
+  .mr-label.cycle2 { color: var(--purple); background: #a78bfa15; }
+
+  .pipeline-bracket {
+    position: absolute; top: -28px; height: 12px;
+    border: 1px solid; border-bottom: none;
+    border-radius: 6px 6px 0 0;
+  }
+  .pipeline-bracket.b1 {
+    left: 0%; width: 33.3%;
+    border-color: var(--blue);
+  }
+  .pipeline-bracket.b2 {
+    left: 50%; width: 33.3%;
+    border-color: var(--purple);
+  }
+
+  /* ── Slide 4: Live Output ── */
+  .output-container {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 24px; max-width: 960px; width: 100%;
+    margin-top: 8px;
+  }
+  .output-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .output-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .output-rank {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--accent); letter-spacing: 1px;
+  }
+  .output-score {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--green);
+  }
+  .output-pattern {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--text-dim); padding: 8px 20px;
+    background: var(--surface-2);
+    letter-spacing: 0.5px;
+  }
+  .output-body {
+    padding: 20px;
+  }
+  .output-label {
+    font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 8px;
+  }
+  .output-hook {
+    font-family: var(--font-display);
+    font-size: 20px; line-height: 1.3;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .output-script {
+    font-size: 13px; line-height: 1.7;
+    color: var(--text-dim);
+    border-left: 2px solid var(--accent);
+    padding-left: 16px;
+    margin-bottom: 16px;
+  }
+  .voice-tag {
+    display: inline-block;
+    background: var(--accent); color: var(--bg);
+    font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 3px;
+    font-weight: 500;
+  }
+
+  /* ── Slide 5: Architecture ── */
+  .arch-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; max-width: 880px; width: 100%;
+    margin-top: 16px;
+  }
+  .arch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .arch-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+  }
+  .arch-icon {
+    font-size: 24px; margin-bottom: 10px;
+  }
+  .arch-name {
+    font-weight: 600; font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .arch-detail {
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .arch-wide { grid-column: span 2; }
+
+  .experiment-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; max-width: 880px; width: 100%;
+    margin-top: 20px;
+  }
+  .exp-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+    text-align: center;
+  }
+  .exp-card h4 {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .exp-card h4.e1 { color: var(--yellow); }
+  .exp-card h4.e2 { color: var(--red); }
+  .exp-card h4.e3 { color: var(--blue); }
+  .exp-card p {
+    font-size: 12px; color: var(--text-dim); line-height: 1.5;
+  }
+
+  /* ── Slide 6: Status ── */
+  .status-bars {
+    max-width: 700px; width: 100%;
+    display: flex; flex-direction: column; gap: 18px;
+    margin-top: 16px;
+  }
+  .status-row {
+    display: grid; grid-template-columns: 160px 1fr 60px;
+    align-items: center; gap: 16px;
+  }
+  .status-label {
+    font-size: 14px; font-weight: 500;
+    text-align: right;
+  }
+  .status-bar-track {
+    height: 28px; background: var(--surface-2);
+    border-radius: 6px; overflow: hidden;
+    position: relative;
+  }
+  .status-bar-fill {
+    height: 100%; border-radius: 6px;
+    transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 0;
+  }
+  .status-bar-fill.m1 { background: linear-gradient(90deg, var(--green), #2dd4bf); }
+  .status-bar-fill.m2 { background: linear-gradient(90deg, var(--green), #34d399); }
+  .status-bar-fill.m3 { background: linear-gradient(90deg, var(--blue), #93c5fd); }
+  .status-bar-fill.m4 { background: linear-gradient(90deg, var(--purple), #c4b5fd); }
+  .status-bar-fill.m5 { background: linear-gradient(90deg, var(--yellow), #fcd34d); }
+  .status-pct {
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .stats-row {
+    display: flex; gap: 32px;
+    margin-top: 36px; justify-content: center;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 36px; color: var(--text);
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim); margin-top: 4px;
+  }
+
+  /* ── Slide 7: Closing ── */
+  .closing-links {
+    display: flex; gap: 16px; margin-top: 32px;
+  }
+  .closing-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 24px;
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--text); text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  .closing-link:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .closing-team {
+    display: flex; gap: 40px; margin-top: 24px;
+  }
+  .closing-member {
+    text-align: center;
+  }
+  .closing-member .name {
+    font-weight: 600; font-size: 16px;
+  }
+  .closing-member .role {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-dim); margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Animations for children ── */
+  .slide.active .anim {
+    animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .anim-d1 { animation-delay: 0.1s !important; }
+  .anim-d2 { animation-delay: 0.2s !important; }
+  .anim-d3 { animation-delay: 0.3s !important; }
+  .anim-d4 { animation-delay: 0.4s !important; }
+  .anim-d5 { animation-delay: 0.5s !important; }
+  .anim-d6 { animation-delay: 0.6s !important; }
+  .anim-d7 { animation-delay: 0.7s !important; }
+  .anim-d8 { animation-delay: 0.8s !important; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Pipeline animation ── */
+  .stage-box { opacity: 0; }
+  .slide.active .stage-box {
+    animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .slide.active .stage:nth-child(1) .stage-box { animation-delay: 0.15s; }
+  .slide.active .stage:nth-child(2) .stage-box { animation-delay: 0.25s; }
+  .slide.active .stage:nth-child(3) .stage-box { animation-delay: 0.35s; }
+  .slide.active .stage:nth-child(4) .stage-box { animation-delay: 0.45s; }
+  .slide.active .stage:nth-child(5) .stage-box { animation-delay: 0.55s; }
+  .slide.active .stage:nth-child(6) .stage-box { animation-delay: 0.65s; }
+
+  /* ── Status bar animation ── */
+  .slide.active .status-bar-fill {
+    transition-delay: 0.4s;
+  }
+
+  /* ── Typewriter for hook ── */
+  .typewriter {
+    overflow: hidden;
+    border-right: 2px solid var(--accent);
+    white-space: nowrap;
+    animation: typing 2s steps(40, end) 0.5s both,
+               blink 0.75s step-end infinite;
+    width: 0;
+    display: inline-block;
+  }
+  .slide.active .typewriter {
+    width: 100%;
+  }
+  @keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+  @keyframes blink {
+    50% { border-color: transparent; }
+  }
+
+  /* ── Pulse for live dot ── */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .dot { animation: pulse 2s infinite; }
+</style>
+</head>
+<body>
+
+<!-- ═══════ SLIDE 1: OUTPUT (hook — lead with the product) ═══════ -->
+<div class="slide active" data-slide="0">
+  <div class="section-label anim">Real Output</div>
+  <div class="slide-title anim anim-d1" style="font-size: 32px;">AI-generated. Audience-voted. Creator-voiced.</div>
+  <div class="output-container">
+    <div class="output-card anim anim-d2">
+      <div class="output-header">
+        <span class="output-rank">#1 &mdash; RANK 1</span>
+        <span class="output-score">&#9650; 15.0 votes</span>
+      </div>
+      <div class="output-pattern">pattern: story + steady pacing</div>
+      <div class="output-body">
+        <div class="output-label">Hook</div>
+        <div class="output-hook">"I deleted every single photo off my phone last Tuesday."</div>
+        <div class="output-label">Personalized Script <span class="voice-tag">Creator Voice</span></div>
+        <div class="output-script">
+          Okay no cap, I did something absolutely insane last Tuesday. Deleted every single photo off my phone. Not the cloud, not the backup &mdash; just... poof. Fourteen thousand pics and my hands were literally shaking. But wait for it... <em>[beat]</em> I couldn't even remember taking half of them. Trust me on this &mdash; the best vibes of your life don't need an audience.
+        </div>
+      </div>
+    </div>
+    <div class="output-card anim anim-d3">
+      <div class="output-header">
+        <span class="output-rank">#2 &mdash; RANK 2</span>
+        <span class="output-score">&#9650; 11.0 votes</span>
+      </div>
+      <div class="output-pattern">pattern: direct_address + staccato</div>
+      <div class="output-body">
+        <div class="output-label">Hook</div>
+        <div class="output-hook">"Your phone is making you ugly."</div>
+        <div class="output-label">Personalized Script <span class="voice-tag">Creator Voice</span></div>
+        <div class="output-script">
+          Your phone is lowkey aging you. No cap. Tech neck. Eye bags. Blue light? Insane. 96 times daily. Squinting. Frowning. Lines forming. Deep ones. Permanent. <em>[HARD CUT]</em> Stop. Hold it eye level. Today. Trust me on this. Let's gooo.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ SLIDE 2: PROBLEM ═══════ -->
+<div class="slide" data-slide="1">
+  <div class="section-label anim">The Problem</div>
+  <div class="slide-title anim anim-d1">Creators guess.<br>Algorithms don't.</div>
+  <div class="problem-grid">
+    <div class="problem-card anim anim-d2">
+      <div class="icon">&#128064;</div>
+      <h3>Manual Pattern Hunting</h3>
+      <p>Watch hundreds of viral videos, trying to intuit what makes them work. Slow, subjective, unrepeatable.</p>
+    </div>
+    <div class="problem-card anim anim-d3">
+      <div class="icon">&#128257;</div>
+      <h3>Surface-Level Copying</h3>
+      <p>Copy trending sounds and dances. Platforms actively penalize imitation. Trends die in 48-72 hours.</p>
+    </div>
+    <div class="problem-card anim anim-d4">
+      <div class="icon">&#128200;</div>
+      <h3>Structural Patterns Last</h3>
+      <p>Hook types, pacing, emotional arcs &mdash; 82% of 500K+ videos share the same structural mechanics.</p>
+    </div>
+    <div class="problem-card anim anim-d5">
+      <div class="icon">&#129302;</div>
+      <h3>We Automate the Structure</h3>
+      <p>Extract structural patterns from real data. Generate scripts. Simulate audience voting. Personalize to your voice.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ SLIDE 3: PIPELINE ═══════ -->
+<div class="slide" data-slide="2">
+  <div class="section-label anim">The Pipeline</div>
+  <div class="slide-title anim anim-d1" style="font-size: 36px;">Six Stages. Two MapReduce Cycles.</div>
+  <div class="pipeline" style="margin-top: 40px;">
+    <div class="pipeline-bracket b1"></div>
+    <div class="pipeline-bracket b2"></div>
+    <div class="stage">
+      <div class="mr-label cycle1">MapReduce 1</div>
+      <div class="stage-box">
+        <div class="stage-num">S1</div>
+        <div class="stage-name">Analyze</div>
+        <div class="stage-desc">100 videos<br>&rarr; patterns</div>
+      </div>
+      <div class="stage-arrow">&rarr;</div>
+    </div>
+    <div class="stage">
+      <div class="stage-box">
+        <div class="stage-num">S2</div>
+        <div class="stage-name">Aggregate</div>
+        <div class="stage-desc">patterns<br>&rarr; library</div>
+      </div>
+      <div class="stage-arrow">&rarr;</div>
+    </div>
+    <div class="stage">
+      <div class="stage-box">
+        <div class="stage-num">S3</div>
+        <div class="stage-name">Generate</div>
+        <div class="stage-desc">library<br>&rarr; 50 scripts</div>
+      </div>
+      <div class="stage-arrow">&rarr;</div>
+    </div>
+    <div class="stage">
+      <div class="mr-label cycle2">MapReduce 2</div>
+      <div class="stage-box">
+        <div class="stage-num">S4</div>
+        <div class="stage-name">Vote</div>
+        <div class="stage-desc">100 personas<br>&rarr; rankings</div>
+      </div>
+      <div class="stage-arrow">&rarr;</div>
+    </div>
+    <div class="stage">
+      <div class="stage-box">
+        <div class="stage-num">S5</div>
+        <div class="stage-name">Rank</div>
+        <div class="stage-desc">votes<br>&rarr; top 10</div>
+      </div>
+      <div class="stage-arrow">&rarr;</div>
+    </div>
+    <div class="stage">
+      <div class="stage-box">
+        <div class="stage-num">S6</div>
+        <div class="stage-name">Personalize</div>
+        <div class="stage-desc">top 10<br>&rarr; your voice</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top: 32px; display: flex; gap: 32px;" class="anim anim-d7">
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--blue);">&#9632; S1, S2 &mdash; Pure data extraction</div>
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--purple);">&#9632; S4, S5 &mdash; Crowd simulation</div>
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent);">&#9632; S3, S6 &mdash; LLM generation</div>
+  </div>
+</div>
+
+<!-- ═══════ SLIDE 4: ARCHITECTURE ═══════ -->
+<div class="slide" data-slide="3">
+  <div class="section-label anim">Infrastructure</div>
+  <div class="slide-title anim anim-d1" style="font-size: 32px;">Multi-User Distributed System on AWS</div>
+  <div class="arch-grid">
+    <div class="arch-card anim anim-d2 arch-wide">
+      <div class="arch-icon">&#9881;</div>
+      <div class="arch-name">ECS Fargate + ALB</div>
+      <div class="arch-detail">API &amp; Celery workers<br>Horizontal scaling, no EC2</div>
+    </div>
+    <div class="arch-card anim anim-d3">
+      <div class="arch-icon">&#9889;</div>
+      <div class="arch-name">ElastiCache</div>
+      <div class="arch-detail">Redis 7 &mdash; task queue<br>rate limiter, SETNX cache</div>
+    </div>
+    <div class="arch-card anim anim-d4">
+      <div class="arch-icon">&#128230;</div>
+      <div class="arch-name">S3 + DynamoDB</div>
+      <div class="arch-detail">Pipeline outputs<br>run metadata, perf tracking</div>
+    </div>
+    <div class="arch-card anim anim-d2">
+      <div class="arch-icon">&#129302;</div>
+      <div class="arch-name">Kimi K2.5</div>
+      <div class="arch-detail">Reasoning provider<br>256K context</div>
+    </div>
+    <div class="arch-card anim anim-d3">
+      <div class="arch-icon">&#127916;</div>
+      <div class="arch-name">Gemini</div>
+      <div class="arch-detail">Video generation<br>(Lambda, on-demand)</div>
+    </div>
+    <div class="arch-card anim anim-d4">
+      <div class="arch-icon">&#128202;</div>
+      <div class="arch-name">Observability</div>
+      <div class="arch-detail">UsageTracker, structlog<br>CloudWatch, CI/CD</div>
+    </div>
+    <div class="arch-card anim anim-d5">
+      <div class="arch-icon">&#127760;</div>
+      <div class="arch-name">Cloudflare Pages</div>
+      <div class="arch-detail">Astro + React islands<br>SSE pipeline viz</div>
+    </div>
+  </div>
+  <div class="experiment-row">
+    <div class="exp-card anim anim-d5">
+      <h4 class="e1">Experiment 1</h4>
+      <p>Multi-tenant backpressure under shared API rate limit</p>
+    </div>
+    <div class="exp-card anim anim-d6">
+      <h4 class="e2">Experiment 2</h4>
+      <p>Failure recovery &amp; run isolation across concurrent pipelines</p>
+    </div>
+    <div class="exp-card anim anim-d7">
+      <h4 class="e3">Experiment 3</h4>
+      <p>Cross-user SETNX cache concurrency &amp; hit rates</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ SLIDE 5: STATUS ═══════ -->
+<div class="slide" data-slide="4">
+  <div class="section-label anim">Progress</div>
+  <div class="slide-title anim anim-d1" style="font-size: 36px;">Day 4 of 21</div>
+  <div class="status-bars anim anim-d2">
+    <div class="status-row">
+      <div class="status-label">M1 &mdash; MVP Pipeline</div>
+      <div class="status-bar-track"><div class="status-bar-fill m1" data-width="88"></div></div>
+      <div class="status-pct">88%</div>
+    </div>
+    <div class="status-row">
+      <div class="status-label">M2 &mdash; AWS Infra</div>
+      <div class="status-bar-track"><div class="status-bar-fill m2" data-width="100"></div></div>
+      <div class="status-pct">100%</div>
+    </div>
+    <div class="status-row">
+      <div class="status-label">M3 &mdash; Distributed</div>
+      <div class="status-bar-track"><div class="status-bar-fill m3" data-width="0"></div></div>
+      <div class="status-pct">0%</div>
+    </div>
+    <div class="status-row">
+      <div class="status-label">M4 &mdash; Frontend</div>
+      <div class="status-bar-track"><div class="status-bar-fill m4" data-width="0"></div></div>
+      <div class="status-pct">0%</div>
+    </div>
+    <div class="status-row">
+      <div class="status-label">M5 &mdash; Experiments</div>
+      <div class="status-bar-track"><div class="status-bar-fill m5" data-width="25"></div></div>
+      <div class="status-pct">25%</div>
+    </div>
+  </div>
+  <div class="stats-row anim anim-d4">
+    <div class="stat">
+      <div class="stat-num">45</div>
+      <div class="stat-label">Tests Passing</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">14</div>
+      <div class="stat-label">PRs Merged</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">6</div>
+      <div class="stat-label">Pipeline Stages</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">2</div>
+      <div class="stat-label">LLM Providers</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">8</div>
+      <div class="stat-label">AWS Services</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ SLIDE 6: CLOSING ═══════ -->
+<div class="slide" data-slide="5">
+  <div class="glow-orb orange" style="top: 30%; left: 20%;"></div>
+  <div class="glow-orb blue" style="bottom: 30%; right: 20%;"></div>
+  <div class="hero-title anim" style="font-size: 56px;">
+    <em>Flair2</em>
+  </div>
+  <div class="body-text anim anim-d1" style="margin-top: 16px; font-size: 20px; color: var(--text);">
+    Pattern learning &amp; crowd-validated content generation<br>for short-form video
+  </div>
+  <div class="closing-team anim anim-d2">
+    <div class="closing-member">
+      <div class="name">Sam Wu</div>
+      <div class="role">Pipeline &middot; Frontend</div>
+    </div>
+    <div class="closing-member">
+      <div class="name">Jess Zhang</div>
+      <div class="role">AWS Infrastructure</div>
+    </div>
+  </div>
+  <div class="closing-links anim anim-d3">
+    <a class="closing-link" href="https://github.com/yangyang-how/flair2" target="_blank">
+      &#128187; github.com/yangyang-how/flair2
+    </a>
+  </div>
+  <div class="hero-badge anim anim-d4" style="margin-top: 24px;">
+    <span class="dot"></span>
+    CS6650 &mdash; Milestone 1 &mdash; March 2026
+  </div>
+</div>
+
+<!-- ═══════ NAV ═══════ -->
+<div class="nav" id="nav"></div>
+<div class="slide-counter" id="counter">1 / 6</div>
+<div class="key-hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> or click</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const nav = document.getElementById('nav');
+  const counter = document.getElementById('counter');
+  let current = 0;
+
+  // Build nav dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    nav.appendChild(dot);
+  });
+
+  function goTo(n) {
+    if (n < 0 || n >= slides.length || n === current) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exiting');
+    setTimeout(() => slides[current === n ? current : current].classList.remove('exiting'), 600);
+
+    const prev = current;
+    current = n;
+    slides[current].classList.add('active');
+    setTimeout(() => slides[prev].classList.remove('exiting'), 600);
+
+    // Animate status bars on slide 5
+    if (current === 4) {
+      setTimeout(() => {
+        document.querySelectorAll('.status-bar-fill').forEach(bar => {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      }, 400);
+    }
+
+    // Update nav
+    nav.querySelectorAll('.nav-dot').forEach((d, i) => {
+      d.className = 'nav-dot' + (i === current ? ' active' : '');
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+  }
+
+  // Keyboard nav
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  // Click nav (left/right halves)
+  document.addEventListener('click', e => {
+    if (e.target.closest('.nav') || e.target.closest('.closing-link')) return;
+    if (e.clientX > window.innerWidth / 2) goTo(current + 1);
+    else goTo(current - 1);
+  });
+</script>
+</body>
+</html>
