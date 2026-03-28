@@ -14,7 +14,7 @@ COPY pyproject.toml .
 # Install production deps into /app/venv
 RUN python -m venv /app/venv && \
     /app/venv/bin/pip install --upgrade pip && \
-    /app/venv/bin/pip install -e "." --no-cache-dir
+    /app/venv/bin/pip install . --no-cache-dir
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
 FROM python:3.11-slim AS runtime
