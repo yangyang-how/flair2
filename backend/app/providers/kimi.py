@@ -31,17 +31,13 @@ class KimiProvider:
 
     def _get_client(self):
         if self._client is None:
-            import httpx
             from openai import OpenAI
 
-            http_client = httpx.Client(
-                headers={"User-Agent": KIMI_USER_AGENT},
-                timeout=120.0,
-            )
             self._client = OpenAI(
                 api_key=self._api_key,
                 base_url=KIMI_BASE_URL,
-                http_client=http_client,
+                default_headers={"User-Agent": KIMI_USER_AGENT},
+                timeout=120.0,
             )
         return self._client
 
