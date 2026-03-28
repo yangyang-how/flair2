@@ -1,4 +1,5 @@
 """Per-run LLM usage tracking with visual progress."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

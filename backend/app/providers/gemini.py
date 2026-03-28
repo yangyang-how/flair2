@@ -47,7 +47,9 @@ class GeminiProvider:
                 if hasattr(response, "usage_metadata") and response.usage_metadata:
                     self.last_usage = {
                         "input_tokens": getattr(response.usage_metadata, "prompt_token_count", 0),
-                        "output_tokens": getattr(response.usage_metadata, "candidates_token_count", 0),
+                        "output_tokens": getattr(
+                            response.usage_metadata, "candidates_token_count", 0
+                        ),
                     }
 
                 text = response.text

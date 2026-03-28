@@ -31,8 +31,7 @@ def _build_feedback_section(feedback: list[VideoPerformance] | None) -> str:
     lines = []
     for vp in sorted(feedback, key=lambda x: x.views, reverse=True)[:5]:
         lines.append(
-            f"- Rank {vp.committee_rank} predicted → "
-            f"Actual: {vp.views} views, {vp.likes} likes"
+            f"- Rank {vp.committee_rank} predicted → Actual: {vp.views} views, {vp.likes} likes"
         )
     return S4_FEEDBACK_SECTION.format(feedback_data="\n".join(lines))
 

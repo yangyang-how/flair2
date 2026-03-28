@@ -22,10 +22,12 @@ def sample_script():
 @pytest.mark.asyncio
 async def test_s6_returns_final_result(sample_script, sample_creator_profile, mock_provider):
     async def mock_gen(prompt, schema=None):
-        return json.dumps({
-            "personalized_script": "Yo what's up, so lowkey most people waste their mornings...",
-            "video_prompt": "Fast-paced montage of morning routine clips with text overlays.",
-        })
+        return json.dumps(
+            {
+                "personalized_script": "Yo what's up, so lowkey most people waste their mornings...",  # noqa: E501
+                "video_prompt": "Fast-paced montage of morning routine clips with text overlays.",
+            }
+        )
 
     mock_provider.generate_text = mock_gen
     result = await s6_personalize(sample_script, sample_creator_profile, mock_provider)
@@ -39,10 +41,12 @@ async def test_s6_returns_final_result(sample_script, sample_creator_profile, mo
 @pytest.mark.asyncio
 async def test_s6_preserves_original_script(sample_script, sample_creator_profile, mock_provider):
     async def mock_gen(prompt, schema=None):
-        return json.dumps({
-            "personalized_script": "Rewritten version",
-            "video_prompt": "Visual prompt",
-        })
+        return json.dumps(
+            {
+                "personalized_script": "Rewritten version",
+                "video_prompt": "Visual prompt",
+            }
+        )
 
     mock_provider.generate_text = mock_gen
     result = await s6_personalize(sample_script, sample_creator_profile, mock_provider)

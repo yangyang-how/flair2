@@ -8,7 +8,11 @@ def test_s5_rank_aggregates_votes():
             persona_id=f"persona_{i}",
             persona_description="test",
             top_5_script_ids=[
-                "script_001", "script_003", "script_005", "script_007", "script_009",
+                "script_001",
+                "script_003",
+                "script_005",
+                "script_007",
+                "script_009",
             ],
             reasoning="test",
         )
@@ -18,7 +22,11 @@ def test_s5_rank_aggregates_votes():
             persona_id=f"persona_{i + 60}",
             persona_description="test",
             top_5_script_ids=[
-                "script_002", "script_004", "script_006", "script_008", "script_001",
+                "script_002",
+                "script_004",
+                "script_006",
+                "script_008",
+                "script_001",
             ],
             reasoning="test",
         )

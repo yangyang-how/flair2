@@ -26,9 +26,7 @@ def get_reasoning_provider(name: str, **kwargs):
 
 def get_video_provider(name: str, **kwargs):
     if name not in _video_providers:
-        raise ValueError(
-            f"Unknown video provider: {name}. Available: {list(_video_providers)}"
-        )
+        raise ValueError(f"Unknown video provider: {name}. Available: {list(_video_providers)}")
     return _video_providers[name](**kwargs)
 
 

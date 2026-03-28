@@ -25,14 +25,20 @@ def sample_scripts():
 @pytest.mark.asyncio
 async def test_s4_vote_returns_persona_vote(sample_scripts, mock_provider):
     async def mock_gen(prompt, schema=None):
-        return json.dumps({
-            "persona_id": "persona_0",
-            "persona_description": "18-year-old student who watches comedy",
-            "top_5_script_ids": [
-                "script_000", "script_003", "script_007", "script_001", "script_005",
-            ],
-            "reasoning": "Script 000 had the strongest hook.",
-        })
+        return json.dumps(
+            {
+                "persona_id": "persona_0",
+                "persona_description": "18-year-old student who watches comedy",
+                "top_5_script_ids": [
+                    "script_000",
+                    "script_003",
+                    "script_007",
+                    "script_001",
+                    "script_005",
+                ],
+                "reasoning": "Script 000 had the strongest hook.",
+            }
+        )
 
     mock_provider.generate_text = mock_gen
     result = await s4_vote(sample_scripts, "persona_0", mock_provider, feedback=None)
