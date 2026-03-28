@@ -54,9 +54,9 @@ resource "aws_ecs_task_definition" "api" {
     }]
 
     environment = [
-      { name = "REDIS_URL", value = var.redis_url },
-      { name = "S3_BUCKET", value = var.s3_bucket_name },
-      { name = "ENV", value = var.env }
+      { name = "FLAIR2_REDIS_URL", value = var.redis_url },
+      { name = "FLAIR2_S3_BUCKET", value = var.s3_bucket_name },
+      { name = "FLAIR2_ENVIRONMENT", value = var.env }
     ]
 
     secrets = [
@@ -144,9 +144,9 @@ resource "aws_ecs_task_definition" "worker" {
     ]
 
     environment = [
-      { name = "REDIS_URL", value = var.redis_url },
-      { name = "S3_BUCKET", value = var.s3_bucket_name },
-      { name = "ENV", value = var.env }
+      { name = "FLAIR2_REDIS_URL", value = var.redis_url },
+      { name = "FLAIR2_S3_BUCKET", value = var.s3_bucket_name },
+      { name = "FLAIR2_ENVIRONMENT", value = var.env }
     ]
 
     secrets = [
