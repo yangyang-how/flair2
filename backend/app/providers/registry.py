@@ -1,7 +1,9 @@
 from app.providers.gemini import GeminiProvider
+from app.providers.kimi import KimiProvider
 
 _reasoning_providers: dict[str, type] = {
     "gemini": GeminiProvider,
+    "kimi": KimiProvider,
 }
 _video_providers: dict[str, type] = {}
 
