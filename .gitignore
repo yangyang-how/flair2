@@ -26,8 +26,6 @@ htmlcov/
 .env.*
 !.env.example
 
-# Docker
-.dockerignore
 
 # Node / Frontend
 node_modules/
