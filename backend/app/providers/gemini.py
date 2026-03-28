@@ -1,28 +1,17 @@
 import asyncio
 import json
-import re
 
 import structlog
 from pydantic import BaseModel
 
 from app.config import settings
 from app.models.errors import InvalidResponseError, ProviderError, RateLimitError
+from app.providers.utils import extract_json
 
 logger = structlog.get_logger()
 
 BACKOFF_SECS = [1, 2, 4]
 MAX_RETRIES = 3
-
-
-def _extract_json(text: str) -> str:
-    """Extract JSON from LLM response, stripping markdown fences."""
-    match = re.search(r"```(?:json)?\s*\n?(.*?)\n?\s*```", text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    text = text.strip()
-    if text.startswith("{") or text.startswith("["):
-        return text
-    return text
 
 
 class GeminiProvider:
@@ -55,7 +44,7 @@ class GeminiProvider:
                 )
                 text = response.text
                 if schema:
-                    json_str = _extract_json(text)
+                    json_str = extract_json(text)
                     try:
                         json.loads(json_str)
                     except json.JSONDecodeError as e:
