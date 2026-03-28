@@ -59,7 +59,7 @@ def chart_token_usage() -> None:
     ax.set_xticklabels(stages, fontsize=10)
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{int(v):,}"))
     ax.legend(frameon=False, loc="upper left")
-    ax.set_ylim(0, 6500)
+    ax.set_ylim(-1000, 6500)
 
     fig.tight_layout()
     fig.savefig(OUT_DIR / "token_usage_by_stage.png", dpi=300, bbox_inches="tight")
@@ -114,8 +114,8 @@ def chart_milestone_progress() -> None:
         "M4 — Frontend",
         "M5 — Experiments",
     ]
-    closed = [6, 6, 0, 0, 1]
-    total = [7, 6, 5, 7, 4]
+    closed = [7, 6, 0, 0, 1]
+    total = [8, 6, 5, 7, 4]
     remaining = [t - c for t, c in zip(total, closed)]
     pcts = [c / t * 100 for c, t in zip(closed, total)]
 

@@ -53,7 +53,7 @@ Observability is built into the pipeline from day one, not retrofitted:
 
 | Milestone | Owner | Dates | Status |
 |-----------|-------|-------|--------|
-| M1 — MVP Pipeline | Sam | Mar 25–28 | 86% complete |
+| M1 — MVP Pipeline | Sam | Mar 25–28 | 88% complete (7/8, 1 suspended) |
 | M2 — AWS Infrastructure | Jess | Mar 28–Apr 4 | 100% complete (ahead of schedule) |
 | M3 — Distributed System | Both | Apr 4–8 | Planned |
 | M4 — Frontend | Sam | Apr 8–11 | Planned |
@@ -111,9 +111,29 @@ Every LLM call is tracked by the `UsageTracker` with stage identity, token count
 - **YouTube/TikTok Trends 2025** (CC BY 4.0) — 48,000 engagement signals providing ground-truth data on what content actually performs
 - **Viral content psychology research** — 8,300+ lines of synthesized research documents in the repository, distilled into pipeline prompts
 
-### Piazza Projects
+### Related Class Projects
 
-*[To be completed after reviewing Piazza submissions]*
+**1. Compute-Limited GenAI Platform Backend — Srijan Pokharel & Pranjal Kanel**
+
+This project is the closest conceptual match to ours. Both systems are built around a central question: how do you handle LLM workloads under compute and API constraints? Their architecture decouples request intake from processing via a queue and models compute scarcity by capping worker concurrency — then runs controlled experiments to observe saturation, tail latency, and overload behavior.
+
+The overlap is most direct in their Experiment 3 (bounded queue + API rate limiting vs. unbounded queue vs. rejection), which maps almost exactly to our Experiment 1, where we measure a Redis token bucket rate limiter under multi-tenant LLM API contention. Both experiments ask the same underlying question: what is the right overload strategy, and what does the system actually lose under each policy?
+
+The key architectural difference is in how the LLM is represented. Their system simulates the LLM pipeline with controlled preprocessing and inference delays, which gives clean experimental control over latency distributions. Our system calls real external APIs (Kimi K2.5 / Gemini), which introduces real-world variance — provider cold starts, unpredictable response times, and quota enforcement behavior that cannot be replicated in simulation. Each approach has its tradeoff: their setup isolates variables more cleanly; ours captures the messiness of production API dependencies.
+
+**2. StreamScale: Distributed Music Streaming Backend — Yatish, Mayank, Parthav**
+
+StreamScale and our project share a substantial technical substrate. Both systems are built on microservices deployed on AWS ECS Fargate behind an ALB, both use Redis and DynamoDB as their primary data layer, and both use Locust for load testing and measure the effect of horizontal ECS scaling on throughput and latency.
+
+The divergence is in what problem each system is solving. StreamScale's core challenge is write consistency under concurrent play events — ensuring that thousands of simultaneous writes do not silently drop updates, and demonstrating that an SQS-buffered event-driven architecture recovers accuracy that a naive direct-write approach loses under load. Our focus is multi-tenant backpressure — specifically, how multiple concurrent users sharing a single LLM API key interact under load, and how Redis SETNX atomicity ensures exactly one LLM call is issued per unique input across concurrent workers. Where StreamScale asks "do all writes land?", we ask "who gets to write, and when?". Both are concurrency problems, but at different layers of the stack.
+
+**3. Real-Time Distributed Monitoring + AI DevOps Agent — Dylan Pan, Zongwang Wang, Lucas Chen, Ellis Guo**
+
+This project shares two architectural patterns with ours that do not appear together in most other class projects. The first is a closed feedback loop where system outputs influence future behavior. Their AI DevOps Agent reads aggregated CPU trend data from Kafka and uses an LLM to generate and apply Terraform changes, which then flow back into the system as new producer metrics. Our pipeline has an analogous loop: historical video performance data is read from DynamoDB and injected into the next pipeline run's LLM prompts, so past outcomes shape future content generation decisions. In both cases, the LLM is not a terminal endpoint but a step inside a cycle.
+
+The second shared pattern is treating fault isolation as a first-class design concern. Their Experiment 7 (crashing the AI agent mid-cycle should not affect the rest of the Kafka pipeline) directly mirrors our Experiment 2, where a worker crash for one user's pipeline run should have no impact on other concurrent users' runs. Both experiments validate the same property: that an AI component's failure is contained and does not propagate to the broader system.
+
+The primary difference lies in what the LLM is doing. Their agent makes infrastructure decisions that directly mutate the live AWS environment via Terraform apply — high-stakes, low-frequency. Our LLM generates content across approximately 260 API calls per pipeline run under a shared rate limiter — high-frequency, lower-stakes per call, but sensitive to cumulative quota pressure.
 
 ---
 

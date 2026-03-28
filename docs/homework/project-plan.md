@@ -173,7 +173,7 @@ Key dependency relationships:
 
 | Milestone | Progress | Key Metrics |
 |-----------|----------|-------------|
-| **M1: MVP Pipeline** | 86% (6/7 closed, 1 suspended) | All 6 stages implemented + tested, Kimi provider integrated, first real pipeline run complete |
+| **M1: MVP Pipeline** | 88% (7/8 closed, 1 suspended) | All 6 stages implemented + tested, Kimi provider integrated, first real pipeline run complete |
 | **M2: AWS Infra** | 100% (6/6 closed) | Full Terraform stack: VPC, ECS, ALB, Redis, S3, DynamoDB, Lambda |
 | **M3: Distributed** | 0% (0/5) | Not started — on schedule per timeline (starts Apr 4) |
 | **M4: Frontend** | 0% (0/7) | Not started — on schedule per timeline (starts Apr 8) |
