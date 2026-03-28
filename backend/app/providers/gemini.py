@@ -21,6 +21,7 @@ class GeminiProvider:
         self._api_key = api_key or settings.gemini_api_key
         self._model = model
         self._client = None
+        self.last_usage: dict[str, int] | None = None
 
     def _get_client(self):
         if self._client is None:
@@ -42,6 +43,13 @@ class GeminiProvider:
                     model=self._model,
                     contents=prompt,
                 )
+                # Capture token usage
+                if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    self.last_usage = {
+                        "input_tokens": getattr(response.usage_metadata, "prompt_token_count", 0),
+                        "output_tokens": getattr(response.usage_metadata, "candidates_token_count", 0),
+                    }
+
                 text = response.text
                 if schema:
                     json_str = extract_json(text)
