@@ -29,3 +29,9 @@ variable "memory_size" {
   type        = number
   default     = 512
 }
+
+variable "enable_lambda" {
+  description = "Set to false in CI/plan to skip Lambda creation (no placeholder.zip needed). Set to true only when deploying the real artifact."
+  type        = bool
+  default     = false
+}

@@ -21,6 +21,8 @@ resource "aws_cloudwatch_log_group" "lambda" {
 # actual code is deployed separately via CI/CD (aws lambda update-function-code).
 
 resource "aws_lambda_function" "s7_video_gen" {
+  count = var.enable_lambda ? 1 : 0
+
   function_name = local.function_name
   role          = var.execution_role_arn
 

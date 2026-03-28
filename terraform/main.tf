@@ -275,4 +275,6 @@ module "lambda" {
   env                = var.env
   execution_role_arn = module.iam.lambda_role_arn
   s3_bucket_name     = module.s3.bucket_name
+
+  enable_lambda = false # set to true only when deploying the real artifact
 }
