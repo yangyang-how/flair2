@@ -5,8 +5,10 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.27",
+    "sse-starlette>=1.8",
     "pydantic>=2.6",
     "pydantic-settings>=2.1",
+    "redis>=5.0",
     "google-genai>=0.4",
     "httpx>=0.27",
     "structlog>=24.1",
@@ -20,6 +22,7 @@ dev = [
     "pytest-asyncio>=0.23",
     "pytest-cov>=4.1",
     "ruff>=0.3",
+    "fakeredis>=2.21",
 ]
 data = [
     "pyarrow>=15.0",
@@ -35,6 +38,7 @@ select = ["E", "F", "I", "N", "UP", "B", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
 "app/pipeline/prompts/*.py" = ["E501"]
+"app/api/routes/*.py" = ["B008"]  # Depends() in defaults is standard FastAPI
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

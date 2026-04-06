@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>flair2 Backend Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body { background: #0f1117; color: #e0e0e0; font-family: monospace; padding: 2rem; }
+  h1 { color: #7dd3fc; margin-bottom: 1.5rem; font-size: 1.2rem; letter-spacing: 0.05em; }
+  .mermaid { background: #1a1d27; border-radius: 8px; padding: 2rem; }
+</style>
+</head>
+<body>
+<h1>flair2 — Backend Architecture</h1>
+<div class="mermaid">
+flowchart TD
+    CLI["cli.py\nEntry Point\n--provider kimi/gemini\n--data videos.json"]
+
+    subgraph CFG["Config"]
+        SETTINGS["config.py\npydantic-settings\nFLAIR2_* env vars"]
+    end
+
+    subgraph PROV["Provider Layer"]
+        REG["registry.py\nFactory\nname → live instance"]
+        BASE["base.py\nReasoningProvider Protocol\ngenerate_text · analyze_content"]
+        KIMI["kimi.py\nKimiProvider\nOpenAI SDK → api.kimi.com\ndefault_headers User-Agent\nasyncio.to_thread · backoff 1/2/4s"]
+        GEMINI["gemini.py\nGeminiProvider\ngoogle-genai SDK\ngemini-2.5-flash\nreserved: S7 video gen"]
+        UTILS["utils.py\nextract_json()\nstrips markdown fences"]
+        USAGE["usage.py\nUsageTracker\nper-stage tokens + latency\nsummary_table()"]
+    end
+
+    subgraph PIPE["Pipeline Stages (pure async functions)"]
+        direction LR
+        S1["S1 analyze\nMap\nvideo → S1Pattern"]
+        S2["S2 aggregate\nReduce\npatterns → PatternLibrary"]
+        S3["S3 generate\nN scripts\nfrom library"]
+        S4["S4 vote\nMap\nM personas vote"]
+        S5["S5 rank\nReduce\nvotes → Rankings"]
+        S6["S6 personalize\ntop-N scripts\n→ S6Output"]
+        S1 --> S2 --> S3 --> S4 --> S5 --> S6
+    end
+
+    RUNNER["local_runner.py\nrun_pipeline()\nwires S1→S6 · records usage"]
+
+    subgraph MDL["Data Models"]
+        STAGES_M["models/stages.py\nVideoInput S1Pattern\nPatternLibrary ScriptDraft\nVoteResult Rankings S6Output"]
+        ERRORS["models/errors.py\nPipelineError\nProviderError · RateLimitError\nInvalidResponseError\nStageError · InfraError"]
+    end
+
+    CLI --> SETTINGS
+    CLI --> REG
+    CLI --> RUNNER
+    REG --> KIMI & GEMINI
+    KIMI & GEMINI -.->|implements| BASE
+    KIMI & GEMINI --> UTILS
+    RUNNER --> PIPE
+    RUNNER --> USAGE
+    S1 & S3 & S4 & S6 -->|ReasoningProvider| BASE
+    PIPE --> STAGES_M
+    PIPE --> ERRORS
+    KIMI & GEMINI --> ERRORS
+
+    style BASE fill:#1e3a5f,stroke:#7dd3fc,color:#7dd3fc
+    style KIMI fill:#1a2e1a,stroke:#86efac,color:#86efac
+    style GEMINI fill:#2e1a1a,stroke:#fca5a5,color:#fca5a5
+    style RUNNER fill:#2a1f3d,stroke:#c4b5fd,color:#c4b5fd
+    style S1 fill:#1e2a3a,stroke:#93c5fd
+    style S2 fill:#1e2a3a,stroke:#93c5fd
+    style S3 fill:#1e2a3a,stroke:#93c5fd
+    style S4 fill:#1e2a3a,stroke:#93c5fd
+    style S5 fill:#1e2a3a,stroke:#93c5fd
+    style S6 fill:#1e2a3a,stroke:#93c5fd
+</div>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<h2>How should the backend modules be layered?</h2>
+<p class="subtitle">Dependencies flow downward only. Pick the layering that makes sense for this project.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>4-Layer: API → Pipeline → Providers → Infra</h3>
+      <p>Classic layered architecture. API routes call pipeline orchestrator. Pipeline stages call LLM providers. Providers and stages use infra clients (Redis, S3, DynamoDB). Clean separation but deeper call stack.</p>
+      <pre style="font-size:0.8em; margin-top:12px; color:#ccc; line-height:1.6;">
+┌─────────────────────────────────┐
+│  API Layer                      │  FastAPI routes, SSE, sessions
+│  api/routes/*.py                │
+├─────────────────────────────────┤
+│  Pipeline Layer                 │  Orchestrator, stage functions,
+│  pipeline/stages/*.py           │  prompts, Celery tasks
+│  pipeline/orchestrator.py       │
+├─────────────────────────────────┤
+│  Provider Layer                 │  LLM + Video provider interfaces
+│  providers/*.py                 │  Retry, rate limiting wrappers
+├─────────────────────────────────┤
+│  Infra Layer                    │  Redis, S3, DynamoDB, config
+│  infra/*.py                     │  All AWS/external I/O lives here
+└─────────────────────────────────┘
+      </pre>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>3-Layer: API → Core → Infra</h3>
+      <p>Providers are part of the core pipeline layer (since stages call providers directly). Simpler, fewer modules, but the "core" layer is bigger and mixes concerns.</p>
+      <pre style="font-size:0.8em; margin-top:12px; color:#ccc; line-height:1.6;">
+┌─────────────────────────────────┐
+│  API Layer                      │  FastAPI routes, SSE, sessions
+│  api/routes/*.py                │
+├─────────────────────────────────┤
+│  Core Layer                     │  Orchestrator, stages, providers,
+│  pipeline/*.py                  │  prompts, Celery tasks — everything
+│  providers/*.py                 │  that isn't API or infra
+├─────────────────────────────────┤
+│  Infra Layer                    │  Redis, S3, DynamoDB, config
+│  infra/*.py                     │
+└─────────────────────────────────┘
+      </pre>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Hexagonal: Core (pure) + Ports + Adapters</h3>
+      <p>Stage functions in the center are pure — no imports from providers or infra. They receive a provider as a parameter (dependency injection). Adapters (Redis, Gemini, S3) plug in from outside. Maximum testability, more abstract.</p>
+      <pre style="font-size:0.8em; margin-top:12px; color:#ccc; line-height:1.6;">
+         ┌──── Adapters ─────┐
+         │ GeminiProvider     │
+         │ RedisStateStore    │
+         │ S3FileStore        │
+         │ DynamoMetaStore    │
+         └────────┬───────────┘
+                  │ implements
+         ┌────────▼───────────┐
+         │    Ports (Protocol) │
+         │ ReasoningProvider   │
+         │ VideoProvider       │
+         │ StateStore          │
+         │ FileStore           │
+         └────────┬───────────┘
+                  │ injected into
+         ┌────────▼───────────┐
+         │   Core (pure)      │
+         │ s1_analyze()       │
+         │ s2_aggregate()     │
+         │ s3_generate()      │
+         │ orchestrator       │
+         └────────────────────┘
+      </pre>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 24px; padding: 16px; border: 1px solid #333; border-radius: 8px; background: #1a1a2e;">
+  <h3 style="margin-top:0;">DDIA Principle: Maintainability</h3>
+  <p style="color: #aaa; margin-bottom: 0;">Kleppmann: "The majority of the cost of software is in ongoing maintenance." The layering choice determines how easy it is to swap providers, add new stages, write tests, and onboard Jess. Option C gives the most isolation but adds abstraction cost. Option A is the industry standard. Option B is simplest but may get messy as the codebase grows.</p>
+</div>
