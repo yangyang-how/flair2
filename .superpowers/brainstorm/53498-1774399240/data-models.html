@@ -1,0 +1,227 @@
+<h2>Section 2: Data Models — Pydantic Contracts Between Stages</h2>
+<p class="subtitle">Every stage has a typed input and output. These models ARE the spec — if it's not in the model, it doesn't exist.</p>
+
+<div style="margin-bottom: 24px; padding: 16px; border: 1px solid #333; border-radius: 8px; background: #1a1a2e;">
+  <h3 style="margin-top:0;">DDIA Principle: Encoding & Evolution</h3>
+  <p style="color: #aaa; margin-bottom: 0;">Kleppmann: "Schema-on-write enforces structure at write time — early error detection." Pydantic models are schema-on-write. If S1 produces output missing a field, it fails immediately — not silently downstream in S5.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+  <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+    <h3 style="margin-top:0; color: #4ecdc4;">Pipeline & Config Models</h3>
+    <pre style="font-size: 0.75em; color: #ccc; line-height: 1.6;">
+<span style="color:#7c83ff"># models/pipeline.py</span>
+
+class CreatorProfile(BaseModel):
+    tone: str
+    vocabulary: list[str]
+    catchphrases: list[str]
+    topics_to_avoid: list[str]
+
+class PipelineConfig(BaseModel):
+    run_id: str              <span style="color:#666"># UUID</span>
+    session_id: str
+    reasoning_model: str     <span style="color:#666"># "gemini" | "kimi" | "openai"</span>
+    video_model: str | None  <span style="color:#666"># "seedance" | "veo" | None</span>
+    creator_profile: CreatorProfile
+
+class StageStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class PipelineStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class PipelineRun(BaseModel):
+    run_id: str
+    session_id: str
+    status: PipelineStatus
+    config: PipelineConfig
+    current_stage: str | None
+    stages: dict[str, StageStatus]
+    created_at: datetime
+    completed_at: datetime | None
+    s3_results_key: str | None
+    error: str | None
+    </pre>
+  </div>
+
+  <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+    <h3 style="margin-top:0; color: #4ecdc4;">Error Hierarchy</h3>
+    <pre style="font-size: 0.75em; color: #ccc; line-height: 1.6;">
+<span style="color:#7c83ff"># models/errors.py</span>
+
+class PipelineError(Exception):
+    """Base error — all pipeline errors inherit."""
+    def __init__(
+        self,
+        message: str,
+        run_id: str | None = None,
+        stage: str | None = None,
+        attempt: int | None = None,
+    ): ...
+
+class ProviderError(PipelineError):
+    """LLM/Video API failure — retryable."""
+    provider: str
+    status_code: int | None
+
+class RateLimitError(ProviderError):
+    """Rate limit hit — backoff and retry."""
+    retry_after: float | None
+
+class InvalidResponseError(ProviderError):
+    """LLM returned unparseable output."""
+    raw_response: str
+
+class StageError(PipelineError):
+    """Pipeline logic failure — halt stage."""
+    pass
+
+class InfraError(PipelineError):
+    """Redis/S3/DynamoDB failure — alert."""
+    service: str  <span style="color:#666"># "redis" | "s3" | "dynamodb"</span>
+    </pre>
+  </div>
+</div>
+
+<div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+  <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+    <h3 style="margin-top:0; color: #ff6b6b;">Stage Input/Output Models</h3>
+    <pre style="font-size: 0.75em; color: #ccc; line-height: 1.6;">
+<span style="color:#7c83ff"># models/stages.py</span>
+
+<span style="color:#666"># ── S1: Analyze ──</span>
+class VideoInput(BaseModel):
+    video_id: str
+    transcript: str | None
+    description: str | None
+    duration: float
+    engagement: dict          <span style="color:#666"># views, likes, etc.</span>
+
+class S1Pattern(BaseModel):
+    video_id: str
+    hook_type: str            <span style="color:#666"># question|shock|story|direct</span>
+    pacing: str               <span style="color:#666"># fast-slow-fast|escalating|...</span>
+    emotional_arc: str
+    pattern_interrupts: list[str]
+    retention_mechanics: list[str]
+    engagement_triggers: list[str]
+    structure_notes: str
+
+<span style="color:#666"># ── S2: Aggregate ──</span>
+class PatternEntry(BaseModel):
+    pattern_type: str
+    frequency: int
+    examples: list[str]
+    avg_engagement: float
+
+class S2PatternLibrary(BaseModel):
+    patterns: list[PatternEntry]
+    total_videos_analyzed: int
+
+<span style="color:#666"># ── S3: Generate ──</span>
+class CandidateScript(BaseModel):
+    script_id: str
+    pattern_used: str
+    hook: str
+    body: str
+    payoff: str
+    estimated_duration: float
+    structural_notes: str
+    </pre>
+  </div>
+
+  <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+    <h3 style="margin-top:0; color: #ff6b6b;">Stage Models (continued)</h3>
+    <pre style="font-size: 0.75em; color: #ccc; line-height: 1.6;">
+<span style="color:#666"># ── S4: Vote ──</span>
+class PersonaVote(BaseModel):
+    persona_id: str
+    persona_description: str
+    top_5_script_ids: list[str]
+    reasoning: str
+
+<span style="color:#666"># ── S5: Rank ──</span>
+class RankedScript(BaseModel):
+    script_id: str
+    vote_count: int
+    score: float
+    rank: int
+
+class S5Rankings(BaseModel):
+    top_10: list[RankedScript]
+    total_votes_cast: int
+
+<span style="color:#666"># ── S6: Personalize ──</span>
+class FinalResult(BaseModel):
+    script_id: str
+    original_script: CandidateScript
+    personalized_script: str
+    video_prompt: str
+    rank: int
+    vote_score: float
+
+class S6Output(BaseModel):
+    run_id: str
+    results: list[FinalResult]  <span style="color:#666"># exactly 10</span>
+    creator_profile: CreatorProfile
+    completed_at: datetime
+
+<span style="color:#666"># ── Performance Tracking ──</span>
+class VideoPerformance(BaseModel):
+    run_id: str
+    script_id: str
+    platform: str          <span style="color:#666"># tiktok|youtube|instagram</span>
+    post_url: str
+    posted_at: datetime
+    views: int
+    likes: int
+    comments: int
+    shares: int
+    watch_time_avg: float | None
+    completion_rate: float | None
+    committee_rank: int    <span style="color:#666"># what S5 predicted</span>
+    script_pattern: str    <span style="color:#666"># hook type used</span>
+    </pre>
+  </div>
+</div>
+
+<div style="margin-top: 20px; background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+  <h3 style="margin-top:0; color: #ffd93d;">Data Flow: How Models Connect</h3>
+  <pre style="font-size: 0.85em; color: #ccc; line-height: 1.8; text-align: center;">
+VideoInput ──S1──► S1Pattern ──S2──► S2PatternLibrary ──S3──► CandidateScript[]
+                                                                     │
+                                                                     S4
+                                                                     │
+                                                              PersonaVote[] ──S5──► S5Rankings
+                                                                                        │
+                                                                                        S6
+                                                                                        │
+                                                                                   S6Output
+                                                                                  (10 FinalResult)
+                                                                                        │
+                                                                              ┌─────────┴──────────┐
+                                                                              ▼                    ▼
+                                                                         S3 (file)           DynamoDB
+                                                                       results.json         (metadata)
+  </pre>
+</div>
+
+<div style="margin-top: 20px; padding: 16px; border: 1px solid #4ecdc4; border-radius: 8px;">
+  <h3 style="margin-top:0;">What This Means For Development</h3>
+  <ul style="color: #aaa; line-height: 1.8;">
+    <li><strong>Stage functions are typed:</strong> <code>def s1_analyze(input: VideoInput, provider: ReasoningProvider) -> S1Pattern</code></li>
+    <li><strong>Tests are assertions on models:</strong> <code>assert result.hook_type in ["question", "shock", "story", "direct"]</code></li>
+    <li><strong>Serialization is free:</strong> <code>result.model_dump_json()</code> for Redis/S3/DynamoDB</li>
+    <li><strong>Schema evolution is safe:</strong> Add optional fields with defaults — backward compatible (DDIA Ch. 4)</li>
+    <li><strong>Invalid data fails immediately:</strong> Pydantic validation catches bad LLM output at the boundary, not 3 stages later</li>
+  </ul>
+</div>

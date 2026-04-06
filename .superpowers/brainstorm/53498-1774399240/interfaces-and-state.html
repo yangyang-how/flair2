@@ -1,0 +1,322 @@
+<h2>Section 3: Interfaces, Signatures & Orchestrator State Machine</h2>
+<p class="subtitle">The contracts that bind everything together. If you implement these interfaces, the system works.</p>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+  <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+    <h3 style="margin-top:0; color: #7c83ff;">Provider Protocols</h3>
+    <pre style="font-size: 0.75em; color: #ccc; line-height: 1.6;">
+<span style="color:#7c83ff"># providers/base.py</span>
+
+class ReasoningProvider(Protocol):
+    """Any LLM that can generate text."""
+
+    name: str  <span style="color:#666"># "gemini" | "kimi" | "openai"</span>
+
+    async def generate_text(
+        self,
+        prompt: str,
+        schema: type[BaseModel] | None = None,
+    ) -> str:
+        """Generate text, optionally constrained
+        to a JSON schema."""
+        ...
+
+    async def analyze_content(
+        self,
+        content: str,    <span style="color:#666"># transcript or description</span>
+        prompt: str,
+    ) -> str:
+        """Analyze content with a prompt."""
+        ...
+
+
+class VideoProvider(Protocol):
+    """Any service that generates video."""
+
+    name: str  <span style="color:#666"># "seedance" | "veo"</span>
+
+    async def generate_video(
+        self,
+        prompt: str,
+        duration: int = 6,
+    ) -> bytes:
+        """Returns video file bytes (mp4)."""
+        ...
+
+    async def check_status(
+        self,
+        job_id: str,
+    ) -> VideoJobStatus:
+        """Poll async video generation."""
+        ...
+
+
+class VideoJobStatus(BaseModel):
+    job_id: str
+    status: str   <span style="color:#666"># "processing"|"complete"|"failed"</span>
+    video_url: str | None
+    error: str | None
+    </pre>
+  </div>
+
+  <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+    <h3 style="margin-top:0; color: #7c83ff;">Stage Function Signatures</h3>
+    <pre style="font-size: 0.75em; color: #ccc; line-height: 1.6;">
+<span style="color:#7c83ff"># pipeline/stages/*.py</span>
+<span style="color:#666"># Every stage is a pure async function.
+# No Redis, no Celery, no side effects.</span>
+
+async def s1_analyze(
+    video: VideoInput,
+    provider: ReasoningProvider,
+) -> S1Pattern:
+    """Extract structural patterns from one video."""
+
+def s2_aggregate(
+    patterns: list[S1Pattern],
+) -> S2PatternLibrary:
+    """Merge patterns into ranked library.
+    No LLM — pure algorithmic."""
+
+async def s3_generate(
+    library: S2PatternLibrary,
+    provider: ReasoningProvider,
+    feedback: list[VideoPerformance] | None,
+) -> list[CandidateScript]:
+    """Generate 50 candidate scripts.
+    Sequential — deliberate bottleneck."""
+
+async def s4_vote(
+    scripts: list[CandidateScript],
+    persona_id: str,
+    provider: ReasoningProvider,
+    feedback: list[VideoPerformance] | None,
+) -> PersonaVote:
+    """One persona evaluates all scripts."""
+
+def s5_rank(
+    votes: list[PersonaVote],
+) -> S5Rankings:
+    """Aggregate votes into top 10.
+    No LLM — pure algorithmic."""
+
+async def s6_personalize(
+    script: CandidateScript,
+    profile: CreatorProfile,
+    provider: ReasoningProvider,
+) -> FinalResult:
+    """Rewrite script in creator's voice
+    + generate video prompt."""
+    </pre>
+    <div style="margin-top: 16px; padding: 12px; border: 1px solid #4ecdc4; border-radius: 6px;">
+      <p style="color: #4ecdc4; margin: 0; font-size: 0.85em;"><strong>Note:</strong> S3 and S4 accept optional <code>feedback</code> — historical performance data for pipeline calibration. When None (first run), they operate without it.</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 20px; background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+  <h3 style="margin-top:0; color: #ffd93d;">Orchestrator State Machine</h3>
+  <p style="color: #aaa;">Each pipeline run transitions through these states. The orchestrator checks completion conditions and triggers the next stage.</p>
+  <pre style="font-size: 0.82em; color: #ccc; line-height: 1.8; text-align: center;">
+
+  ┌─────────┐     start()      ┌─────────┐    all 100 done    ┌─────────┐
+  │ PENDING │ ───────────────► │ S1_MAP  │ ─────────────────► │ S2_RED  │
+  └─────────┘                  └─────────┘                    └─────────┘
+                                    │                              │
+                               on failure                     on complete
+                                    │                              │
+                                    ▼                              ▼
+                              ┌──────────┐                   ┌─────────┐
+                              │  FAILED  │                   │ S3_SEQ  │ 50 scripts done
+                              └──────────┘                   └────┬────┘
+                                    ▲                              │
+                               any stage                           ▼
+                               unrecoverable                 ┌─────────┐   all 100 done   ┌─────────┐
+                                    │                        │ S4_MAP  │ ────────────────► │ S5_RED  │
+                                    │                        └─────────┘                  └─────────┘
+                                    │                                                          │
+                                    │                                                     on complete
+                                    │                                                          │
+                                    │                                                          ▼
+                                    │                                                    ┌─────────┐
+                                    └────────────────────────────────────────────────────│ S6_PERS │
+                                                                                        └────┬────┘
+                                                                                             │
+                                                                                        all 10 done
+                                                                                             │
+                                                                                             ▼
+                                                                                       ┌───────────┐
+                                                                                       │ COMPLETED │
+                                                                                       └───────────┘
+  </pre>
+
+  <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+    <div>
+      <h4 style="color: #7c83ff; margin-bottom: 8px;">Transition Triggers</h4>
+      <table style="width: 100%; font-size: 0.8em; color: #aaa; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>PENDING → S1_MAP</code></td>
+          <td style="padding: 6px;">API calls <code>start_pipeline()</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>S1_MAP → S2_RED</code></td>
+          <td style="padding: 6px;">All 100 S1 tasks completed</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>S2_RED → S3_SEQ</code></td>
+          <td style="padding: 6px;">Pattern library written</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>S3_SEQ → S4_MAP</code></td>
+          <td style="padding: 6px;">All 50 scripts generated</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>S4_MAP → S5_RED</code></td>
+          <td style="padding: 6px;">All 100 persona votes in</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>S5_RED → S6_PERS</code></td>
+          <td style="padding: 6px;">Top 10 ranked</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px;"><code>S6_PERS → COMPLETED</code></td>
+          <td style="padding: 6px;">All 10 personalized + saved to S3/DynamoDB</td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <h4 style="color: #ff6b6b; margin-bottom: 8px;">Redis Keys (per run)</h4>
+      <table style="width: 100%; font-size: 0.8em; color: #aaa; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>run:{id}:stage</code></td>
+          <td style="padding: 6px;">Current state name</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>run:{id}:s1:done</code></td>
+          <td style="padding: 6px;">Counter — INCR on each S1 completion</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>run:{id}:s4:done</code></td>
+          <td style="padding: 6px;">Counter — INCR on each S4 completion</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #333;">
+          <td style="padding: 6px;"><code>checkpoint:{id}:{stage}</code></td>
+          <td style="padding: 6px;">Last completed task index</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px;"><code>sse:events:{id}</code></td>
+          <td style="padding: 6px;">SSE event queue for frontend</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 20px; background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+  <h3 style="margin-top:0; color: #4ecdc4;">Local Runner vs Distributed Runner</h3>
+  <p style="color: #aaa;">Same stage functions, different execution layer:</p>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+    <div>
+      <h4 style="color: #4ecdc4;">Local Mode (MVP)</h4>
+      <pre style="font-size: 0.75em; color: #ccc; line-height: 1.6;">
+<span style="color:#7c83ff"># runner/local_runner.py</span>
+
+async def run_pipeline(
+    config: PipelineConfig,
+    videos: list[VideoInput],
+    provider: ReasoningProvider,
+) -> S6Output:
+    <span style="color:#666"># S1: analyze all videos sequentially</span>
+    patterns = []
+    for v in videos:
+        p = await s1_analyze(v, provider)
+        patterns.append(p)
+
+    <span style="color:#666"># S2: aggregate</span>
+    library = s2_aggregate(patterns)
+
+    <span style="color:#666"># S3: generate scripts</span>
+    scripts = await s3_generate(
+        library, provider, feedback=None
+    )
+
+    <span style="color:#666"># S4: vote (sequential, no workers)</span>
+    votes = []
+    for pid in range(100):
+        v = await s4_vote(
+            scripts, f"persona_{pid}",
+            provider, feedback=None
+        )
+        votes.append(v)
+
+    <span style="color:#666"># S5: rank</span>
+    rankings = s5_rank(votes)
+
+    <span style="color:#666"># S6: personalize top 10</span>
+    results = []
+    for rs in rankings.top_10:
+        script = find_script(scripts, rs)
+        r = await s6_personalize(
+            script, config.creator_profile,
+            provider
+        )
+        results.append(r)
+
+    return S6Output(
+        run_id=config.run_id,
+        results=results,
+        ...
+    )
+      </pre>
+    </div>
+    <div>
+      <h4 style="color: #ffd93d;">Distributed Mode</h4>
+      <pre style="font-size: 0.75em; color: #ccc; line-height: 1.6;">
+<span style="color:#7c83ff"># workers/tasks.py</span>
+
+@celery_app.task(bind=True)
+def s1_analyze_task(
+    self, run_id: str, video_json: str
+):
+    video = VideoInput.model_validate_json(
+        video_json
+    )
+    provider = get_provider(run_id)
+
+    result = asyncio.run(
+        s1_analyze(video, provider)
+    )
+
+    <span style="color:#666"># Write result to Redis</span>
+    redis.set(
+        f"result:s1:{run_id}:{video.video_id}",
+        result.model_dump_json()
+    )
+
+    <span style="color:#666"># Increment completion counter</span>
+    done = redis.incr(f"run:{run_id}:s1:done")
+
+    <span style="color:#666"># Check if all S1 tasks complete</span>
+    if done == 100:
+        orchestrator.transition(
+            run_id, "S2_RED"
+        )
+
+<span style="color:#666"># Same pattern for s4_vote_task, etc.
+# The stage function is identical —
+# only the wrapper changes.</span>
+      </pre>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 20px; padding: 16px; border: 1px solid #4ecdc4; border-radius: 8px;">
+  <h3 style="margin-top:0;">What Someone Needs To Start Coding</h3>
+  <ul style="color: #aaa; line-height: 1.8;">
+    <li><strong>To implement a stage:</strong> Look at the function signature + input/output models. Write the function. Write a test. Done.</li>
+    <li><strong>To add a provider:</strong> Implement the <code>ReasoningProvider</code> or <code>VideoProvider</code> protocol. Register in <code>registry.py</code>. Done.</li>
+    <li><strong>To run locally:</strong> <code>python -m app.runner.local_runner</code> — calls stage functions directly.</li>
+    <li><strong>To run distributed:</strong> Start Celery workers + Redis. API calls orchestrator. Orchestrator pushes tasks. Same stage functions execute in workers.</li>
+  </ul>
+</div>
