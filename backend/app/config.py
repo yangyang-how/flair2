@@ -17,6 +17,23 @@ class Settings(BaseSettings):
     s4_persona_count: int = 100
     s6_top_n: int = 10
 
+    # Redis (db=0 for state, db=1 for Celery broker — don't mix them)
+    redis_url: str = "redis://localhost:6379/0"
+
+    # AWS
+    aws_region: str = "us-east-1"
+    s3_bucket: str = "flair2-pipeline"
+    dynamodb_runs_table: str = "pipeline_runs"
+    dynamodb_perf_table: str = "video_performance"
+
+    # Rate Limits (requests per minute)
+    gemini_rpm: int = 60
+    kimi_rpm: int = 60
+    openai_rpm: int = 60
+
+    # Celery (db=1 — separate from state Redis)
+    celery_broker_url: str = "redis://localhost:6379/1"
+
     model_config = {"env_file": ".env", "env_prefix": "FLAIR2_"}
 
 
