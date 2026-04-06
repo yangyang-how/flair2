@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     kimi_rpm: int = 60
     openai_rpm: int = 60
 
+    # Dataset (local path — will be replaced by S3 in production)
+    dataset_path: str = "data/sample_videos.json"
+
     # Pipeline Defaults
     s1_video_count: int = 100
     s3_script_count: int = 50
