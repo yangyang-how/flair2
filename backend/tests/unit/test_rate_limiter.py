@@ -4,8 +4,8 @@ import pytest
 import pytest_asyncio
 from fakeredis import aioredis as fake_aioredis
 
-from app.infra.redis_client import RedisClient
 from app.infra.rate_limiter import TokenBucketRateLimiter
+from app.infra.redis_client import RedisClient
 from app.models.errors import RateLimitError
 
 

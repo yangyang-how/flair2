@@ -4,8 +4,7 @@ Task dispatch is mocked so these tests run without a real Celery broker.
 """
 
 import json
-from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import pytest_asyncio
@@ -16,10 +15,7 @@ from app.models.pipeline import CreatorProfile, PipelineConfig
 from app.models.stages import (
     CandidateScript,
     FinalResult,
-    PersonaVote,
     RankedScript,
-    S1Pattern,
-    S2PatternLibrary,
     S5Rankings,
     VideoInput,
 )
@@ -57,7 +53,9 @@ def config():
 @pytest.fixture
 def videos():
     return [
-        VideoInput(video_id=f"v{i}", transcript=None, description=None, duration=30.0, engagement={})
+        VideoInput(
+            video_id=f"v{i}", transcript=None, description=None, duration=30.0, engagement={}
+        )
         for i in range(3)
     ]
 
@@ -111,7 +109,6 @@ async def test_start_emits_pipeline_started_event(redis, config, videos):
 
     entries = await redis.xread({"sse:test-run": "0-0"}, block=100, count=10)
     assert entries
-    events = [json.loads(fields["data"]) for _stream, msgs in entries for _id, fields in msgs]
     event_types = [fields["event"] for _stream, msgs in entries for _id, fields in msgs]
     assert "pipeline_started" in event_types
     assert "stage_started" in event_types
@@ -211,10 +208,13 @@ async def test_on_s5_complete_dispatches_s6(redis, config):
 async def test_finalize_builds_s6_output(redis, config):
     await redis.set("run:test-run:config", config.model_dump_json())
 
-    candidates = [
-        CandidateScript(script_id="s1", pattern_used="p", hook="h", body="b", payoff="pay", estimated_duration=30.0, structural_notes=""),
-        CandidateScript(script_id="s2", pattern_used="p", hook="h", body="b", payoff="pay", estimated_duration=30.0, structural_notes=""),
-    ]
+    def _script(sid: str) -> CandidateScript:
+        return CandidateScript(
+            script_id=sid, pattern_used="p", hook="h", body="b",
+            payoff="pay", estimated_duration=30.0, structural_notes="",
+        )
+
+    candidates = [_script("s1"), _script("s2")]
     rankings = S5Rankings(
         top_10=[
             RankedScript(script_id="s1", vote_count=5, score=10.0, rank=1),

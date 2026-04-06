@@ -1,12 +1,10 @@
 """Unit tests for RedisClient using fakeredis."""
 
-import asyncio
-
 import pytest
 import pytest_asyncio
 from fakeredis import aioredis as fake_aioredis
 
-from app.infra.redis_client import CACHE_SENTINEL, RedisClient
+from app.infra.redis_client import RedisClient
 
 
 @pytest_asyncio.fixture
