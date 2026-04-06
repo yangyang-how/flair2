@@ -63,6 +63,11 @@ class TestSSEManager:
         # Second event is terminal — generator stops
         assert events[1].event == "pipeline_complete"
 
+        # Verify stream ID is injected into the data payload (#71 Section 2)
+        data = json.loads(events[0].data)
+        assert "id" in data
+        assert data["id"] is not None
+
     async def test_stops_on_client_disconnect(self, fake_redis, fake_request):
         """Generator exits when client disconnects."""
         run_id = "test-run"

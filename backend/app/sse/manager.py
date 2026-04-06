@@ -120,10 +120,15 @@ async def sse_event_generator(
                         )
                         continue  # Skip bad events, don't kill the stream
 
+                    # Inject stream ID into payload so data JSON matches
+                    # the SSEEvent contract (#71 Section 2)
+                    event_data["id"] = msg_id
+                    enriched_payload = json.dumps(event_data)
+
                     yield ServerSentEvent(
                         id=msg_id,
                         event=event_data.get("event", "message"),
-                        data=payload,
+                        data=enriched_payload,
                     )
 
                     # If this is a terminal event, stop after yielding it
