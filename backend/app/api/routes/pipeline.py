@@ -61,14 +61,16 @@ async def start_pipeline(
     # Load video dataset (local file for now — S3 in production)
     dataset_path = Path(settings.dataset_path)
     if not dataset_path.exists():
+        logger.error("dataset_not_found", dataset_path=str(dataset_path))
         raise HTTPException(
             status_code=500,
-            detail=f"Dataset not found at {dataset_path}",
+            detail="Dataset not found. Check the FLAIR2_DATASET_PATH configuration.",
         )
     videos = load_videos_from_json(dataset_path, limit=req.num_videos)
 
-    # Track this run in the session list
-    await r.rpush(f"session:{session_id}:runs", run_id)
+    # Actual video count may be less than requested if dataset is small.
+    # Orchestrator uses this as the S1 completion threshold — must match.
+    config.num_videos = len(videos)
 
     # Orchestrator writes config/status/stage to Redis and dispatches S1 tasks
     redis_client = RedisClient(settings.redis_url)
@@ -77,6 +79,9 @@ async def start_pipeline(
         await orchestrator.start(run_id, config, videos)
     finally:
         await redis_client.aclose()
+
+    # Only track in session list after orchestrator succeeds
+    await r.rpush(f"session:{session_id}:runs", run_id)
 
     logger.info(
         "pipeline_started",
