@@ -5,6 +5,7 @@ No real Redis or Celery needed.
 """
 
 import json
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import fakeredis.aioredis
 import pytest
@@ -81,6 +82,49 @@ class TestPipelineStart:
             "top_n": 3,
         }
 
+    @pytest.fixture(autouse=True)
+    def _mock_orchestrator_and_loader(self):
+        """Mock the Orchestrator and data loader for all start tests."""
+        from app.models.stages import VideoInput
+
+        fake_videos = [
+            VideoInput(
+                video_id=f"v{i}", transcript=None, description=None,
+                duration=30.0, engagement={},
+            )
+            for i in range(10)
+        ]
+
+        with (
+            patch(
+                "app.api.routes.pipeline.load_videos_from_json",
+                return_value=fake_videos,
+            ),
+            patch(
+                "app.api.routes.pipeline.Orchestrator",
+            ) as mock_orch_cls,
+            patch(
+                "app.api.routes.pipeline.RedisClient",
+            ) as mock_redis_cls,
+            patch(
+                "app.api.routes.pipeline.Path",
+            ) as mock_path,
+        ):
+            # Mock Path.exists() to return True
+            mock_path.return_value.exists.return_value = True
+            # Mock RedisClient lifecycle
+            mock_redis = MagicMock()
+            mock_redis.aclose = AsyncMock()
+            mock_redis_cls.return_value = mock_redis
+            # Mock Orchestrator.start()
+            mock_orch = MagicMock()
+            mock_orch.start = AsyncMock()
+            mock_orch_cls.return_value = mock_orch
+
+            self._mock_orch = mock_orch
+            self._mock_orch_cls = mock_orch_cls
+            yield
+
     async def test_start_returns_run_id(self, client, valid_request_body):
         resp = await client.post("/api/pipeline/start", json=valid_request_body)
         assert resp.status_code == 200
@@ -88,24 +132,20 @@ class TestPipelineStart:
         assert "run_id" in data
         assert len(data["run_id"]) == 36  # UUID format
 
-    async def test_start_creates_redis_state(self, client, fake_redis, valid_request_body):
+    async def test_start_calls_orchestrator(self, client, valid_request_body):
         resp = await client.post("/api/pipeline/start", json=valid_request_body)
-        run_id = resp.json()["run_id"]
-
-        # Verify Redis state was created
-        assert await fake_redis.get(f"run:{run_id}:status") == "pending"
-        assert await fake_redis.get(f"run:{run_id}:stage") == "PENDING"
-
-        config_raw = await fake_redis.get(f"run:{run_id}:config")
-        assert config_raw is not None
-        config = json.loads(config_raw)
-        assert config["run_id"] == run_id
-        assert config["reasoning_model"] == "kimi"
-        # Verify pipeline params flow through (#71 Section 6)
-        assert config["num_videos"] == 10
-        assert config["num_scripts"] == 5
-        assert config["num_personas"] == 10
-        assert config["top_n"] == 3
+        assert resp.status_code == 200
+        # Orchestrator.start() should have been called once
+        self._mock_orch.start.assert_called_once()
+        call_args = self._mock_orch.start.call_args
+        run_id = call_args[0][0]
+        config = call_args[0][1]
+        videos = call_args[0][2]
+        assert run_id == resp.json()["run_id"]
+        assert config.reasoning_model == "kimi"
+        assert config.num_videos == 10
+        assert config.top_n == 3
+        assert len(videos) == 10
 
     async def test_start_tracks_session(self, client, fake_redis, valid_request_body):
         resp = await client.post(

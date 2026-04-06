@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from pathlib import Path
 
 import redis.asyncio as aioredis
 import structlog
@@ -14,6 +15,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sse_starlette.sse import EventSourceResponse
 
 from app.api.deps import get_redis, get_session_id
+from app.config import settings
+from app.infra.redis_client import RedisClient
 from app.models.api import (
     RunListResponse,
     RunStatusResponse,
@@ -21,6 +24,8 @@ from app.models.api import (
     StartPipelineResponse,
 )
 from app.models.pipeline import PipelineConfig, PipelineStatus
+from app.pipeline.orchestrator import Orchestrator
+from app.runner.data_loader import load_videos_from_json
 from app.sse.manager import sse_event_generator
 
 logger = structlog.get_logger()
@@ -35,8 +40,9 @@ async def start_pipeline(
 ) -> StartPipelineResponse:
     """Start a new pipeline run.
 
-    Creates run state in Redis, enqueues S1 tasks via the orchestrator.
-    Orchestrator integration is stubbed until Jess's track (#73) merges.
+    Loads the video dataset, creates the PipelineConfig, and hands off
+    to the Orchestrator which writes run state to Redis and dispatches
+    S1 fan-out tasks via Celery.
     """
     run_id = str(uuid.uuid4())
 
@@ -52,26 +58,40 @@ async def start_pipeline(
         top_n=req.top_n,
     )
 
-    # Store run config and initial state in Redis
-    pipeline = r.pipeline()
-    pipeline.set(f"run:{run_id}:config", config.model_dump_json())
-    pipeline.set(f"run:{run_id}:status", PipelineStatus.PENDING)
-    pipeline.set(f"run:{run_id}:stage", "PENDING")
-    pipeline.rpush(f"session:{session_id}:runs", run_id)
-    await pipeline.execute()
+    # Load video dataset (local file for now — S3 in production)
+    dataset_path = Path(settings.dataset_path)
+    if not dataset_path.exists():
+        logger.error("dataset_not_found", dataset_path=str(dataset_path))
+        raise HTTPException(
+            status_code=500,
+            detail="Dataset not found. Check the FLAIR2_DATASET_PATH configuration.",
+        )
+    videos = load_videos_from_json(dataset_path, limit=req.num_videos)
+
+    # Actual video count may be less than requested if dataset is small.
+    # Orchestrator uses this as the S1 completion threshold — must match.
+    config.num_videos = len(videos)
+
+    # Orchestrator writes config/status/stage to Redis and dispatches S1 tasks
+    redis_client = RedisClient(settings.redis_url)
+    try:
+        orchestrator = Orchestrator(redis_client)
+        await orchestrator.start(run_id, config, videos)
+    finally:
+        await redis_client.aclose()
+
+    # Only track in session list after orchestrator succeeds
+    await r.rpush(f"session:{session_id}:runs", run_id)
 
     logger.info(
-        "pipeline_created",
+        "pipeline_started",
         run_id=run_id,
         session_id=session_id,
         reasoning_model=req.reasoning_model,
-        num_videos=req.num_videos,
+        num_videos=len(videos),
         num_personas=req.num_personas,
         top_n=req.top_n,
     )
-
-    # TODO: call orchestrator.start(config, videos) once #73 merges
-    # For now, the run sits in PENDING until the orchestrator is wired up.
 
     return StartPipelineResponse(run_id=run_id)
 
