@@ -103,7 +103,7 @@ def s2_aggregate_task(self, run_id: str):
             await redis.set(f"pattern_library:{run_id}", library.model_dump_json())
 
             from app.pipeline.orchestrator import Orchestrator
-            await Orchestrator(redis).on_s2_complete(run_id)
+            await Orchestrator(redis).on_s2_complete(run_id, len(library.patterns))
         finally:
             await redis.aclose()
 
@@ -164,7 +164,7 @@ def s4_vote_task(self, run_id: str, persona_id: str):
             await redis.set(f"result:s4:{run_id}:{persona_id}", vote.model_dump_json())
 
             from app.pipeline.orchestrator import Orchestrator
-            await Orchestrator(redis).on_s4_complete(run_id, persona_id)
+            await Orchestrator(redis).on_s4_complete(run_id, persona_id, vote.top_5_script_ids)
         finally:
             await redis.aclose()
 

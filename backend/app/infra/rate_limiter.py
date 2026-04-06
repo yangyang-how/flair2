@@ -1,4 +1,5 @@
 import asyncio
+import random
 
 from app.infra.redis_client import RedisClient
 from app.models.errors import RateLimitError
@@ -40,8 +41,9 @@ class TokenBucketRateLimiter:
         while elapsed < max_wait:
             if await self.acquire():
                 return
-            await asyncio.sleep(1.0)
-            elapsed += 1.0
+            delay = 1.0 + random.uniform(0, 0.5)
+            await asyncio.sleep(delay)
+            elapsed += delay
         raise RateLimitError(
             f"Rate limiter timed out after {max_wait}s waiting for {self._provider}",
             provider=self._provider,

@@ -79,8 +79,8 @@ class Orchestrator:
         if done >= config.num_videos:
             await self._transition_s2(run_id)
 
-    async def on_s2_complete(self, run_id: str) -> None:
-        await self._xadd_event(run_id, "s2_complete", {"pattern_count": 0})  # count filled by task
+    async def on_s2_complete(self, run_id: str, pattern_count: int = 0) -> None:
+        await self._xadd_event(run_id, "s2_complete", {"pattern_count": pattern_count})
         await self._transition_s3(run_id)
 
     async def on_s3_complete(self, run_id: str) -> None:
@@ -88,13 +88,15 @@ class Orchestrator:
         await self._xadd_event(run_id, "s3_complete", {"script_count": config.num_scripts})
         await self._transition_s4(run_id, config)
 
-    async def on_s4_complete(self, run_id: str, persona_id: str) -> None:
+    async def on_s4_complete(
+        self, run_id: str, persona_id: str, top_5: list[str] | None = None
+    ) -> None:
         done = await self._r.incr(f"run:{run_id}:s4:done")
         config = await self._load_config(run_id)
 
         await self._xadd_event(run_id, "vote_cast", {
             "persona_id": persona_id,
-            "top_5": [],
+            "top_5": top_5 or [],
             "completed": done,
             "total": config.num_personas,
         })
@@ -227,10 +229,10 @@ class Orchestrator:
     async def _xadd_event(self, run_id: str, event_type: str, data: dict) -> None:
         event = {
             "event": event_type,
-            "data": json.dumps(data),
+            "data": data,
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        await self._r.xadd(f"sse:{run_id}", event)
+        await self._r.xadd(f"sse:{run_id}", {"payload": json.dumps(event)})
 
     async def _set_run_ttl(self, run_id: str) -> None:
         """Apply 24h TTL to all per-run keys after terminal state."""

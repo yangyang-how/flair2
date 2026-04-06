@@ -69,9 +69,10 @@ def _read_stream_events(redis_client, run_id: str) -> list[dict]:
         if entries:
             for _stream, messages in entries:
                 for _id, fields in messages:
+                    payload = json.loads(fields.get("payload", "{}"))
                     events.append({
-                        "event": fields.get("event"),
-                        "data": json.loads(fields.get("data", "{}")),
+                        "event": payload.get("event"),
+                        "data": payload.get("data", {}),
                     })
         return events
     return asyncio.get_event_loop().run_until_complete(_read())
@@ -109,7 +110,11 @@ async def test_start_emits_pipeline_started_event(redis, config, videos):
 
     entries = await redis.xread({"sse:test-run": "0-0"}, block=100, count=10)
     assert entries
-    event_types = [fields["event"] for _stream, msgs in entries for _id, fields in msgs]
+    event_types = [
+        json.loads(fields["payload"])["event"]
+        for _stream, msgs in entries
+        for _id, fields in msgs
+    ]
     assert "pipeline_started" in event_types
     assert "stage_started" in event_types
 
