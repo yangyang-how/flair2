@@ -1,0 +1,57 @@
+# Local development stack for flair2 backend.
+#
+# Usage:
+#   docker-compose up          # start everything
+#   docker-compose up redis    # start only Redis (for running tests locally)
+#
+# Integration tests (no Docker needed — uses fakeredis):
+#   cd backend && pytest tests/integration/ -v
+#
+# Manual end-to-end test against a live stack:
+#   docker-compose up -d
+#   curl -X POST http://localhost:8000/api/pipeline/start -H 'Content-Type: application/json' \
+#     -d '{"creator_profile":{"tone":"casual","vocabulary":[],"catchphrases":[],"topics_to_avoid":[]},"reasoning_model":"kimi","num_videos":5,"num_scripts":3,"num_personas":5,"top_n":2}'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      FLAIR2_REDIS_URL: redis://redis:6379/0
+      FLAIR2_CELERY_BROKER_URL: redis://redis:6379/1
+      FLAIR2_AWS_REGION: us-east-1
+      FLAIR2_S3_BUCKET: flair2-pipeline
+      FLAIR2_KIMI_API_KEY: ${FLAIR2_KIMI_API_KEY:-}
+      FLAIR2_GEMINI_API_KEY: ${FLAIR2_GEMINI_API_KEY:-}
+      FLAIR2_OPENAI_API_KEY: ${FLAIR2_OPENAI_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    environment:
+      FLAIR2_REDIS_URL: redis://redis:6379/0
+      FLAIR2_CELERY_BROKER_URL: redis://redis:6379/1
+      FLAIR2_AWS_REGION: us-east-1
+      FLAIR2_S3_BUCKET: flair2-pipeline
+      FLAIR2_KIMI_API_KEY: ${FLAIR2_KIMI_API_KEY:-}
+      FLAIR2_GEMINI_API_KEY: ${FLAIR2_GEMINI_API_KEY:-}
+      FLAIR2_OPENAI_API_KEY: ${FLAIR2_OPENAI_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
