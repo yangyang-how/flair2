@@ -74,12 +74,19 @@ async def sse_event_generator(
                 )
             except aioredis.ConnectionError:
                 logger.warning("sse_redis_connection_lost", run_id=run_id)
-                # Yield an error event and stop
+                # Use contract-aligned pipeline_error event shape
                 yield ServerSentEvent(
                     data=json.dumps(
-                        {"event": "error", "data": {"message": "Redis connection lost"}}
+                        {
+                            "event": "pipeline_error",
+                            "data": {
+                                "stage": "unknown",
+                                "error": "Redis connection lost",
+                                "recoverable": True,
+                            },
+                        }
                     ),
-                    event="error",
+                    event="pipeline_error",
                 )
                 break
 
@@ -100,15 +107,24 @@ async def sse_event_generator(
             for _stream_name, messages in entries:
                 for msg_id, fields in messages:
                     payload = fields.get("payload", "{}")
-                    event_data = json.loads(payload)
+                    last_id = msg_id
+
+                    try:
+                        event_data = json.loads(payload)
+                    except json.JSONDecodeError:
+                        logger.warning(
+                            "sse_malformed_event",
+                            run_id=run_id,
+                            msg_id=msg_id,
+                            payload=payload[:200],
+                        )
+                        continue  # Skip bad events, don't kill the stream
 
                     yield ServerSentEvent(
                         id=msg_id,
                         event=event_data.get("event", "message"),
                         data=payload,
                     )
-
-                    last_id = msg_id
 
                     # If this is a terminal event, stop after yielding it
                     event_type = event_data.get("event")

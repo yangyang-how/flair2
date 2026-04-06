@@ -10,7 +10,7 @@ import uuid
 
 import redis.asyncio as aioredis
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sse_starlette.sse import EventSourceResponse
 
 from app.api.deps import get_redis, get_session_id
@@ -46,6 +46,10 @@ async def start_pipeline(
         reasoning_model=req.reasoning_model,
         video_model=req.video_model,
         creator_profile=req.creator_profile,
+        num_videos=req.num_videos,
+        num_scripts=req.num_scripts,
+        num_personas=req.num_personas,
+        top_n=req.top_n,
     )
 
     # Store run config and initial state in Redis
@@ -77,21 +81,20 @@ async def pipeline_status(
     run_id: str,
     request: Request,
     r: aioredis.Redis = Depends(get_redis),
-    last_event_id: str | None = Query(None, alias="Last-Event-ID"),
+    last_event_id: str | None = Header(None, alias="Last-Event-ID"),
 ) -> EventSourceResponse:
     """Stream pipeline events via SSE.
 
     Uses Redis Streams (XREAD) — multi-tab safe. Each connection
-    maintains its own cursor. On reconnect, the client sends
-    Last-Event-ID to resume from where it left off.
+    maintains its own cursor. On reconnect, the browser sends
+    Last-Event-ID as a header automatically.
     """
     # Verify run exists
     status = await r.get(f"run:{run_id}:status")
     if status is None:
         raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
 
-    # Use Last-Event-ID from header (SSE reconnect) or query param
-    cursor = last_event_id or request.headers.get("Last-Event-ID") or "0-0"
+    cursor = last_event_id or "0-0"
 
     return EventSourceResponse(
         sse_event_generator(r, run_id, cursor, request),

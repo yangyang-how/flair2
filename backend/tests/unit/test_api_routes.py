@@ -101,6 +101,11 @@ class TestPipelineStart:
         config = json.loads(config_raw)
         assert config["run_id"] == run_id
         assert config["reasoning_model"] == "kimi"
+        # Verify pipeline params flow through (#71 Section 6)
+        assert config["num_videos"] == 10
+        assert config["num_scripts"] == 5
+        assert config["num_personas"] == 10
+        assert config["top_n"] == 3
 
     async def test_start_tracks_session(self, client, fake_redis, valid_request_body):
         resp = await client.post(
@@ -178,6 +183,14 @@ class TestVideo:
         )
         assert resp.status_code == 200
         assert "job_id" in resp.json()
+
+    async def test_generate_409_for_incomplete_run(self, client, fake_redis):
+        await fake_redis.set("run:r1:status", "running")
+        resp = await client.post(
+            "/api/video/generate",
+            json={"run_id": "r1", "script_id": "s1"},
+        )
+        assert resp.status_code == 409
 
     async def test_status_404_for_unknown_job(self, client):
         resp = await client.get("/api/video/status/r1/unknown-job")

@@ -17,6 +17,10 @@ class PipelineConfig(BaseModel):
     reasoning_model: str
     video_model: str | None = None
     creator_profile: CreatorProfile
+    num_videos: int = 100
+    num_scripts: int = 50
+    num_personas: int = 100
+    top_n: int = 10
 
 
 class StageStatus(StrEnum):

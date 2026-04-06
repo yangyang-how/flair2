@@ -37,6 +37,11 @@ async def generate_video(
     status = await r.get(f"run:{req.run_id}:status")
     if status is None:
         raise HTTPException(status_code=404, detail=f"Run {req.run_id} not found")
+    if status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Run {req.run_id} is {status}, not completed",
+        )
 
     job_id = str(uuid.uuid4())
 
