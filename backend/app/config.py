@@ -6,17 +6,6 @@ class Settings(BaseSettings):
     debug: bool = False
     environment: str = "dev"
 
-    # LLM API Keys
-    gemini_api_key: str = ""
-    kimi_api_key: str = ""
-    openai_api_key: str = ""
-
-    # Pipeline Defaults
-    s1_video_count: int = 100
-    s3_script_count: int = 50
-    s4_persona_count: int = 100
-    s6_top_n: int = 10
-
     # Redis (db=0 for state, db=1 for Celery broker — don't mix them)
     redis_url: str = "redis://localhost:6379/0"
 
@@ -26,10 +15,21 @@ class Settings(BaseSettings):
     dynamodb_runs_table: str = "pipeline_runs"
     dynamodb_perf_table: str = "video_performance"
 
+    # LLM API Keys
+    gemini_api_key: str = ""
+    kimi_api_key: str = ""
+    openai_api_key: str = ""
+
     # Rate Limits (requests per minute)
     gemini_rpm: int = 60
     kimi_rpm: int = 60
     openai_rpm: int = 60
+
+    # Pipeline Defaults
+    s1_video_count: int = 100
+    s3_script_count: int = 50
+    s4_persona_count: int = 100
+    s6_top_n: int = 10
 
     # Celery (db=1 — separate from state Redis)
     celery_broker_url: str = "redis://localhost:6379/1"

@@ -1,0 +1,181 @@
+<h2>Section 1: Directory Structure</h2>
+<p class="subtitle">Every file has a home. No ambiguity when you sit down to code.</p>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+
+  <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+    <h3 style="margin-top:0; color: #7c83ff;">Backend (Python)</h3>
+    <pre style="font-size: 0.78em; color: #ccc; line-height: 1.7; margin: 0;">
+backend/
+├── app/
+│   ├── __init__.py
+│   ├── main.py                 <span style="color:#666">← FastAPI app entry</span>
+│   ├── config.py               <span style="color:#666">← pydantic-settings</span>
+│   │
+│   ├── api/                    <span style="color:#7c83ff">── Layer 1: API ──</span>
+│   │   ├── __init__.py
+│   │   ├── deps.py             <span style="color:#666">← dependency injection</span>
+│   │   └── routes/
+│   │       ├── pipeline.py     <span style="color:#666">← /api/pipeline/*</span>
+│   │       ├── video.py        <span style="color:#666">← /api/video/*</span>
+│   │       ├── performance.py  <span style="color:#666">← /api/performance/*</span>
+│   │       ├── runs.py         <span style="color:#666">← /api/runs</span>
+│   │       ├── providers.py    <span style="color:#666">← /api/providers</span>
+│   │       └── health.py       <span style="color:#666">← /api/health</span>
+│   │
+│   ├── pipeline/               <span style="color:#4ecdc4">── Layer 2: Pipeline ──</span>
+│   │   ├── __init__.py
+│   │   ├── orchestrator.py     <span style="color:#666">← state machine, stage transitions</span>
+│   │   ├── stages/
+│   │   │   ├── __init__.py
+│   │   │   ├── s1_analyze.py   <span style="color:#666">← pure function: Video → Pattern</span>
+│   │   │   ├── s2_aggregate.py <span style="color:#666">← pure function: Patterns → Library</span>
+│   │   │   ├── s3_generate.py  <span style="color:#666">← pure function: Library → Scripts</span>
+│   │   │   ├── s4_vote.py      <span style="color:#666">← pure function: Scripts → Votes</span>
+│   │   │   ├── s5_rank.py      <span style="color:#666">← pure function: Votes → Top 10</span>
+│   │   │   └── s6_personalize.py <span style="color:#666">← pure function: Top10 → Output</span>
+│   │   └── prompts/
+│   │       ├── __init__.py
+│   │       ├── s1_prompts.py   <span style="color:#666">← LLM prompt templates</span>
+│   │       ├── s3_prompts.py
+│   │       ├── s4_prompts.py
+│   │       └── s6_prompts.py
+│   │
+│   ├── providers/              <span style="color:#ff6b6b">── Layer 3: Providers ──</span>
+│   │   ├── __init__.py
+│   │   ├── base.py             <span style="color:#666">← Protocol classes</span>
+│   │   ├── registry.py         <span style="color:#666">← provider lookup by name</span>
+│   │   ├── gemini.py
+│   │   ├── kimi.py
+│   │   ├── openai_provider.py
+│   │   ├── seedance.py
+│   │   └── veo.py
+│   │
+│   ├── infra/                  <span style="color:#ffd93d">── Layer 4: Infra ──</span>
+│   │   ├── __init__.py
+│   │   ├── redis_client.py     <span style="color:#666">← all Redis access</span>
+│   │   ├── dynamo_client.py    <span style="color:#666">← all DynamoDB access</span>
+│   │   ├── s3_client.py        <span style="color:#666">← all S3 access</span>
+│   │   └── rate_limiter.py     <span style="color:#666">← token bucket impl</span>
+│   │
+│   ├── workers/                <span style="color:#666">── Celery (distributed mode) ──</span>
+│   │   ├── __init__.py
+│   │   ├── celery_app.py       <span style="color:#666">← Celery config</span>
+│   │   └── tasks.py            <span style="color:#666">← thin wrappers calling stages</span>
+│   │
+│   ├── sse/                    <span style="color:#666">── SSE streaming ──</span>
+│   │   ├── __init__.py
+│   │   └── manager.py          <span style="color:#666">← SSE event broadcasting</span>
+│   │
+│   ├── models/                 <span style="color:#666">── Pydantic models ──</span>
+│   │   ├── __init__.py
+│   │   ├── pipeline.py         <span style="color:#666">← PipelineRun, PipelineConfig</span>
+│   │   ├── stages.py           <span style="color:#666">← S1Pattern, S2Library, etc.</span>
+│   │   ├── performance.py      <span style="color:#666">← VideoPerformance</span>
+│   │   └── errors.py           <span style="color:#666">← typed error hierarchy</span>
+│   │
+│   └── runner/                 <span style="color:#666">── Local mode (MVP) ──</span>
+│       ├── __init__.py
+│       └── local_runner.py     <span style="color:#666">← runs pipeline without Redis/Celery</span>
+│
+├── tests/
+│   ├── conftest.py             <span style="color:#666">← shared fixtures</span>
+│   ├── fixtures/               <span style="color:#666">← sample inputs/outputs</span>
+│   ├── unit/
+│   │   ├── test_s1_analyze.py
+│   │   ├── test_s2_aggregate.py
+│   │   ├── ...
+│   │   └── test_rate_limiter.py
+│   └── integration/
+│       ├── test_pipeline_local.py
+│       └── test_redis_state.py
+│
+├── pyproject.toml
+├── Dockerfile
+└── docker-compose.yml          <span style="color:#666">← local dev (Redis + API + worker)</span>
+    </pre>
+  </div>
+
+  <div>
+    <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+      <h3 style="margin-top:0; color: #7c83ff;">Frontend (TypeScript)</h3>
+      <pre style="font-size: 0.78em; color: #ccc; line-height: 1.7; margin: 0;">
+frontend/
+├── src/
+│   ├── pages/
+│   │   ├── index.astro          <span style="color:#666">← landing</span>
+│   │   ├── create.astro         <span style="color:#666">← input + model select</span>
+│   │   ├── pipeline/[id].astro  <span style="color:#666">← stage progress</span>
+│   │   ├── vote/[id].astro      <span style="color:#666">← voting animation</span>
+│   │   ├── results/[id].astro   <span style="color:#666">← scripts + videos</span>
+│   │   ├── track/[id].astro     <span style="color:#666">← performance entry</span>
+│   │   ├── insights.astro       <span style="color:#666">← dashboard</span>
+│   │   └── runs.astro           <span style="color:#666">← run history</span>
+│   ├── components/
+│   │   ├── PipelineVisualizer.tsx
+│   │   ├── VotingAnimation.tsx
+│   │   └── VideoPlayer.tsx
+│   ├── lib/
+│   │   ├── api-client.ts        <span style="color:#666">← single API module</span>
+│   │   └── sse-client.ts        <span style="color:#666">← SSE hook</span>
+│   └── styles/
+├── astro.config.mjs
+├── package.json
+└── tsconfig.json
+      </pre>
+    </div>
+
+    <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+      <h3 style="margin-top:0; color: #7c83ff;">Infrastructure</h3>
+      <pre style="font-size: 0.78em; color: #ccc; line-height: 1.7; margin: 0;">
+terraform/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── modules/
+│   ├── ecs/                    <span style="color:#666">← API + workers</span>
+│   ├── alb/                    <span style="color:#666">← load balancer</span>
+│   ├── elasticache/            <span style="color:#666">← Redis</span>
+│   ├── dynamodb/               <span style="color:#666">← tables</span>
+│   ├── s3/                     <span style="color:#666">← bucket</span>
+│   ├── lambda/                 <span style="color:#666">← video gen</span>
+│   └── iam/                    <span style="color:#666">← roles</span>
+└── environments/
+    ├── dev.tfvars
+    └── prod.tfvars
+      </pre>
+    </div>
+
+    <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 20px;">
+      <h3 style="margin-top:0; color: #7c83ff;">Project Root</h3>
+      <pre style="font-size: 0.78em; color: #ccc; line-height: 1.7; margin: 0;">
+flair2/
+├── backend/
+├── frontend/
+├── terraform/
+├── design/                     <span style="color:#666">← specs, research, arch docs</span>
+│   ├── spec_v3.md
+│   ├── architecture_v3.md      <span style="color:#666">← this doc</span>
+│   ├── dataset-research.md
+│   └── research/               <span style="color:#666">← knowledge base</span>
+├── data/                       <span style="color:#666">← dataset files (gitignored)</span>
+├── CLAUDE.md
+├── .gitignore
+└── .github/
+    └── workflows/
+        └── ci.yml              <span style="color:#666">← lint + test on push</span>
+      </pre>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 24px; padding: 16px; border: 1px solid #333; border-radius: 8px; background: #1a1a2e;">
+  <h3 style="margin-top:0;">Key Design Decisions Reflected</h3>
+  <ul style="color: #aaa; line-height: 1.8;">
+    <li><strong>runner/local_runner.py</strong> — MVP mode. Calls stage functions directly, no Redis/Celery. Same stage code as distributed mode.</li>
+    <li><strong>workers/tasks.py</strong> — Thin wrappers only. Each task reads input, calls the pure stage function, writes output. Business logic stays in <code>stages/</code>.</li>
+    <li><strong>models/</strong> — Shared Pydantic models used by all layers. The contracts between stages.</li>
+    <li><strong>prompts/</strong> — Separate from stage logic. Prompt templates are tunable without touching pipeline code.</li>
+    <li><strong>providers/registry.py</strong> — Maps provider names (from user selection) to provider instances. The orchestrator looks up "gemini" → gets a GeminiProvider.</li>
+  </ul>
+</div>
