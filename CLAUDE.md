@@ -18,8 +18,8 @@ Architecture and design rationale: see `design/architecture.md`. Read it before 
 - Backend test: `pytest`
 - Backend lint: `ruff check .`
 - Backend format: `ruff format .`
-- Frontend dev: [Fill in after Astro setup]
-- Frontend build: [Fill in after Astro setup]
+- Frontend dev: `cd frontend && npm run dev`
+- Frontend build: `cd frontend && npm run build`
 
 ## Directory Structure
 [Fill in during spec phase]

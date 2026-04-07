@@ -1,0 +1,59 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "Flair2 — AI Campaign Studio" } = Astro.props;
+
+const navLinks = [
+  { href: "/create", label: "Create" },
+  { href: "/runs", label: "Runs" },
+  { href: "/insights", label: "Insights" },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <nav class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
+        <a href="/" class="text-lg font-bold text-[var(--color-accent)]">
+          Flair2
+        </a>
+        <div class="flex gap-6">
+          {
+            navLinks.map(({ href, label }) => (
+              <a
+                href={href}
+                class:list={[
+                  "text-sm transition-colors",
+                  currentPath === href
+                    ? "text-[var(--color-accent)] font-medium"
+                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]",
+                ]}
+              >
+                {label}
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-5xl px-6 py-8">
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  @import "../styles/global.css";
+</style>
