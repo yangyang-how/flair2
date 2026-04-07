@@ -30,6 +30,7 @@ htmlcov/
 # Node / Frontend
 node_modules/
 .astro/
+frontend/dist/
 
 # IDE
 .vscode/
