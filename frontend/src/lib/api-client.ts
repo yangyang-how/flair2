@@ -16,6 +16,12 @@ export interface CreatorProfile {
   vocabulary: string[];
   catchphrases: string[];
   topics_to_avoid: string[];
+  // Expanded fields — optional for backward compat (#70)
+  niche?: string | null;
+  audience_description?: string | null;
+  content_themes?: string[];
+  example_hooks?: string[];
+  recent_topics?: string[];
 }
 
 export interface StartPipelineRequest {

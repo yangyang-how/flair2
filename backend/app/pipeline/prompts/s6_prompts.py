@@ -12,9 +12,9 @@ Tone: {tone}
 Vocabulary they use: {vocabulary}
 Catchphrases: {catchphrases}
 Topics to avoid: {topics_to_avoid}
-
+{creator_context}
 ## Task
-1. **Personalized script**: Rewrite the script in this creator's authentic voice. Keep the structural pattern (hook type, pacing, emotional arc) but change the words, phrases, and delivery style to match their personality. It should sound like THEM, not a generic copywriter.
+1. **Personalized script**: Rewrite the script in this creator's authentic voice. Keep the structural pattern (hook type, pacing, emotional arc) but change the words, phrases, and delivery style to match their personality. It should sound like THEM, not a generic copywriter.{niche_instruction}
 2. **Video prompt**: Write a detailed video production prompt describing the visual style, camera angles, transitions, text overlays, and pacing for this script. This prompt will be used by an AI video generator.
 
 ## Output Format

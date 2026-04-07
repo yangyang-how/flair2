@@ -25,6 +25,7 @@ from app.models.stages import (
 
 
 def test_creator_profile_valid():
+    """Minimal profile — original 4 fields only (backward compat)."""
     p = CreatorProfile(
         tone="casual",
         vocabulary=["vibe", "insane"],
@@ -33,6 +34,38 @@ def test_creator_profile_valid():
     )
     assert p.tone == "casual"
     assert len(p.vocabulary) == 2
+    # Expanded fields default to None/empty
+    assert p.niche is None
+    assert p.audience_description is None
+    assert p.content_themes == []
+    assert p.example_hooks == []
+    assert p.recent_topics == []
+
+
+def test_creator_profile_expanded():
+    """Full profile with niche, audience, themes — round-trip validation."""
+    p = CreatorProfile(
+        tone="casual and energetic",
+        vocabulary=["vibe", "insane"],
+        catchphrases=["let's gooo"],
+        topics_to_avoid=["politics"],
+        niche="fitness",
+        audience_description="college students 18-24",
+        content_themes=["morning routines", "dorm workouts"],
+        example_hooks=["POV: your roommate sees you working out at 6am"],
+        recent_topics=["push-up variations"],
+    )
+    assert p.niche == "fitness"
+    assert p.audience_description == "college students 18-24"
+    assert len(p.content_themes) == 2
+    assert len(p.example_hooks) == 1
+    assert len(p.recent_topics) == 1
+
+    # Round-trip through JSON
+    data = p.model_dump()
+    p2 = CreatorProfile(**data)
+    assert p2.niche == "fitness"
+    assert p2.content_themes == ["morning routines", "dorm workouts"]
 
 
 def test_pipeline_config_valid():

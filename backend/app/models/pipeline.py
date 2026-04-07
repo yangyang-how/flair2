@@ -9,6 +9,12 @@ class CreatorProfile(BaseModel):
     vocabulary: list[str]
     catchphrases: list[str]
     topics_to_avoid: list[str]
+    # Expanded fields — optional for backward compatibility (#70)
+    niche: str | None = None
+    audience_description: str | None = None
+    content_themes: list[str] = []
+    example_hooks: list[str] = []
+    recent_topics: list[str] = []
 
 
 class PipelineConfig(BaseModel):
