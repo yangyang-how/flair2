@@ -2,13 +2,14 @@
  * SSE client — React hook for pipeline event streaming.
  *
  * Opens an EventSource to /api/pipeline/status/{runId}.
- * Reconnects automatically using Last-Event-ID.
+ * Relies on the browser's native EventSource auto-reconnect which
+ * preserves Last-Event-ID across retries.
  * Multi-tab safe (backend uses Redis Streams, not BLPOP).
  *
  * Contract: https://github.com/yangyang-how/flair2/issues/71 Section 2.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
 
@@ -31,6 +32,9 @@ interface SSEState {
 // Terminal events — close connection after receiving these
 const TERMINAL_EVENTS = new Set(["pipeline_complete", "pipeline_error"]);
 
+// Cap event history to prevent unbounded memory growth
+const MAX_EVENT_HISTORY = 500;
+
 // ── Hook ───────────────────────────────────────────────────
 
 export function useSSE(runId: string | null): SSEState {
@@ -42,53 +46,53 @@ export function useSSE(runId: string | null): SSEState {
   });
 
   const eventSourceRef = useRef<EventSource | null>(null);
-  const lastEventIdRef = useRef<string | null>(null);
 
-  const connect = useCallback(() => {
+  useEffect(() => {
     if (!runId) return;
 
     const url = `${API_BASE}/api/pipeline/status/${runId}`;
     const es = new EventSource(url);
     eventSourceRef.current = es;
 
+    const pushEvent = (sseEvent: SSEEvent) => {
+      setState((prev) => ({
+        ...prev,
+        event: sseEvent,
+        events:
+          prev.events.length >= MAX_EVENT_HISTORY
+            ? [...prev.events.slice(-MAX_EVENT_HISTORY + 1), sseEvent]
+            : [...prev.events, sseEvent],
+        error: null,
+      }));
+    };
+
     es.onopen = () => {
       setState((prev) => ({ ...prev, connected: true, error: null }));
     };
 
-    es.onmessage = (msg) => {
-      // Default "message" event type — shouldn't happen with our backend
-      // but handle gracefully
-      try {
-        const data = JSON.parse(msg.data);
-        const sseEvent: SSEEvent = {
-          id: msg.lastEventId || "",
-          event: "message",
-          data,
-          timestamp: data.timestamp || new Date().toISOString(),
-        };
-        lastEventIdRef.current = msg.lastEventId;
-        setState((prev) => ({
-          ...prev,
-          event: sseEvent,
-          events: [...prev.events, sseEvent],
-        }));
-      } catch {
-        // Malformed event — skip
-      }
-    };
-
     es.onerror = () => {
-      es.close();
+      // Don't close — let native EventSource retry handle reconnection.
+      // It preserves Last-Event-ID automatically across retries.
       setState((prev) => ({
         ...prev,
         connected: false,
         error: "Connection lost. Reconnecting...",
       }));
+    };
 
-      // Reconnect after 2s. Browser EventSource auto-reconnects,
-      // but we close explicitly on terminal events, so manual reconnect
-      // is only for error cases.
-      setTimeout(() => connect(), 2000);
+    es.onmessage = (msg) => {
+      // Default "message" event type — shouldn't happen with our backend
+      try {
+        const data = JSON.parse(msg.data);
+        pushEvent({
+          id: msg.lastEventId || "",
+          event: "message",
+          data,
+          timestamp: data.timestamp || new Date().toISOString(),
+        });
+      } catch {
+        // Malformed — skip
+      }
     };
 
     // Listen for all named event types from the contract
@@ -117,40 +121,36 @@ export function useSSE(runId: string | null): SSEState {
             timestamp: data.timestamp || new Date().toISOString(),
           };
 
-          lastEventIdRef.current = msg.lastEventId;
-
-          setState((prev) => ({
-            ...prev,
-            event: sseEvent,
-            events: [...prev.events, sseEvent],
-            // Clear error on successful event
-            error: TERMINAL_EVENTS.has(type)
-              ? type === "pipeline_error"
-                ? (data.data?.error ?? "Pipeline failed")
-                : null
-              : null,
-          }));
-
-          // Close connection on terminal events
           if (TERMINAL_EVENTS.has(type)) {
+            // Terminal event — update state and close
+            setState((prev) => ({
+              ...prev,
+              event: sseEvent,
+              events:
+                prev.events.length >= MAX_EVENT_HISTORY
+                  ? [...prev.events.slice(-MAX_EVENT_HISTORY + 1), sseEvent]
+                  : [...prev.events, sseEvent],
+              connected: false,
+              error:
+                type === "pipeline_error"
+                  ? (data.data?.error ?? "Pipeline failed")
+                  : null,
+            }));
             es.close();
-            setState((prev) => ({ ...prev, connected: false }));
+          } else {
+            pushEvent(sseEvent);
           }
         } catch {
-          // Malformed event — skip
+          // Malformed — skip
         }
       });
     }
-  }, [runId]);
-
-  useEffect(() => {
-    connect();
 
     return () => {
-      eventSourceRef.current?.close();
+      es.close();
       eventSourceRef.current = null;
     };
-  }, [connect]);
+  }, [runId]);
 
   return state;
 }
