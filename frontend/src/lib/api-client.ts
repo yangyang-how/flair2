@@ -135,6 +135,25 @@ export class ApiError extends Error {
   }
 }
 
+// ── Session ID ─────────────────────────────────────────────
+
+const SESSION_KEY = "flair2_session_id";
+
+/**
+ * Get or create a persistent session ID.
+ * Stored in localStorage so it survives page reloads but not
+ * cross-browser/incognito. Good enough for a prototype.
+ */
+export function getSessionId(): string {
+  if (typeof window === "undefined") return "ssr";
+  let id = localStorage.getItem(SESSION_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(SESSION_KEY, id);
+  }
+  return id;
+}
+
 // ── Helpers ────────────────────────────────────────────────
 
 async function request<T>(
@@ -163,10 +182,9 @@ async function request<T>(
 
 export function startPipeline(
   req: StartPipelineRequest,
-  sessionId?: string,
 ): Promise<StartPipelineResponse> {
-  const params = sessionId ? `?session_id=${sessionId}` : "";
-  return request(`/api/pipeline/start${params}`, {
+  const sid = getSessionId();
+  return request(`/api/pipeline/start?session_id=${sid}`, {
     method: "POST",
     body: JSON.stringify(req),
   });
@@ -178,10 +196,9 @@ export function getPipelineResults(
   return request(`/api/pipeline/results/${runId}`);
 }
 
-export function listRuns(
-  sessionId: string,
-): Promise<RunListResponse> {
-  return request(`/api/runs?session_id=${sessionId}`);
+export function listRuns(): Promise<RunListResponse> {
+  const sid = getSessionId();
+  return request(`/api/runs?session_id=${sid}`);
 }
 
 // ── Providers ──────────────────────────────────────────────
