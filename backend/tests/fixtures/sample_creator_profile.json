@@ -2,5 +2,10 @@
     "tone": "casual and energetic",
     "vocabulary": ["vibe", "insane", "lowkey", "no cap", "fire"],
     "catchphrases": ["let's gooo", "wait for it", "trust me on this"],
-    "topics_to_avoid": ["politics", "religion", "negativity"]
+    "topics_to_avoid": ["politics", "religion", "negativity"],
+    "niche": "fitness",
+    "audience_description": "college students 18-24 who want quick workouts",
+    "content_themes": ["morning routines", "dorm workouts", "protein on a budget"],
+    "example_hooks": ["POV: your roommate sees you working out at 6am", "Stop doing this exercise immediately"],
+    "recent_topics": ["push-up variations", "meal prep Sunday"]
 }

@@ -10,6 +10,11 @@ def sample_creator_profile():
         vocabulary=["vibe", "insane", "lowkey", "no cap"],
         catchphrases=["let's gooo", "wait for it"],
         topics_to_avoid=["politics", "religion"],
+        niche="fitness",
+        audience_description="college students 18-24 who want quick workouts",
+        content_themes=["morning routines", "dorm workouts"],
+        example_hooks=["POV: your roommate sees you working out at 6am"],
+        recent_topics=["push-up variations"],
     )
 
 
