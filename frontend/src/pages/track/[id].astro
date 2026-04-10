@@ -1,0 +1,267 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const { id } = Astro.params;
+---
+
+<BaseLayout title={`Track Performance — ${id} — Flair2`}>
+  <div class="mx-auto max-w-3xl">
+    <div class="mb-2 flex items-center gap-3">
+      <a
+        href="/runs"
+        class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+      >
+        ← Runs
+      </a>
+    </div>
+    <h1 class="mb-1 text-3xl font-bold">Performance Tracking</h1>
+    <p class="mb-8 font-mono text-sm text-[var(--color-text-muted)]">
+      Run: {id}
+    </p>
+
+    <!-- Loading state -->
+    <div id="loading" class="flex flex-col gap-4">
+      {Array.from({ length: 3 }).map(() => (
+        <div class="h-48 animate-pulse rounded-xl bg-[var(--color-surface)]" />
+      ))}
+    </div>
+
+    <!-- Error state -->
+    <div
+      id="error-state"
+      class="hidden rounded-lg border border-[var(--color-error)] bg-[var(--color-error)]/10 px-4 py-3 text-sm text-[var(--color-error)]"
+    >
+    </div>
+
+    <!-- Scripts list -->
+    <div id="scripts-list" class="hidden flex-col gap-6"></div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden py-16 text-center text-[var(--color-text-muted)]">
+      <p class="text-lg">No results found for this run.</p>
+      <p class="mt-1 text-sm">The pipeline may still be running.</p>
+      <a
+        href={`/pipeline/${id}`}
+        class="mt-4 inline-block text-sm text-[var(--color-accent)] hover:underline"
+      >
+        View pipeline status →
+      </a>
+    </div>
+  </div>
+</BaseLayout>
+
+<script define:vars={{ runId: id }}>
+  import {
+    getPipelineResults,
+    getPerformance,
+    submitPerformance,
+  } from "../../lib/api-client";
+
+  const loadingEl = document.getElementById("loading");
+  const errorEl = document.getElementById("error-state");
+  const listEl = document.getElementById("scripts-list");
+  const emptyEl = document.getElementById("empty-state");
+
+  function show(el) {
+    el.classList.remove("hidden");
+    if (el === listEl) el.classList.add("flex");
+  }
+  function hide(el) {
+    el.classList.add("hidden");
+    if (el === listEl) el.classList.remove("flex");
+  }
+
+  function showError(msg) {
+    hide(loadingEl);
+    errorEl.textContent = msg;
+    show(errorEl);
+  }
+
+  // ── Platform options ────────────────────────────────────
+
+  const PLATFORMS = ["TikTok", "YouTube", "Instagram"];
+
+  // ── Build script card ───────────────────────────────────
+
+  function buildCard(script, existing) {
+    const ex = existing?.[script.script_id];
+    const card = document.createElement("div");
+    card.className =
+      "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6";
+    card.dataset.scriptId = script.script_id;
+
+    const saved = ex ? "saved" : "";
+    card.innerHTML = `
+      <div class="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <span class="text-xs text-[var(--color-text-muted)]">Rank #${script.rank}</span>
+          <p class="mt-1 font-medium leading-snug">${escHtml(script.original_script.hook)}</p>
+          <p class="mt-1 text-sm text-[var(--color-text-muted)]">Score: ${script.vote_score}</p>
+        </div>
+        <span
+          class="saved-badge shrink-0 rounded-full bg-[var(--color-success)]/15 px-2 py-0.5 text-xs font-medium text-[var(--color-success)] ${saved ? "" : "hidden"}"
+        >Saved ✓</span>
+      </div>
+
+      <form class="perf-form flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="mb-1.5 block text-xs font-medium">Platform</label>
+            <select name="platform" class="input-field text-sm">
+              ${PLATFORMS.map((p) => `<option value="${p}" ${ex?.platform === p ? "selected" : ""}>${p}</option>`).join("")}
+            </select>
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-medium">Post URL</label>
+            <input name="post_url" type="url" placeholder="https://…" class="input-field text-sm" value="${escAttr(ex?.post_url ?? "")}" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-3">
+          <div>
+            <label class="mb-1.5 block text-xs font-medium">Views</label>
+            <input name="views" type="number" min="0" placeholder="0" class="input-field text-sm" value="${ex?.views ?? ""}" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-medium">Likes</label>
+            <input name="likes" type="number" min="0" placeholder="0" class="input-field text-sm" value="${ex?.likes ?? ""}" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-medium">Comments</label>
+            <input name="comments" type="number" min="0" placeholder="0" class="input-field text-sm" value="${ex?.comments ?? ""}" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-medium">Shares</label>
+            <input name="shares" type="number" min="0" placeholder="0" class="input-field text-sm" value="${ex?.shares ?? ""}" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="mb-1.5 block text-xs font-medium">Avg Watch Time (s) <span class="text-[var(--color-text-muted)]">optional</span></label>
+            <input name="watch_time_avg" type="number" min="0" step="0.1" placeholder="—" class="input-field text-sm" value="${ex?.watch_time_avg ?? ""}" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-medium">Completion Rate (%) <span class="text-[var(--color-text-muted)]">optional</span></label>
+            <input name="completion_rate" type="number" min="0" max="100" step="0.1" placeholder="—" class="input-field text-sm" value="${ex?.completion_rate ?? ""}" />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="submit" class="save-btn rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50">
+            Save
+          </button>
+          <span class="inline-error text-sm text-[var(--color-error)]"></span>
+        </div>
+      </form>
+    `;
+
+    const form = card.querySelector(".perf-form");
+    const saveBtn = card.querySelector(".save-btn");
+    const inlineError = card.querySelector(".inline-error");
+    const savedBadge = card.querySelector(".saved-badge");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      inlineError.textContent = "";
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving…";
+
+      const post_url = form.post_url.value.trim();
+      if (!post_url) {
+        inlineError.textContent = "Post URL is required.";
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save";
+        return;
+      }
+
+      try {
+        await submitPerformance({
+          run_id: runId,
+          script_id: script.script_id,
+          platform: form.platform.value,
+          post_url,
+          views: parseInt(form.views.value) || 0,
+          likes: parseInt(form.likes.value) || 0,
+          comments: parseInt(form.comments.value) || 0,
+          shares: parseInt(form.shares.value) || 0,
+          watch_time_avg: form.watch_time_avg.value
+            ? parseFloat(form.watch_time_avg.value)
+            : null,
+          completion_rate: form.completion_rate.value
+            ? parseFloat(form.completion_rate.value)
+            : null,
+        });
+        savedBadge.classList.remove("hidden");
+      } catch (err) {
+        inlineError.textContent = err instanceof Error ? err.message : "Save failed.";
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save";
+      }
+    });
+
+    return card;
+  }
+
+  function escHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+  function escAttr(str) {
+    return String(str ?? "").replace(/"/g, "&quot;");
+  }
+
+  // ── Load data ───────────────────────────────────────────
+
+  async function load() {
+    try {
+      const [resultsRes, perfRes] = await Promise.allSettled([
+        getPipelineResults(runId),
+        getPerformance(runId),
+      ]);
+
+      if (resultsRes.status === "rejected") {
+        showError(`Could not load results: ${resultsRes.reason?.message ?? "Unknown error"}`);
+        return;
+      }
+
+      const results = resultsRes.value.results;
+      hide(loadingEl);
+
+      if (!results || results.length === 0) {
+        show(emptyEl);
+        return;
+      }
+
+      // Build existing performance map keyed by script_id
+      const existingMap = {};
+      if (perfRes.status === "fulfilled") {
+        for (const p of perfRes.value.performances ?? []) {
+          existingMap[p.script_id] = p;
+        }
+      }
+
+      for (const script of results) {
+        listEl.appendChild(buildCard(script, existingMap));
+      }
+      show(listEl);
+    } catch (err) {
+      showError(err instanceof Error ? err.message : "Unexpected error.");
+    }
+  }
+
+  load();
+</script>
+
+<style>
+  .input-field {
+    @apply w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder-[var(--color-text-muted)] outline-none transition-colors focus:border-[var(--color-accent)];
+  }
+  select.input-field {
+    @apply cursor-pointer;
+  }
+</style>
