@@ -1,0 +1,385 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Create Campaign — Flair2">
+  <div class="mx-auto max-w-2xl">
+    <h1 class="mb-2 text-3xl font-bold">Create Campaign</h1>
+    <p class="mb-8 text-[var(--color-text-muted)]">
+      Set up your creator profile and start the AI pipeline.
+    </p>
+
+    <!-- Error banner -->
+    <div
+      id="error-banner"
+      class="mb-6 hidden rounded-lg border border-[var(--color-error)] bg-[var(--color-error)]/10 px-4 py-3 text-sm text-[var(--color-error)]"
+    >
+    </div>
+
+    <form id="create-form" class="flex flex-col gap-8">
+      <!-- Creator Profile -->
+      <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+        <h2 class="mb-5 text-lg font-semibold">Creator Profile</h2>
+
+        <div class="flex flex-col gap-5">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="tone">
+              Tone <span class="text-[var(--color-error)]">*</span>
+            </label>
+            <input
+              id="tone"
+              name="tone"
+              type="text"
+              placeholder="e.g. energetic, witty, conversational"
+              class="input-field"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="catchphrases">
+              Catchphrases <span class="text-[var(--color-error)]">*</span>
+            </label>
+            <input
+              id="catchphrases"
+              name="catchphrases"
+              type="text"
+              placeholder="Comma-separated, e.g. Let's go, No cap, For real"
+              class="input-field"
+              required
+            />
+            <p class="mt-1 text-xs text-[var(--color-text-muted)]">At least one required.</p>
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="vocabulary">
+              Vocabulary
+            </label>
+            <input
+              id="vocabulary"
+              name="vocabulary"
+              type="text"
+              placeholder="Comma-separated words you use often"
+              class="input-field"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="topics_to_avoid">
+              Topics to Avoid
+            </label>
+            <input
+              id="topics_to_avoid"
+              name="topics_to_avoid"
+              type="text"
+              placeholder="Comma-separated topics"
+              class="input-field"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="niche">
+              Niche
+            </label>
+            <input
+              id="niche"
+              name="niche"
+              type="text"
+              placeholder="e.g. personal finance, fitness, cooking"
+              class="input-field"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="audience_description">
+              Audience Description
+            </label>
+            <input
+              id="audience_description"
+              name="audience_description"
+              type="text"
+              placeholder="e.g. Gen Z college students interested in budgeting"
+              class="input-field"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="content_themes">
+              Content Themes
+            </label>
+            <input
+              id="content_themes"
+              name="content_themes"
+              type="text"
+              placeholder="Comma-separated themes"
+              class="input-field"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="example_hooks">
+              Example Hooks
+            </label>
+            <input
+              id="example_hooks"
+              name="example_hooks"
+              type="text"
+              placeholder="Comma-separated example hooks"
+              class="input-field"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="recent_topics">
+              Recent Topics
+            </label>
+            <input
+              id="recent_topics"
+              name="recent_topics"
+              type="text"
+              placeholder="Comma-separated recent topics you've covered"
+              class="input-field"
+            />
+          </div>
+
+          <!-- Upload JSON alternative -->
+          <div class="border-t border-[var(--color-border)] pt-4">
+            <p class="mb-2 text-sm text-[var(--color-text-muted)]">
+              Or upload a <code class="rounded bg-[var(--color-bg)] px-1 py-0.5 text-xs">creator_profile.json</code> to prefill:
+            </p>
+            <input
+              id="json-upload"
+              type="file"
+              accept=".json,application/json"
+              class="text-sm text-[var(--color-text-muted)] file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-[var(--color-accent)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-[var(--color-accent-hover)]"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Model Selection -->
+      <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+        <h2 class="mb-5 text-lg font-semibold">Model Selection</h2>
+
+        <div class="flex flex-col gap-5">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="reasoning_model">
+              Reasoning Model <span class="text-[var(--color-error)]">*</span>
+            </label>
+            <select id="reasoning_model" name="reasoning_model" class="input-field" required>
+              <option value="">Loading models…</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="video_model">
+              Video Model
+            </label>
+            <select id="video_model" name="video_model" class="input-field">
+              <option value="">Loading models…</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advanced -->
+      <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+        <button
+          type="button"
+          id="advanced-toggle"
+          class="flex w-full items-center justify-between text-left text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+        >
+          Advanced Options
+          <span id="advanced-chevron" class="transition-transform">▼</span>
+        </button>
+
+        <div id="advanced-panel" class="mt-5 hidden grid grid-cols-2 gap-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="num_videos">Videos to Analyze</label>
+            <input id="num_videos" name="num_videos" type="number" min="1" value="100" class="input-field" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="num_scripts">Scripts to Generate</label>
+            <input id="num_scripts" name="num_scripts" type="number" min="1" value="50" class="input-field" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="num_personas">Personas</label>
+            <input id="num_personas" name="num_personas" type="number" min="1" value="100" class="input-field" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="top_n">Top N</label>
+            <input id="top_n" name="top_n" type="number" min="1" value="10" class="input-field" />
+          </div>
+        </div>
+      </section>
+
+      <button
+        type="submit"
+        id="submit-btn"
+        class="flex items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-6 py-3 font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Start Pipeline
+      </button>
+    </form>
+  </div>
+</BaseLayout>
+
+<style>
+  .input-field {
+    @apply w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder-[var(--color-text-muted)] outline-none transition-colors focus:border-[var(--color-accent)];
+  }
+  select.input-field {
+    @apply cursor-pointer;
+  }
+  #advanced-panel.open {
+    @apply grid;
+  }
+</style>
+
+<script>
+  import { getProviders, startPipeline } from "../lib/api-client";
+
+  // ── Model dropdowns ─────────────────────────────────────
+
+  const reasoningEl = document.getElementById("reasoning_model") as HTMLSelectElement;
+  const videoEl = document.getElementById("video_model") as HTMLSelectElement;
+
+  getProviders()
+    .then((providers) => {
+      reasoningEl.innerHTML = providers.reasoning
+        .map((m) => `<option value="${m}">${m}</option>`)
+        .join("");
+
+      videoEl.innerHTML =
+        `<option value="">Skip video</option>` +
+        providers.video
+          .map((m) => `<option value="${m}">${m}</option>`)
+          .join("");
+    })
+    .catch(() => {
+      reasoningEl.innerHTML = `<option value="">Failed to load — check API</option>`;
+      videoEl.innerHTML = `<option value="">Skip video</option>`;
+    });
+
+  // ── Advanced toggle ─────────────────────────────────────
+
+  const advancedToggle = document.getElementById("advanced-toggle")!;
+  const advancedPanel = document.getElementById("advanced-panel")!;
+  const advancedChevron = document.getElementById("advanced-chevron")!;
+
+  advancedToggle.addEventListener("click", () => {
+    const open = advancedPanel.classList.toggle("open");
+    advancedPanel.classList.toggle("hidden", !open);
+    advancedChevron.style.transform = open ? "rotate(180deg)" : "";
+  });
+
+  // ── JSON upload ─────────────────────────────────────────
+
+  const jsonUpload = document.getElementById("json-upload") as HTMLInputElement;
+
+  jsonUpload.addEventListener("change", () => {
+    const file = jsonUpload.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const profile = JSON.parse(e.target?.result as string);
+        const set = (id: string, val: string | string[] | undefined | null) => {
+          const el = document.getElementById(id) as HTMLInputElement;
+          if (el && val != null) el.value = Array.isArray(val) ? val.join(", ") : val;
+        };
+        set("tone", profile.tone);
+        set("catchphrases", profile.catchphrases);
+        set("vocabulary", profile.vocabulary);
+        set("topics_to_avoid", profile.topics_to_avoid);
+        set("niche", profile.niche);
+        set("audience_description", profile.audience_description);
+        set("content_themes", profile.content_themes);
+        set("example_hooks", profile.example_hooks);
+        set("recent_topics", profile.recent_topics);
+      } catch {
+        showError("Invalid JSON file.");
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // ── Form submit ─────────────────────────────────────────
+
+  const form = document.getElementById("create-form") as HTMLFormElement;
+  const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement;
+  const errorBanner = document.getElementById("error-banner") as HTMLDivElement;
+
+  function showError(msg: string) {
+    errorBanner.textContent = msg;
+    errorBanner.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function clearError() {
+    errorBanner.classList.add("hidden");
+    errorBanner.textContent = "";
+  }
+
+  function splitCSV(val: string): string[] {
+    return val
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  function getVal(id: string): string {
+    return (document.getElementById(id) as HTMLInputElement).value.trim();
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearError();
+
+    const tone = getVal("tone");
+    const catchphrases = splitCSV(getVal("catchphrases"));
+
+    if (!tone) return showError("Tone is required.");
+    if (catchphrases.length === 0) return showError("At least one catchphrase is required.");
+
+    const reasoning_model = (document.getElementById("reasoning_model") as HTMLSelectElement).value;
+    if (!reasoning_model) return showError("Please select a reasoning model.");
+
+    const video_model_raw = (document.getElementById("video_model") as HTMLSelectElement).value;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Starting…";
+
+    try {
+      const niche = getVal("niche") || null;
+      const audience_description = getVal("audience_description") || null;
+
+      const { run_id } = await startPipeline({
+        creator_profile: {
+          tone,
+          catchphrases,
+          vocabulary: splitCSV(getVal("vocabulary")),
+          topics_to_avoid: splitCSV(getVal("topics_to_avoid")),
+          niche,
+          audience_description,
+          content_themes: splitCSV(getVal("content_themes")),
+          example_hooks: splitCSV(getVal("example_hooks")),
+          recent_topics: splitCSV(getVal("recent_topics")),
+        },
+        reasoning_model,
+        video_model: video_model_raw || null,
+        num_videos: parseInt((document.getElementById("num_videos") as HTMLInputElement).value) || 100,
+        num_scripts: parseInt((document.getElementById("num_scripts") as HTMLInputElement).value) || 50,
+        num_personas: parseInt((document.getElementById("num_personas") as HTMLInputElement).value) || 100,
+        top_n: parseInt((document.getElementById("top_n") as HTMLInputElement).value) || 10,
+      });
+
+      window.location.href = `/pipeline/${run_id}`;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      showError(`Failed to start pipeline: ${msg}`);
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Start Pipeline";
+    }
+  });
+</script>
