@@ -67,6 +67,7 @@ jobs:
 
     steps:
       - name: Create S3 state bucket (idempotent)
+        working-directory: .
         run: |
           if aws s3api head-bucket --bucket flair2-terraform-state 2>/dev/null; then
             echo "Bucket already exists — skipping creation"
