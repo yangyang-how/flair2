@@ -65,8 +65,7 @@ resource "aws_ecs_task_definition" "api" {
     ]
 
     secrets = [
-      { name = "FLAIR2_KIMI_API_KEY", valueFrom = var.kimi_api_key_secret_arn },
-      { name = "FLAIR2_GEMINI_API_KEY", valueFrom = var.gemini_api_key_secret_arn }
+      { name = "FLAIR2_KIMI_API_KEY", valueFrom = var.kimi_api_key_secret_arn }
     ]
 
     logConfiguration = {
@@ -159,8 +158,7 @@ resource "aws_ecs_task_definition" "worker" {
     ]
 
     secrets = [
-      { name = "FLAIR2_KIMI_API_KEY", valueFrom = var.kimi_api_key_secret_arn },
-      { name = "FLAIR2_GEMINI_API_KEY", valueFrom = var.gemini_api_key_secret_arn }
+      { name = "FLAIR2_KIMI_API_KEY", valueFrom = var.kimi_api_key_secret_arn }
     ]
 
     logConfiguration = {
