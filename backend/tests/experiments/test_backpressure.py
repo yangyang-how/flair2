@@ -38,7 +38,6 @@ import statistics
 import time
 from dataclasses import dataclass, field
 
-import pytest
 import pytest_asyncio
 from fakeredis import aioredis as fake_aioredis
 
@@ -108,7 +107,9 @@ class _FastRateLimiter(TokenBucketRateLimiter):
        completes in ~1-2 s rather than minutes.
     """
 
-    def __init__(self, *args: object, retry_delay_s: float = RETRY_DELAY_S, **kwargs: object) -> None:
+    def __init__(
+        self, *args: object, retry_delay_s: float = RETRY_DELAY_S, **kwargs: object
+    ) -> None:
         super().__init__(*args, **kwargs)  # type: ignore[arg-type]
         self._retry_delay_s = retry_delay_s
 
@@ -223,8 +224,8 @@ async def _simulate_worker(
     return WorkerMetrics(worker_id, elapsed, errors, CALLS_PER_WORKER)
 
 
-async def _run_trial(K: int, use_limiter: bool, redis: RedisClient) -> TrialMetrics:
-    """Run K concurrent workers and return aggregate metrics."""
+async def _run_trial(k: int, use_limiter: bool, redis: RedisClient) -> TrialMetrics:
+    """Run k concurrent workers and return aggregate metrics."""
     mode = "rate_limited" if use_limiter else "no_limiter"
     provider = SimulatedProvider(PROVIDER_LIMIT, WINDOW_S)
     limiter = (
@@ -234,10 +235,10 @@ async def _run_trial(K: int, use_limiter: bool, redis: RedisClient) -> TrialMetr
     )
 
     worker_results: list[WorkerMetrics] = await asyncio.gather(
-        *[_simulate_worker(i, provider, limiter) for i in range(K)]
+        *[_simulate_worker(i, provider, limiter) for i in range(k)]
     )
 
-    trial = TrialMetrics(K=K, mode=mode, workers=list(worker_results))
+    trial = TrialMetrics(K=k, mode=mode, workers=list(worker_results))
     return trial
 
 
@@ -268,7 +269,7 @@ class TestBackpressureExperiment:
 
         Shows the problem: unthrottled burst causes provider 429s.
         """
-        trial = await _run_trial(K=10, use_limiter=False, redis=redis)
+        trial = await _run_trial(k=10, use_limiter=False, redis=redis)
         assert trial.error_rate > 0.50, (
             f"Expected > 50% error rate without limiter at K=10, "
             f"got {trial.error_rate:.1%} ({trial.total_errors}/{trial.total_calls})"
@@ -279,7 +280,7 @@ class TestBackpressureExperiment:
 
         Core acceptance criterion from issue #41.
         """
-        trial = await _run_trial(K=10, use_limiter=True, redis=redis)
+        trial = await _run_trial(k=10, use_limiter=True, redis=redis)
         assert trial.error_rate < 0.01, (
             f"Expected < 1% error rate with limiter at K=10, "
             f"got {trial.error_rate:.1%} ({trial.total_errors}/{trial.total_calls})"
@@ -294,7 +295,7 @@ class TestBackpressureExperiment:
         be considerably lower.  This test asserts a conservative bound to
         detect pathological starvation.
         """
-        trial = await _run_trial(K=10, use_limiter=True, redis=redis)
+        trial = await _run_trial(k=10, use_limiter=True, redis=redis)
         cv = trial.completion_cv
         assert cv < 1.0, (
             f"Completion time CV = {cv:.2f} — some workers may be starved. "
@@ -308,20 +309,20 @@ class TestBackpressureExperiment:
         Run with -s to see stdout.
         """
         rows: list[TrialMetrics] = []
-        for K in K_VALUES:
+        for k in K_VALUES:
             # Re-create redis for each trial to avoid stale rate-limit keys
             fake = fake_aioredis.FakeRedis(decode_responses=True)
             fresh_redis = RedisClient.__new__(RedisClient)
             fresh_redis._redis = fake
 
-            no_lim = await _run_trial(K, use_limiter=False, redis=fresh_redis)
+            no_lim = await _run_trial(k, use_limiter=False, redis=fresh_redis)
             rows.append(no_lim)
 
             fake2 = fake_aioredis.FakeRedis(decode_responses=True)
             fresh_redis2 = RedisClient.__new__(RedisClient)
             fresh_redis2._redis = fake2
 
-            with_lim = await _run_trial(K, use_limiter=True, redis=fresh_redis2)
+            with_lim = await _run_trial(k, use_limiter=True, redis=fresh_redis2)
             rows.append(with_lim)
 
             await fake.aclose()
@@ -342,7 +343,7 @@ def _print_table(rows: list[TrialMetrics]) -> None:
     print(f"  CALLS_PER_WORKER={CALLS_PER_WORKER}, PROVIDER_LIMIT={PROVIDER_LIMIT}/window,")
     print(f"  WINDOW={WINDOW_S*1000:.0f}ms, LLM_LATENCY={LLM_LATENCY_S*1000:.0f}ms")
     print("=" * 80)
-    hdr = f"{'K':>4}  {'Mode':<14}  {'calls':>6}  {'errors':>7}  {'err%':>7}  {'mean_ms':>8}  {'CV':>6}"
+    hdr = f"{'K':>4}  {'Mode':<14}  {'calls':>6}  {'errors':>7}  {'err%':>7}  {'mean_ms':>8}  {'CV':>6}"  # noqa: E501
     print(hdr)
     print("-" * 80)
     for row in rows:
@@ -387,17 +388,17 @@ if __name__ == "__main__":
         client._redis = fake
 
         rows: list[TrialMetrics] = []
-        for K in K_VALUES:
+        for k in K_VALUES:
             fake_a = fake_aioredis.FakeRedis(decode_responses=True)
             r_a = RedisClient.__new__(RedisClient)
             r_a._redis = fake_a
-            rows.append(await _run_trial(K, use_limiter=False, redis=r_a))
+            rows.append(await _run_trial(k, use_limiter=False, redis=r_a))
             await fake_a.aclose()
 
             fake_b = fake_aioredis.FakeRedis(decode_responses=True)
             r_b = RedisClient.__new__(RedisClient)
             r_b._redis = fake_b
-            rows.append(await _run_trial(K, use_limiter=True, redis=r_b))
+            rows.append(await _run_trial(k, use_limiter=True, redis=r_b))
             await fake_b.aclose()
 
         _print_table(rows)
