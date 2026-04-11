@@ -1,0 +1,17 @@
+---
+/**
+ * Voting page — /vote/{runId}
+ *
+ * Static page with client-side routing.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import VotePage from "../../components/VotePage";
+
+export function getStaticPaths() {
+  return [{ params: { id: undefined } }];
+}
+---
+
+<BaseLayout title="Vote">
+  <VotePage client:load />
+</BaseLayout>

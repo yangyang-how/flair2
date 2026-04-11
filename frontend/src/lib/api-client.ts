@@ -7,7 +7,9 @@
  * Contract: https://github.com/yangyang-how/flair2/issues/78
  */
 
-const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+// In production (CloudFront), API is proxied at /api/* on the same origin.
+// In dev, override with PUBLIC_API_URL=http://localhost:8000.
+const API_BASE = import.meta.env.PUBLIC_API_URL || "";
 
 // ── Types: Pipeline ────────────────────────────────────────
 

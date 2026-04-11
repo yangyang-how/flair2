@@ -271,6 +271,13 @@ module "ecs" {
   cors_origins            = var.cors_origins
 }
 
+module "frontend" {
+  source     = "./modules/frontend"
+  project    = var.project
+  env        = var.env
+  api_origin = module.alb.dns_name
+}
+
 module "lambda" {
   source             = "./modules/lambda"
   project            = var.project
