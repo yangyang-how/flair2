@@ -253,23 +253,22 @@ module "alb" {
 }
 
 module "ecs" {
-  source                    = "./modules/ecs"
-  project                   = var.project
-  env                       = var.env
-  aws_region                = var.aws_region
-  vpc_id                    = aws_vpc.main.id
-  private_subnet_ids        = aws_subnet.private[*].id
-  security_group_id         = aws_security_group.ecs.id
-  execution_role_arn        = module.iam.ecs_execution_role_arn
-  task_role_arn             = module.iam.ecs_task_role_arn
-  alb_target_group_arn      = module.alb.target_group_arn
-  redis_url                 = module.elasticache.redis_url
-  s3_bucket_name            = module.s3.bucket_name
-  ecr_api_image_url         = module.ecr.api_image_url
-  ecr_worker_image_url      = module.ecr.worker_image_url
-  kimi_api_key_secret_arn   = var.kimi_api_key_secret_arn
-  gemini_api_key_secret_arn = var.gemini_api_key_secret_arn
-  cors_origins              = var.cors_origins
+  source                  = "./modules/ecs"
+  project                 = var.project
+  env                     = var.env
+  aws_region              = var.aws_region
+  vpc_id                  = aws_vpc.main.id
+  private_subnet_ids      = aws_subnet.private[*].id
+  security_group_id       = aws_security_group.ecs.id
+  execution_role_arn      = module.iam.ecs_execution_role_arn
+  task_role_arn           = module.iam.ecs_task_role_arn
+  alb_target_group_arn    = module.alb.target_group_arn
+  redis_url               = module.elasticache.redis_url
+  s3_bucket_name          = module.s3.bucket_name
+  ecr_api_image_url       = module.ecr.api_image_url
+  ecr_worker_image_url    = module.ecr.worker_image_url
+  kimi_api_key_secret_arn = var.kimi_api_key_secret_arn
+  cors_origins            = var.cors_origins
 }
 
 module "lambda" {

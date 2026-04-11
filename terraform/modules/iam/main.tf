@@ -40,8 +40,7 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
       Effect = "Allow"
       Action = "secretsmanager:GetSecretValue"
       Resource = [
-        "arn:aws:secretsmanager:*:*:secret:${var.project}/${var.env}/kimi-api-key*",
-        "arn:aws:secretsmanager:*:*:secret:${var.project}/${var.env}/gemini-api-key*"
+        "arn:aws:secretsmanager:*:*:secret:${var.project}/${var.env}/kimi-api-key*"
       ]
     }]
   })
