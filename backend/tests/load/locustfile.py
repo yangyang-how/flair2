@@ -28,7 +28,6 @@ import uuid
 
 from locust import HttpUser, between, task
 
-
 # Sample creator profile — minimal but valid
 SAMPLE_PROFILE = {
     "tone": "casual",
