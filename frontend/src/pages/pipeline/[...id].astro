@@ -1,0 +1,18 @@
+---
+/**
+ * Pipeline progress page — /pipeline/{runId}
+ *
+ * Static page with client-side routing. The React component
+ * reads the runId from window.location.pathname.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PipelinePage from "../../components/PipelinePage";
+
+export function getStaticPaths() {
+  return [{ params: { id: undefined } }];
+}
+---
+
+<BaseLayout title="Pipeline">
+  <PipelinePage client:load />
+</BaseLayout>

@@ -1,0 +1,17 @@
+---
+/**
+ * Results page — /results/{runId}
+ *
+ * Static page with client-side routing.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ResultsPage from "../../components/ResultsPage";
+
+export function getStaticPaths() {
+  return [{ params: { id: undefined } }];
+}
+---
+
+<BaseLayout title="Results">
+  <ResultsPage client:load />
+</BaseLayout>
