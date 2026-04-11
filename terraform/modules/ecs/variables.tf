@@ -100,6 +100,12 @@ variable "aws_region" {
   default     = "us-west-2"
 }
 
+variable "cors_origins" {
+  description = "Comma-separated CORS origins for the API (e.g. Cloudflare Pages URL)"
+  type        = string
+  default     = ""
+}
+
 variable "kimi_api_key_secret_arn" {
   description = "Secrets Manager ARN for the Kimi (Moonshot) API key"
   type        = string

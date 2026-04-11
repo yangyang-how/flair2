@@ -40,10 +40,11 @@ _DEV_ORIGINS = [
 ]
 
 _is_dev = settings.environment == "dev"
+_extra_origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_DEV_ORIGINS if _is_dev else [],
+    allow_origins=(_DEV_ORIGINS + _extra_origins) if _is_dev else _extra_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

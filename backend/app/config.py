@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     # Redis (db=0 for state, db=1 for Celery broker — don't mix them)
     redis_url: str = "redis://localhost:6379/0"
 
+    # CORS — comma-separated origins for production (e.g. "https://flair2.pages.dev")
+    cors_origins: str = ""
+
     # AWS
     aws_region: str = "us-east-1"
     s3_bucket: str = "flair2-pipeline"

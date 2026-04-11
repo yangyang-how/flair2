@@ -54,9 +54,14 @@ resource "aws_ecs_task_definition" "api" {
     }]
 
     environment = [
-      { name = "FLAIR2_REDIS_URL", value = var.redis_url },
+      { name = "FLAIR2_REDIS_URL", value = "${var.redis_url}/0" },
+      { name = "FLAIR2_CELERY_BROKER_URL", value = "${var.redis_url}/1" },
       { name = "FLAIR2_S3_BUCKET", value = var.s3_bucket_name },
-      { name = "FLAIR2_ENVIRONMENT", value = var.env }
+      { name = "FLAIR2_AWS_REGION", value = var.aws_region },
+      { name = "FLAIR2_DYNAMODB_RUNS_TABLE", value = "${var.project}-${var.env}-pipeline-runs" },
+      { name = "FLAIR2_DYNAMODB_PERF_TABLE", value = "${var.project}-${var.env}-video-performance" },
+      { name = "FLAIR2_ENVIRONMENT", value = var.env },
+      { name = "FLAIR2_CORS_ORIGINS", value = var.cors_origins }
     ]
 
     secrets = [
@@ -144,8 +149,12 @@ resource "aws_ecs_task_definition" "worker" {
     ]
 
     environment = [
-      { name = "FLAIR2_REDIS_URL", value = var.redis_url },
+      { name = "FLAIR2_REDIS_URL", value = "${var.redis_url}/0" },
+      { name = "FLAIR2_CELERY_BROKER_URL", value = "${var.redis_url}/1" },
       { name = "FLAIR2_S3_BUCKET", value = var.s3_bucket_name },
+      { name = "FLAIR2_AWS_REGION", value = var.aws_region },
+      { name = "FLAIR2_DYNAMODB_RUNS_TABLE", value = "${var.project}-${var.env}-pipeline-runs" },
+      { name = "FLAIR2_DYNAMODB_PERF_TABLE", value = "${var.project}-${var.env}-video-performance" },
       { name = "FLAIR2_ENVIRONMENT", value = var.env }
     ]
 

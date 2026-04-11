@@ -58,3 +58,9 @@ variable "gemini_api_key_secret_arn" {
   description = "Secrets Manager ARN for the Gemini API key (video generation) — create manually before apply: aws secretsmanager create-secret --name flair2/dev/gemini-api-key"
   type        = string
 }
+
+variable "cors_origins" {
+  description = "Comma-separated CORS origins for the API (e.g. https://flair2.pages.dev)"
+  type        = string
+  default     = ""
+}
