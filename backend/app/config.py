@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     gemini_rpm: int = 60
     kimi_rpm: int = 60
     openai_rpm: int = 60
+    enable_rate_limiter: bool = True
 
     # Dataset (local path — will be replaced by S3 in production)
     dataset_path: str = "data/sample_videos.json"
