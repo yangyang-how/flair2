@@ -232,13 +232,9 @@ async def _drive_and_crash_at_s4(
     await orch.on_s3_complete(run_id)
 
     # S4 partial — s4_crash_at personas vote, then worker is "killed"
+    # on_s4_complete writes checkpoint:{run_id}:s4 automatically after each call
     for i in range(s4_crash_at):
         await orch.on_s4_complete(run_id, f"persona_{i}", top_5=[f"s:{run_id}"])
-
-    # Write checkpoint so recovery can resume from here
-    await redis.write_checkpoint(run_id, "s1", config.num_videos)   # S1 fully done
-    await redis.write_checkpoint(run_id, "s4", s4_crash_at)         # S4 partially done
-    # (no S6 checkpoint — it hasn't started)
 
 
 async def _resume_from_checkpoint(redis: RedisClient, run_id: str) -> None:

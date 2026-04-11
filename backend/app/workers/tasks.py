@@ -171,6 +171,14 @@ def s4_vote_task(self, run_id: str, persona_id: str):
     async def _run():
         redis = RedisClient(settings.redis_url)
         try:
+            # Idempotency: skip LLM call if result already stored (crash recovery)
+            existing = await redis.get(f"result:s4:{run_id}:{persona_id}")
+            if existing is not None:
+                vote = PersonaVote.model_validate_json(existing)
+                from app.pipeline.orchestrator import Orchestrator
+                await Orchestrator(redis).on_s4_complete(run_id, persona_id, vote.top_5_script_ids)
+                return
+
             config = await _load_config(redis, run_id)
             raw = await redis.get(f"scripts:candidates:{run_id}")
             scripts = [CandidateScript(**s) for s in json.loads(raw)]
