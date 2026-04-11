@@ -25,18 +25,13 @@ output "alb_dns_name" {
 # ── Frontend ─────────────────────────────────────────────────────────────────
 
 output "frontend_url" {
-  description = "CloudFront URL — this is the frontend"
-  value       = "https://${module.frontend.cloudfront_domain_name}"
+  description = "S3 website URL — this is the frontend"
+  value       = module.frontend.website_url
 }
 
 output "frontend_s3_bucket" {
   description = "S3 bucket for frontend static files"
   value       = module.frontend.s3_bucket_name
-}
-
-output "cloudfront_distribution_id" {
-  description = "CloudFront distribution ID — for cache invalidation"
-  value       = module.frontend.cloudfront_distribution_id
 }
 
 # ── ElastiCache ───────────────────────────────────────────────────────────────
