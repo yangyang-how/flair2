@@ -298,6 +298,9 @@ class TestCacheConcurrencyScale:
         """Actual simulation for K=50 and K=100.
 
         Verifies the SETNX guarantee holds at higher concurrency.
+        Naive is bounded above by K×NUM_VIDEOS but asyncio scheduling is
+        non-deterministic at high K — some tasks may see a cached value
+        written by an earlier task, reducing actual calls below the maximum.
         """
         for k in K_SCALE_SIMULATED:
             setnx = await _run_setnx(k=k)
@@ -305,8 +308,8 @@ class TestCacheConcurrencyScale:
                 f"SETNX must use exactly {NUM_VIDEOS} calls at K={k}, got {setnx.total_calls}"
             )
             naive = await _run_naive(k=k)
-            assert naive.total_calls == k * NUM_VIDEOS, (
-                f"Naive must use K×NUM_VIDEOS={k * NUM_VIDEOS} calls at K={k}, "
+            assert NUM_VIDEOS < naive.total_calls <= k * NUM_VIDEOS, (
+                f"Naive must have duplicates at K={k}: expected ({NUM_VIDEOS}, {k * NUM_VIDEOS}], "
                 f"got {naive.total_calls}"
             )
 
