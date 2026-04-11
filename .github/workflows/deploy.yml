@@ -1,0 +1,87 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+  # Manual trigger — useful when infra changed but code didn't
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REGISTRY: 966294739208.dkr.ecr.us-west-2.amazonaws.com
+  ECR_API_REPO: flair2-dev-api
+  ECR_WORKER_REPO: flair2-dev-worker
+  ECS_CLUSTER: flair2-dev-cluster
+  ECS_API_SERVICE: flair2-dev-api
+  ECS_WORKER_SERVICE: flair2-dev-worker
+
+jobs:
+  deploy:
+    name: Build + Push + Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Build once — same image for API and worker (worker overrides CMD in task def)
+      - name: Build Docker image
+        run: |
+          docker build \
+            --tag $ECR_REGISTRY/$ECR_API_REPO:${{ github.sha }} \
+            --tag $ECR_REGISTRY/$ECR_API_REPO:latest \
+            --tag $ECR_REGISTRY/$ECR_WORKER_REPO:${{ github.sha }} \
+            --tag $ECR_REGISTRY/$ECR_WORKER_REPO:latest \
+            ./backend
+
+      - name: Push to ECR
+        run: |
+          docker push $ECR_REGISTRY/$ECR_API_REPO:${{ github.sha }}
+          docker push $ECR_REGISTRY/$ECR_API_REPO:latest
+          docker push $ECR_REGISTRY/$ECR_WORKER_REPO:${{ github.sha }}
+          docker push $ECR_REGISTRY/$ECR_WORKER_REPO:latest
+
+      # Force ECS to pull the new :latest image and restart containers
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_API_SERVICE \
+            --force-new-deployment \
+            --region $AWS_REGION \
+            --no-cli-pager
+
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_WORKER_SERVICE \
+            --force-new-deployment \
+            --region $AWS_REGION \
+            --no-cli-pager
+
+      - name: Wait for services to stabilize
+        run: |
+          echo "Waiting for API service..."
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_API_SERVICE \
+            --region $AWS_REGION
+
+          echo "Waiting for worker service..."
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_WORKER_SERVICE \
+            --region $AWS_REGION
+
+          echo "Deploy complete."
