@@ -11,4 +11,4 @@ availability_zones   = ["us-west-2a", "us-west-2b"]
 # Create the Kimi API key secret manually before apply:
 #   aws secretsmanager create-secret --name flair2/dev/kimi-api-key --secret-string "YOUR_KEY"
 # Then paste the ARN returned by the command here.
-kimi_api_key_secret_arn = "REPLACE_WITH_ARN_AFTER_CREATING_SECRET"
+kimi_api_key_secret_arn = "arn:aws:secretsmanager:us-west-2:966294739208:secret:flair2/dev/kimi-api-key-JYvv9k"
