@@ -31,19 +31,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow frontend origins in dev
-# Astro dev server (4321) and fallback (3000) in debug mode
+# CORS — allow frontend origins in dev, lock down in production.
+# Astro dev server auto-increments port when 4321 is taken, so we
+# cover the common range. Production uses same-origin (no CORS needed).
 _DEV_ORIGINS = [
-    "http://localhost:4321",
-    "http://localhost:4322",
-    "http://localhost:4323",
-    "http://localhost:4324",
-    "http://localhost:3000",
+    f"http://localhost:{port}"
+    for port in [3000, 4321, 4322, 4323, 4324, 5173]
 ]
+
+_is_dev = settings.environment == "dev"
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_DEV_ORIGINS if settings.debug else [],
+    allow_origins=_DEV_ORIGINS if _is_dev else [],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
