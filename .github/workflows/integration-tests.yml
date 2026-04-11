@@ -91,7 +91,7 @@ jobs:
             --network-configuration "awsvpcConfiguration={subnets=[${{ steps.network.outputs.subnets }}],securityGroups=[${{ steps.network.outputs.security_groups }}],assignPublicIp=DISABLED}" \
             --overrides "{
               \"containerOverrides\": [{
-                \"name\": \"app\",
+                \"name\": \"worker\",
                 \"command\": [\"python\", \"-m\", \"pytest\",
                               \"tests/experiments/test_elasticache_integration.py\",
                               \"-v\", \"--tb=short\", \"--no-header\"],
