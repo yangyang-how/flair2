@@ -17,7 +17,6 @@ env:
   ECS_API_SERVICE: flair2-dev-api
   ECS_WORKER_SERVICE: flair2-dev-worker
   FRONTEND_S3_BUCKET: flair2-dev-frontend
-  CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
 
 jobs:
   # ── Backend ────────────────────────────────────────────────────────────────
@@ -89,7 +88,7 @@ jobs:
 
   # ── Frontend ───────────────────────────────────────────────────────────────
   deploy-frontend:
-    name: Frontend — Build → S3 → CloudFront
+    name: Frontend — Build → S3
     runs-on: ubuntu-latest
 
     steps:
@@ -105,9 +104,6 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm ci
 
-      - name: Build
-        run: cd frontend && npm run build
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -116,22 +112,24 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Get ALB URL
+        id: alb
+        run: |
+          ALB_DNS=$(aws elbv2 describe-load-balancers --region $AWS_REGION \
+            --query 'LoadBalancers[?LoadBalancerName==`flair2-dev-alb`].DNSName' \
+            --output text)
+          echo "url=http://${ALB_DNS}" >> $GITHUB_OUTPUT
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+        env:
+          PUBLIC_API_URL: ${{ steps.alb.outputs.url }}
+
       - name: Upload to S3
         run: |
           aws s3 sync frontend/dist/ s3://$FRONTEND_S3_BUCKET/ \
             --delete \
             --region $AWS_REGION
 
-      - name: Invalidate CloudFront cache
-        if: env.CLOUDFRONT_DISTRIBUTION_ID != ''
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id $CLOUDFRONT_DISTRIBUTION_ID \
-            --paths "/*" \
-            --no-cli-pager
-
-          echo "Frontend deploy complete."
-          echo "URL: https://$(aws cloudfront get-distribution \
-            --id $CLOUDFRONT_DISTRIBUTION_ID \
-            --query 'Distribution.DomainName' \
-            --output text)"
+      - name: Print frontend URL
+        run: echo "Frontend deployed to http://$FRONTEND_S3_BUCKET.s3-website-$AWS_REGION.amazonaws.com"

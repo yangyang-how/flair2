@@ -1,11 +1,6 @@
-output "cloudfront_domain_name" {
-  description = "CloudFront distribution domain name — this is the frontend URL"
-  value       = aws_cloudfront_distribution.frontend.domain_name
-}
-
-output "cloudfront_distribution_id" {
-  description = "CloudFront distribution ID — needed for cache invalidation after deploys"
-  value       = aws_cloudfront_distribution.frontend.id
+output "website_url" {
+  description = "S3 website URL — this is the frontend"
+  value       = "http://${aws_s3_bucket_website_configuration.frontend.website_endpoint}"
 }
 
 output "s3_bucket_name" {

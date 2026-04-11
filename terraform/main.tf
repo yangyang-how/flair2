@@ -268,14 +268,13 @@ module "ecs" {
   ecr_api_image_url       = module.ecr.api_image_url
   ecr_worker_image_url    = module.ecr.worker_image_url
   kimi_api_key_secret_arn = var.kimi_api_key_secret_arn
-  cors_origins            = var.cors_origins
+  cors_origins            = module.frontend.website_url
 }
 
 module "frontend" {
-  source     = "./modules/frontend"
-  project    = var.project
-  env        = var.env
-  api_origin = module.alb.dns_name
+  source  = "./modules/frontend"
+  project = var.project
+  env     = var.env
 }
 
 module "lambda" {
