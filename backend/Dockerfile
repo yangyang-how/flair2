@@ -21,14 +21,17 @@ FROM python:3.11-slim AS runtime
 
 WORKDIR /app
 
-# Non-root user for ECS security best practice
-RUN useradd --no-create-home --shell /bin/false appuser
+# curl for ECS container health check + non-root user
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --no-create-home --shell /bin/false appuser
 
 # Copy venv from builder
 COPY --from=builder /app/venv /app/venv
 
-# Copy application code
+# Copy application code + dataset
 COPY app/ ./app/
+COPY data/ ./data/
 
 # Use venv python
 ENV PATH="/app/venv/bin:$PATH" \

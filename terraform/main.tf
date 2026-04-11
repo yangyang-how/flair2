@@ -269,6 +269,7 @@ module "ecs" {
   ecr_worker_image_url      = module.ecr.worker_image_url
   kimi_api_key_secret_arn   = var.kimi_api_key_secret_arn
   gemini_api_key_secret_arn = var.gemini_api_key_secret_arn
+  cors_origins              = var.cors_origins
 }
 
 module "lambda" {
