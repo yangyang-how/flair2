@@ -11,10 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy only dependency manifest first (layer cache)
 COPY pyproject.toml .
 
-# Install production deps into /app/venv
+# Install production deps + dev test deps into /app/venv
 RUN python -m venv /app/venv && \
     /app/venv/bin/pip install --upgrade pip && \
-    /app/venv/bin/pip install . --no-cache-dir
+    /app/venv/bin/pip install ".[dev]" --no-cache-dir
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
 FROM python:3.11-slim AS runtime
@@ -29,8 +29,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 # Copy venv from builder
 COPY --from=builder /app/venv /app/venv
 
-# Copy application code
+# Copy application code and tests
 COPY app/ ./app/
+COPY tests/ ./tests/
 
 # Use venv python
 ENV PATH="/app/venv/bin:$PATH" \
