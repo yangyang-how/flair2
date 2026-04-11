@@ -59,15 +59,39 @@ variable "ecr_worker_image_url" {
 }
 
 variable "api_desired_count" {
-  description = "Number of API task replicas"
+  description = "Initial number of API task replicas (AppAutoScaling manages count after first apply)"
   type        = number
   default     = 2
 }
 
 variable "worker_desired_count" {
-  description = "Number of Celery worker task replicas"
+  description = "Initial number of Celery worker task replicas (AppAutoScaling manages count after first apply)"
   type        = number
   default     = 2
+}
+
+variable "api_min_count" {
+  description = "Minimum number of API tasks — AppAutoScaling will never scale below this"
+  type        = number
+  default     = 2
+}
+
+variable "api_max_count" {
+  description = "Maximum number of API tasks — AppAutoScaling will never scale above this. Learner Lab default Fargate quota is 6 vCPUs; keep api_max_count × (api_cpu/1024) + worker_max_count × (worker_cpu/1024) ≤ 6."
+  type        = number
+  default     = 6
+}
+
+variable "worker_min_count" {
+  description = "Minimum number of Celery worker tasks"
+  type        = number
+  default     = 2
+}
+
+variable "worker_max_count" {
+  description = "Maximum number of Celery worker tasks. See api_max_count note on Fargate vCPU quota."
+  type        = number
+  default     = 4
 }
 
 variable "api_cpu" {

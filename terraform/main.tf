@@ -240,6 +240,7 @@ module "elasticache" {
   env                = var.env
   subnet_ids         = aws_subnet.private[*].id
   security_group_ids = [aws_security_group.elasticache.id]
+  node_type          = var.elasticache_node_type
 }
 
 module "alb" {
@@ -269,6 +270,10 @@ module "ecs" {
   ecr_worker_image_url    = module.ecr.worker_image_url
   kimi_api_key_secret_arn = var.kimi_api_key_secret_arn
   cors_origins            = module.frontend.website_url
+  api_min_count           = var.api_min_count
+  api_max_count           = var.api_max_count
+  worker_min_count        = var.worker_min_count
+  worker_max_count        = var.worker_max_count
 }
 
 module "frontend" {
