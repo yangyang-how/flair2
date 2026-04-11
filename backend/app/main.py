@@ -33,7 +33,13 @@ app = FastAPI(
 
 # CORS — allow frontend origins in dev
 # Astro dev server (4321) and fallback (3000) in debug mode
-_DEV_ORIGINS = ["http://localhost:4321", "http://localhost:3000"]
+_DEV_ORIGINS = [
+    "http://localhost:4321",
+    "http://localhost:4322",
+    "http://localhost:4323",
+    "http://localhost:4324",
+    "http://localhost:3000",
+]
 
 app.add_middleware(
     CORSMiddleware,
