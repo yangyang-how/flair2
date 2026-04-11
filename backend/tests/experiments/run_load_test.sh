@@ -3,7 +3,7 @@
 #
 # Usage:
 #   export ALB_URL=http://<your-alb-dns-name>
-#   bash tests/load/run_all_k.sh
+#   bash tests/experiments/run_load_test.sh
 
 set -euo pipefail
 
