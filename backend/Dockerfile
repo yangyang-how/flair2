@@ -29,9 +29,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 # Copy venv from builder
 COPY --from=builder /app/venv /app/venv
 
-# Copy application code + dataset
+# Copy application code
 COPY app/ ./app/
-COPY data/ ./data/
 
 # Use venv python
 ENV PATH="/app/venv/bin:$PATH" \
