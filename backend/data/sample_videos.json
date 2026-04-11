@@ -1,0 +1,72 @@
+[
+  {
+    "video_id": "vid_001",
+    "transcript": "Stop scrolling. I'm about to show you the one productivity hack that changed everything for me. I used to waste 3 hours a day on my phone. Now I get more done before 9am than most people do all day. Here's exactly what I did.",
+    "description": "Productivity hack video with strong hook, problem-solution structure, personal story",
+    "duration": 45.0,
+    "engagement": {"likes": 124000, "comments": 3200, "shares": 8900, "views": 2100000}
+  },
+  {
+    "video_id": "vid_002",
+    "transcript": "What if I told you that everything you know about studying is wrong? The flashcard method, the highlighting, all of it. Here's the science-backed technique that top students actually use.",
+    "description": "Study tips with contrarian hook, social proof, credibility building",
+    "duration": 52.0,
+    "engagement": {"likes": 89000, "comments": 1800, "shares": 12000, "views": 1500000}
+  },
+  {
+    "video_id": "vid_003",
+    "transcript": "Day 1 of learning to code with zero experience. I'm going to document everything. By day 30 I want to build my first app. Let's go.",
+    "description": "Day 1 transformation challenge, accountability content, relatable beginner journey",
+    "duration": 38.0,
+    "engagement": {"likes": 67000, "comments": 4500, "shares": 3200, "views": 980000}
+  },
+  {
+    "video_id": "vid_004",
+    "transcript": "This is the meal prep I do every Sunday that saves me 8 hours a week and $200 a month. It takes 90 minutes and I never have to think about food again during the week.",
+    "description": "Meal prep routine, time and money savings as hook, practical step-by-step",
+    "duration": 61.0,
+    "engagement": {"likes": 203000, "comments": 5600, "shares": 28000, "views": 3400000}
+  },
+  {
+    "video_id": "vid_005",
+    "transcript": "Honestly this is embarrassing to admit but I used to spend $800 a month on coffee shops just to get work done. Here's the $30 setup I built at home that's actually better.",
+    "description": "Vulnerability hook with personal confession, cost comparison, before-after",
+    "duration": 55.0,
+    "engagement": {"likes": 156000, "comments": 2900, "shares": 19000, "views": 2700000}
+  },
+  {
+    "video_id": "vid_006",
+    "transcript": "Three apps that changed how I manage my time. I'm not sponsored by any of them. Number one completely eliminated my email anxiety. Let me show you.",
+    "description": "Tool recommendation, no-sponsorship credibility, numbered list format",
+    "duration": 48.0,
+    "engagement": {"likes": 91000, "comments": 2100, "shares": 14000, "views": 1600000}
+  },
+  {
+    "video_id": "vid_007",
+    "transcript": "Most people think waking up at 5am is the secret. It's not. I tried it for 30 days and here's what actually happened to my productivity.",
+    "description": "Myth-busting hook, personal experiment, unexpected result drives curiosity",
+    "duration": 42.0,
+    "engagement": {"likes": 178000, "comments": 7800, "shares": 22000, "views": 3100000}
+  },
+  {
+    "video_id": "vid_008",
+    "transcript": "I asked 100 successful people what they wish they knew at 22. The same answer came up over and over. And it's not what motivational speakers tell you.",
+    "description": "Social proof at scale, pattern reveal, anti-conventional wisdom positioning",
+    "duration": 58.0,
+    "engagement": {"likes": 245000, "comments": 9100, "shares": 35000, "views": 4200000}
+  },
+  {
+    "video_id": "vid_009",
+    "transcript": "The reason you can't stick to habits isn't discipline. It's your environment. I'll prove it. Look at where you work right now. I bet there are at least three things killing your focus.",
+    "description": "Reframe hook, direct audience engagement, environmental design concept",
+    "duration": 44.0,
+    "engagement": {"likes": 132000, "comments": 3400, "shares": 17000, "views": 2300000}
+  },
+  {
+    "video_id": "vid_010",
+    "transcript": "Here's what my morning looked like before versus after I fixed my sleep. Before: hit snooze four times, groggy until noon, zero motivation. After: up at 6:30, focused by 7, done with deep work by 10. One change made all the difference.",
+    "description": "Before-after transformation, specific numbers, single change narrative",
+    "duration": 50.0,
+    "engagement": {"likes": 189000, "comments": 4200, "shares": 24000, "views": 3600000}
+  }
+]
