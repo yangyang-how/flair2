@@ -59,15 +59,39 @@ variable "ecr_worker_image_url" {
 }
 
 variable "api_desired_count" {
-  description = "Number of API task replicas"
+  description = "Initial number of API task replicas (AppAutoScaling manages count after first apply)"
   type        = number
   default     = 2
 }
 
 variable "worker_desired_count" {
-  description = "Number of Celery worker task replicas"
+  description = "Initial number of Celery worker task replicas (AppAutoScaling manages count after first apply)"
   type        = number
   default     = 2
+}
+
+variable "api_min_count" {
+  description = "Minimum number of API tasks — AppAutoScaling will never scale below this"
+  type        = number
+  default     = 2
+}
+
+variable "api_max_count" {
+  description = "Maximum number of API tasks — AppAutoScaling will never scale above this"
+  type        = number
+  default     = 50
+}
+
+variable "worker_min_count" {
+  description = "Minimum number of Celery worker tasks"
+  type        = number
+  default     = 2
+}
+
+variable "worker_max_count" {
+  description = "Maximum number of Celery worker tasks"
+  type        = number
+  default     = 30
 }
 
 variable "api_cpu" {

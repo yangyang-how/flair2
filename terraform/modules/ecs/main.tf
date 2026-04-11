@@ -116,8 +116,10 @@ resource "aws_ecs_service" "api" {
   # the service to the original placeholder image after CI/CD has deployed a
   # real image. New task definition revisions are rolled out by ECS via CI/CD
   # (push to ECR → update service), not by Terraform.
+  # ignore_changes on desired_count lets AppAutoScaling manage task count
+  # without Terraform resetting it on every apply.
   lifecycle {
-    ignore_changes = [task_definition]
+    ignore_changes = [task_definition, desired_count]
   }
 
   tags = { Name = "${local.prefix}-api-service" }
@@ -191,9 +193,72 @@ resource "aws_ecs_service" "worker" {
   }
 
   # Same deployment model as API service — CI/CD owns image rollouts.
+  # ignore_changes on desired_count lets AppAutoScaling manage task count.
   lifecycle {
-    ignore_changes = [task_definition]
+    ignore_changes = [task_definition, desired_count]
   }
 
   tags = { Name = "${local.prefix}-worker-service" }
+}
+
+# ── API Autoscaling ───────────────────────────────────────────────────────────
+# Scale API tasks based on average CPU utilisation.
+# Target: 60% — leaves headroom for traffic spikes before a new task is ready.
+
+resource "aws_appautoscaling_target" "api" {
+  max_capacity       = var.api_max_count
+  min_capacity       = var.api_min_count
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.api.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+
+  depends_on = [aws_ecs_service.api]
+}
+
+resource "aws_appautoscaling_policy" "api_cpu" {
+  name               = "${local.prefix}-api-cpu-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.api.resource_id
+  scalable_dimension = aws_appautoscaling_target.api.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.api.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = 60.0
+    scale_out_cooldown = 60  # add tasks quickly under load
+    scale_in_cooldown  = 300 # wait 5 min before removing tasks
+  }
+}
+
+# ── Worker Autoscaling ────────────────────────────────────────────────────────
+# Scale Celery workers based on CPU — high CPU means the queue is being drained
+# and workers are saturated. Target: 70% (workers are compute-heavy, LLM calls).
+
+resource "aws_appautoscaling_target" "worker" {
+  max_capacity       = var.worker_max_count
+  min_capacity       = var.worker_min_count
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.worker.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+
+  depends_on = [aws_ecs_service.worker]
+}
+
+resource "aws_appautoscaling_policy" "worker_cpu" {
+  name               = "${local.prefix}-worker-cpu-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.worker.resource_id
+  scalable_dimension = aws_appautoscaling_target.worker.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.worker.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = 70.0
+    scale_out_cooldown = 60
+    scale_in_cooldown  = 300
+  }
 }

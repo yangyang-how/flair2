@@ -60,3 +60,37 @@ variable "cors_origins" {
   type        = string
   default     = ""
 }
+
+# ── ECS Autoscaling ───────────────────────────────────────────────────────────
+
+variable "api_min_count" {
+  description = "Minimum number of API tasks for AppAutoScaling"
+  type        = number
+  default     = 2
+}
+
+variable "api_max_count" {
+  description = "Maximum number of API tasks for AppAutoScaling (50 handles ~5K concurrent users)"
+  type        = number
+  default     = 50
+}
+
+variable "worker_min_count" {
+  description = "Minimum number of Celery worker tasks for AppAutoScaling"
+  type        = number
+  default     = 2
+}
+
+variable "worker_max_count" {
+  description = "Maximum number of Celery worker tasks for AppAutoScaling"
+  type        = number
+  default     = 30
+}
+
+# ── ElastiCache ───────────────────────────────────────────────────────────────
+
+variable "elasticache_node_type" {
+  description = "ElastiCache node type. Use cache.t3.micro for dev; upgrade to cache.r6g.large for load testing."
+  type        = string
+  default     = "cache.t3.micro"
+}
