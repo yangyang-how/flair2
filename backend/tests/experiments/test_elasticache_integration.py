@@ -36,6 +36,7 @@ import time
 import uuid
 
 import pytest
+import pytest_asyncio
 import redis.asyncio as aioredis
 
 # ── Skip entire module when no real Redis is available ───────────────────────
@@ -59,7 +60,7 @@ _MEMORY_WARN_MB: float = 50.0     # warn (but don't fail) if usage exceeds this
 
 # ── Shared fixture ───────────────────────────────────────────────────────────
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def redis() -> aioredis.Redis:
     """Return an authenticated Redis connection and flush the test namespace on teardown."""
     assert ELASTICACHE_URL is not None  # already guarded by pytestmark
