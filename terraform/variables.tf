@@ -70,9 +70,9 @@ variable "api_min_count" {
 }
 
 variable "api_max_count" {
-  description = "Maximum number of API tasks for AppAutoScaling (50 handles ~5K concurrent users)"
+  description = "Maximum number of API tasks for AppAutoScaling. Learner Lab Fargate quota is ~6 vCPUs — keep api_max × 0.5 + worker_max × 1 ≤ 6."
   type        = number
-  default     = 50
+  default     = 6
 }
 
 variable "worker_min_count" {
@@ -82,9 +82,9 @@ variable "worker_min_count" {
 }
 
 variable "worker_max_count" {
-  description = "Maximum number of Celery worker tasks for AppAutoScaling"
+  description = "Maximum number of Celery worker tasks for AppAutoScaling. See api_max_count note on Fargate vCPU quota."
   type        = number
-  default     = 30
+  default     = 4
 }
 
 # ── ElastiCache ───────────────────────────────────────────────────────────────
