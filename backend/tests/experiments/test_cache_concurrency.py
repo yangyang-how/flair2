@@ -243,3 +243,79 @@ class TestCacheConcurrency:
 
         assert all_setnx_exact
         assert all_naive_dup
+
+
+# ── Scale extension ───────────────────────────────────────────────────────────
+# K=50/100: actual simulation (asyncio, runs in < 5s)
+# K=1k+:    analytical projection — formulas are exact by construction:
+#             naive_calls(K) = K * NUM_VIDEOS          (every run races every video)
+#             setnx_calls(K) = NUM_VIDEOS              (SETNX guarantee, always)
+#             savings_pct(K) = (K-1) / K * 100
+
+K_SCALE_SIMULATED: list[int] = [50, 100]
+K_SCALE_PROJECTED: list[int] = [1_000, 10_000, 50_000, 100_000]
+
+
+def _project_naive_calls(k: int) -> int:
+    return k * NUM_VIDEOS
+
+
+def _project_savings_pct(k: int) -> float:
+    return (k - 1) / k * 100
+
+
+def _print_scale_table(
+    simulated: list[tuple[CacheTrial, CacheTrial]],
+    projected_ks: list[int],
+) -> None:
+    sep = "=" * 68
+    print(f"\n{sep}")
+    print("M5-3 Scale Projection — Cache Concurrency at Large K")
+    print(f"  NUM_VIDEOS={NUM_VIDEOS}, PROVIDER_LIMIT=1 per video (SETNX)")
+    print(sep)
+    print(f"{'K':>8}  {'type':>10}  {'naive calls':>12}  {'setnx calls':>12}  {'savings%':>9}")
+    print("-" * 68)
+    for naive, setnx in simulated:
+        pct = (naive.total_calls - setnx.total_calls) / naive.total_calls * 100
+        print(
+            f"{naive.k:>8}  {'simulated':>10}  {naive.total_calls:>12}  "
+            f"{setnx.total_calls:>12}  {pct:>8.1f}%"
+        )
+    for k in projected_ks:
+        naive_c = _project_naive_calls(k)
+        setnx_c = NUM_VIDEOS
+        pct = _project_savings_pct(k)
+        print(f"{k:>8,}  {'projected':>10}  {naive_c:>12,}  {setnx_c:>12}  {pct:>8.3f}%")
+    print(sep)
+    print()
+    print("  naive calls  = K × NUM_VIDEOS  (all runs race every video)")
+    print("  setnx calls  = NUM_VIDEOS      (SETNX guarantee, always fixed)")
+    print("  savings%     = (K-1) / K × 100")
+
+
+class TestCacheConcurrencyScale:
+    async def test_scale_simulated_k50_k100(self) -> None:
+        """Actual simulation for K=50 and K=100.
+
+        Verifies the SETNX guarantee holds at higher concurrency.
+        """
+        for k in K_SCALE_SIMULATED:
+            setnx = await _run_setnx(k=k)
+            assert setnx.total_calls == NUM_VIDEOS, (
+                f"SETNX must use exactly {NUM_VIDEOS} calls at K={k}, got {setnx.total_calls}"
+            )
+            naive = await _run_naive(k=k)
+            assert naive.total_calls == k * NUM_VIDEOS, (
+                f"Naive must use K×NUM_VIDEOS={k * NUM_VIDEOS} calls at K={k}, "
+                f"got {naive.total_calls}"
+            )
+
+    async def test_scale_projection_table(self) -> None:
+        """Print unified table: simulated K=50/100 + projected K=1k–100k."""
+        simulated_pairs: list[tuple[CacheTrial, CacheTrial]] = []
+        for k in K_SCALE_SIMULATED:
+            naive = await _run_naive(k=k)
+            setnx = await _run_setnx(k=k)
+            simulated_pairs.append((naive, setnx))
+
+        _print_scale_table(simulated_pairs, K_SCALE_PROJECTED)
