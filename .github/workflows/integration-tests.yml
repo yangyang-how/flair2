@@ -1,0 +1,134 @@
+name: Integration Tests
+
+# Runs automatically after every successful deploy to dev.
+# Can also be triggered manually.
+#
+# Why ECS and not the GitHub Actions runner directly:
+#   ElastiCache is in a private VPC subnet — the GitHub runner has no network
+#   path to it.  We launch a short-lived ECS task (same VPC, same subnets as
+#   the worker service) that runs pytest and exits.  The workflow polls until
+#   the task finishes and fails the workflow if the exit code is non-zero.
+
+on:
+  workflow_run:
+    workflows: [Deploy]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-2
+  ECS_CLUSTER: flair2-dev-cluster
+  ECR_REGISTRY: 966294739208.dkr.ecr.us-west-2.amazonaws.com
+  ECR_REPO: flair2-dev-api
+
+jobs:
+  integration-tests:
+    name: M6 ElastiCache integration tests
+    runs-on: ubuntu-latest
+    # When triggered by workflow_run, only run if the deploy succeeded
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Resolve the ElastiCache endpoint at runtime — no hardcoded URLs
+      - name: Get ElastiCache endpoint
+        id: elasticache
+        run: |
+          ENDPOINT=$(aws elasticache describe-cache-clusters \
+            --region $AWS_REGION \
+            --show-cache-node-info \
+            --query 'CacheClusters[?CacheClusterId==`flair2-dev-redis`].CacheNodes[0].Endpoint.Address' \
+            --output text)
+          echo "url=redis://${ENDPOINT}:6379" >> "$GITHUB_OUTPUT"
+
+      # Resolve the subnet and security group that the worker service uses
+      - name: Get network config from ECS worker service
+        id: network
+        run: |
+          CONFIG=$(aws ecs describe-services \
+            --cluster flair2-dev-cluster \
+            --services flair2-dev-worker \
+            --region $AWS_REGION \
+            --query 'services[0].networkConfiguration.awsvpcConfiguration' \
+            --output json)
+          SUBNETS=$(echo "$CONFIG" | jq -r '.subnets | join(",")')
+          SGS=$(echo "$CONFIG" | jq -r '.securityGroups | join(",")')
+          echo "subnets=$SUBNETS" >> "$GITHUB_OUTPUT"
+          echo "security_groups=$SGS" >> "$GITHUB_OUTPUT"
+
+      # Get the task definition ARN for the worker (reuse its IAM role + image)
+      - name: Get latest worker task definition
+        id: taskdef
+        run: |
+          ARN=$(aws ecs describe-services \
+            --cluster flair2-dev-cluster \
+            --services flair2-dev-worker \
+            --region $AWS_REGION \
+            --query 'services[0].taskDefinition' \
+            --output text)
+          echo "arn=$ARN" >> "$GITHUB_OUTPUT"
+
+      # Launch a one-shot ECS task that runs pytest inside the VPC and exits
+      - name: Run integration tests in ECS
+        id: run_task
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster flair2-dev-cluster \
+            --task-definition "${{ steps.taskdef.outputs.arn }}" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.network.outputs.subnets }}],securityGroups=[${{ steps.network.outputs.security_groups }}],assignPublicIp=DISABLED}" \
+            --overrides "{
+              \"containerOverrides\": [{
+                \"name\": \"app\",
+                \"command\": [\"python\", \"-m\", \"pytest\",
+                              \"tests/experiments/test_elasticache_integration.py\",
+                              \"-v\", \"--tb=short\", \"--no-header\"],
+                \"environment\": [{
+                  \"name\": \"ELASTICACHE_URL\",
+                  \"value\": \"${{ steps.elasticache.outputs.url }}\"
+                }]
+              }]
+            }" \
+            --region $AWS_REGION \
+            --no-cli-pager \
+            --query 'tasks[0].taskArn' \
+            --output text)
+          echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+          echo "Launched task: $TASK_ARN"
+
+      - name: Wait for test task to finish
+        run: |
+          echo "Waiting for task to stop..."
+          aws ecs wait tasks-stopped \
+            --cluster flair2-dev-cluster \
+            --tasks "${{ steps.run_task.outputs.task_arn }}" \
+            --region $AWS_REGION
+
+      - name: Check test exit code
+        run: |
+          EXIT_CODE=$(aws ecs describe-tasks \
+            --cluster flair2-dev-cluster \
+            --tasks "${{ steps.run_task.outputs.task_arn }}" \
+            --region $AWS_REGION \
+            --query 'tasks[0].containers[0].exitCode' \
+            --output text)
+          echo "Test container exit code: $EXIT_CODE"
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "Integration tests FAILED (exit code $EXIT_CODE)"
+            echo "Check CloudWatch logs:"
+            echo "  aws logs tail /ecs/flair2-dev --region $AWS_REGION --since 10m"
+            exit 1
+          fi
+          echo "Integration tests PASSED"

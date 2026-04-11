@@ -14,8 +14,6 @@ venv/
 .venv/
 env/
 
-# Tests (not needed in image)
-tests/
 
 # Data files (sample_videos.json, results.json — not needed in image)
 data/
