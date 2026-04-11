@@ -1,14 +1,14 @@
 output "ecs_execution_role_arn" {
-  description = "ARN of the ECS task execution role (used by ECS agent to pull images + write logs)"
-  value       = aws_iam_role.ecs_execution.arn
+  description = "ARN of the ECS task execution role (LabRole — Learner Lab pre-provisioned)"
+  value       = data.aws_iam_role.lab_role.arn
 }
 
 output "ecs_task_role_arn" {
-  description = "ARN of the ECS task role (used by app code for S3, DynamoDB access)"
-  value       = aws_iam_role.ecs_task.arn
+  description = "ARN of the ECS task role (LabRole — Learner Lab pre-provisioned)"
+  value       = data.aws_iam_role.lab_role.arn
 }
 
 output "lambda_role_arn" {
-  description = "ARN of the Lambda execution role (used by S7 video generation function)"
-  value       = aws_iam_role.lambda.arn
+  description = "ARN of the Lambda execution role (LabRole — Learner Lab pre-provisioned)"
+  value       = data.aws_iam_role.lab_role.arn
 }
