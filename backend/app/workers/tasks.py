@@ -17,6 +17,7 @@ import json
 import structlog
 
 from app.config import settings
+from app.infra.rate_limiter import TokenBucketRateLimiter
 from app.infra.redis_client import RedisClient
 from app.models.errors import ProviderError, StageError
 from app.models.pipeline import PipelineConfig
@@ -55,6 +56,19 @@ async def _load_config(redis: RedisClient, run_id: str) -> PipelineConfig:
     return PipelineConfig.model_validate_json(raw)
 
 
+async def _acquire_rate_limit_token(redis: RedisClient, provider_name: str) -> None:
+    """Wait for a rate-limit token before making an LLM call.
+
+    No-op when settings.enable_rate_limiter is False (useful for experiments
+    that want to compare the two modes without redeploying).
+    """
+    if not settings.enable_rate_limiter:
+        return
+    rpm = getattr(settings, f"{provider_name}_rpm", 60)
+    limiter = TokenBucketRateLimiter(redis, provider_name, max_tokens=rpm, window_seconds=60)
+    await limiter.wait_for_token()
+
+
 # ---------------------------------------------------------------------------
 # S1 — analyze one video
 # ---------------------------------------------------------------------------
@@ -68,6 +82,7 @@ def s1_analyze_task(self, run_id: str, video_json: str):
             video = VideoInput.model_validate_json(video_json)
             provider = _get_provider(config)
 
+            await _acquire_rate_limit_token(redis, config.reasoning_model)
             pattern = await s1_analyze(video, provider)
             await redis.set(f"result:s1:{run_id}:{video.video_id}", pattern.model_dump_json())
 
@@ -127,6 +142,7 @@ def s3_generate_task(self, run_id: str):
             library = S2PatternLibrary.model_validate_json(raw)
             provider = _get_provider(config)
 
+            await _acquire_rate_limit_token(redis, config.reasoning_model)
             scripts = await s3_generate(library, provider, num_scripts=config.num_scripts)
             await redis.set(
                 f"scripts:candidates:{run_id}",
@@ -160,6 +176,7 @@ def s4_vote_task(self, run_id: str, persona_id: str):
             scripts = [CandidateScript(**s) for s in json.loads(raw)]
             provider = _get_provider(config)
 
+            await _acquire_rate_limit_token(redis, config.reasoning_model)
             vote = await s4_vote(scripts, persona_id, provider)
             await redis.set(f"result:s4:{run_id}:{persona_id}", vote.model_dump_json())
 
@@ -231,6 +248,7 @@ def s6_personalize_task(self, run_id: str, script_id: str):
             ranked = next((r for r in rankings.top_10 if r.script_id == script_id), None)
 
             provider = _get_provider(config)
+            await _acquire_rate_limit_token(redis, config.reasoning_model)
             result = await s6_personalize(script, config.creator_profile, provider)
 
             if ranked is not None:
