@@ -1,0 +1,150 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Insights — Flair2">
+  <div class="mx-auto max-w-3xl">
+    <h1 class="mb-2 text-3xl font-bold">Insights</h1>
+    <p class="mb-8 text-sm text-[var(--color-text-muted)]">
+      Aggregated performance across all your campaigns.
+    </p>
+
+    <!-- Loading -->
+    <div id="loading" class="grid grid-cols-3 gap-6">
+      {Array.from({ length: 3 }).map(() => (
+        <div class="h-24 animate-pulse rounded-xl bg-[var(--color-surface)]" />
+      ))}
+    </div>
+
+    <!-- Error -->
+    <div
+      id="error-state"
+      class="hidden rounded-lg border border-[var(--color-error)] bg-[var(--color-error)]/10 px-4 py-3 text-sm text-[var(--color-error)]"
+    >
+    </div>
+
+    <!-- Content -->
+    <div id="content" class="hidden flex-col gap-8">
+      <!-- Stat cards -->
+      <div class="grid grid-cols-3 gap-6">
+        <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+          <p class="text-xs text-[var(--color-text-muted)]">Videos Tracked</p>
+          <p id="stat-videos" class="mt-1 text-3xl font-bold">—</p>
+        </div>
+        <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+          <p class="text-xs text-[var(--color-text-muted)]">Prediction Accuracy</p>
+          <p id="stat-accuracy" class="mt-1 text-3xl font-bold">—</p>
+        </div>
+        <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+          <p class="text-xs text-[var(--color-text-muted)]">Top Patterns</p>
+          <p id="stat-patterns" class="mt-1 text-3xl font-bold">—</p>
+        </div>
+      </div>
+
+      <!-- Top patterns table -->
+      <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+        <h2 class="mb-4 text-lg font-semibold">Top Patterns by Performance</h2>
+        <div id="patterns-container">
+          <p class="text-sm text-[var(--color-text-muted)]">No pattern data yet — submit performance data to see results.</p>
+        </div>
+      </section>
+
+      <!-- Committee vs actual -->
+      <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+        <h2 class="mb-1 text-lg font-semibold">Committee Prediction vs Actual</h2>
+        <p class="mb-4 text-xs text-[var(--color-text-muted)]">How well AI persona votes correlate with real video performance.</p>
+        <div id="prediction-container">
+          <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-sm text-[var(--color-text-muted)]">
+            Scatter chart will appear here once performance data is collected.
+          </div>
+        </div>
+      </section>
+
+      <!-- Improvement over iterations -->
+      <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+        <h2 class="mb-1 text-lg font-semibold">Improvement Over Iterations</h2>
+        <p class="mb-4 text-xs text-[var(--color-text-muted)]">Average performance score per campaign run.</p>
+        <div id="iterations-container">
+          <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-sm text-[var(--color-text-muted)]">
+            Line chart will appear here after multiple campaigns are tracked.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getInsights } from "../lib/api-client";
+
+  const loadingEl = document.getElementById("loading");
+  const errorEl = document.getElementById("error-state");
+  const contentEl = document.getElementById("content");
+
+  function show(el) {
+    el.classList.remove("hidden");
+    if (el === contentEl) el.classList.add("flex");
+  }
+  function hide(el) {
+    el.classList.add("hidden");
+    if (el === contentEl) el.classList.remove("flex");
+  }
+
+  function escHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  async function load() {
+    try {
+      const insights = await getInsights();
+      hide(loadingEl);
+
+      document.getElementById("stat-videos").textContent =
+        insights.total_videos_tracked?.toString() ?? "0";
+
+      document.getElementById("stat-accuracy").textContent =
+        insights.prediction_accuracy != null
+          ? `${(insights.prediction_accuracy * 100).toFixed(1)}%`
+          : "N/A";
+
+      const patterns = insights.top_patterns ?? [];
+      document.getElementById("stat-patterns").textContent = patterns.length.toString();
+
+      if (patterns.length > 0) {
+        const rows = patterns
+          .map(
+            (p, i) => `
+              <tr class="border-t border-[var(--color-border)]">
+                <td class="py-2 pr-4 text-sm font-mono text-[var(--color-text-muted)]">${i + 1}</td>
+                <td class="py-2 text-sm">${escHtml(typeof p === "string" ? p : JSON.stringify(p))}</td>
+              </tr>
+            `,
+          )
+          .join("");
+
+        document.getElementById("patterns-container").innerHTML = `
+          <table class="w-full">
+            <thead>
+              <tr class="text-left text-xs text-[var(--color-text-muted)]">
+                <th class="pb-2 pr-4">#</th>
+                <th class="pb-2">Pattern</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      }
+
+      show(contentEl);
+    } catch (err) {
+      hide(loadingEl);
+      errorEl.textContent = `Could not load insights: ${err instanceof Error ? err.message : "Unknown error"}`;
+      show(errorEl);
+    }
+  }
+
+  load();
+</script>

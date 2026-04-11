@@ -1,0 +1,141 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Runs — Flair2">
+  <div class="mx-auto max-w-3xl">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold">Runs</h1>
+        <p class="mt-1 text-sm text-[var(--color-text-muted)]">
+          All pipeline runs in this session.
+        </p>
+      </div>
+      <a
+        href="/create"
+        class="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+      >
+        + New Run
+      </a>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="flex flex-col gap-3">
+      {Array.from({ length: 4 }).map(() => (
+        <div class="h-16 animate-pulse rounded-xl bg-[var(--color-surface)]" />
+      ))}
+    </div>
+
+    <!-- Error -->
+    <div
+      id="error-state"
+      class="hidden rounded-lg border border-[var(--color-error)] bg-[var(--color-error)]/10 px-4 py-3 text-sm text-[var(--color-error)]"
+    >
+    </div>
+
+    <!-- Runs table -->
+    <div id="runs-list" class="hidden flex-col gap-3"></div>
+
+    <!-- Empty -->
+    <div id="empty-state" class="hidden py-20 text-center">
+      <p class="text-lg text-[var(--color-text-muted)]">No runs yet.</p>
+      <a
+        href="/create"
+        class="mt-4 inline-block rounded-lg bg-[var(--color-accent)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+      >
+        Create your first campaign
+      </a>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { listRuns } from "../lib/api-client";
+
+  const loadingEl = document.getElementById("loading");
+  const errorEl = document.getElementById("error-state");
+  const listEl = document.getElementById("runs-list");
+  const emptyEl = document.getElementById("empty-state");
+
+  function show(el) {
+    el.classList.remove("hidden");
+    if (el === listEl) el.classList.add("flex");
+  }
+  function hide(el) {
+    el.classList.add("hidden");
+    if (el === listEl) el.classList.remove("flex");
+  }
+
+  const STATUS_STYLES = {
+    pending:   "bg-[var(--color-warning)]/15 text-[var(--color-warning)]",
+    running:   "bg-[var(--color-accent)]/15 text-[var(--color-accent)]",
+    completed: "bg-[var(--color-success)]/15 text-[var(--color-success)]",
+    failed:    "bg-[var(--color-error)]/15 text-[var(--color-error)]",
+  };
+
+  function runLink(run) {
+    if (run.status === "completed") return `/track/${run.run_id}`;
+    if (run.status === "failed") return `/pipeline/${run.run_id}`;
+    return `/pipeline/${run.run_id}`;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function buildRow(run) {
+    const el = document.createElement("a");
+    el.href = runLink(run);
+    el.className =
+      "flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 transition-colors hover:border-[var(--color-accent)]";
+
+    const statusClass = STATUS_STYLES[run.status] ?? STATUS_STYLES.pending;
+    const shortId = run.run_id.slice(0, 8) + "…";
+
+    el.innerHTML = `
+      <div class="flex items-center gap-4">
+        <span class="font-mono text-sm text-[var(--color-text-muted)]">${shortId}</span>
+        <span class="rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass}">
+          ${run.status}
+        </span>
+      </div>
+      <div class="flex items-center gap-6 text-sm text-[var(--color-text-muted)]">
+        ${run.current_stage ? `<span>Stage: ${run.current_stage}</span>` : ""}
+        <span>→</span>
+      </div>
+    `;
+
+    return el;
+  }
+
+  async function load() {
+    try {
+      const { runs } = await listRuns();
+      hide(loadingEl);
+
+      if (!runs || runs.length === 0) {
+        show(emptyEl);
+        return;
+      }
+
+      // Sort newest first (API doesn't guarantee order)
+      const sorted = [...runs].reverse();
+      for (const run of sorted) {
+        listEl.appendChild(buildRow(run));
+      }
+      show(listEl);
+    } catch (err) {
+      hide(loadingEl);
+      errorEl.textContent = `Could not load runs: ${err instanceof Error ? err.message : "Unknown error"}`;
+      show(errorEl);
+    }
+  }
+
+  load();
+</script>
