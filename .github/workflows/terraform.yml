@@ -107,7 +107,7 @@ jobs:
         run: terraform init -backend-config="key=env/dev/terraform.tfstate"
 
       - name: Plan
-        run: terraform plan -var="env=dev" -no-color
+        run: terraform plan -var-file=environments/dev.tfvars -no-color
         continue-on-error: false
 
   # ── Apply (manual only, needs AWS creds) ────────────────────────────────────
@@ -136,4 +136,4 @@ jobs:
         run: terraform init -backend-config="key=env/dev/terraform.tfstate"
 
       - name: Apply
-        run: terraform apply -var="env=dev" -auto-approve -no-color
+        run: terraform apply -var-file=environments/dev.tfvars -auto-approve -no-color
