@@ -94,6 +94,9 @@ class Orchestrator:
         done = await self._r.incr(f"run:{run_id}:s4:done")
         config = await self._load_config(run_id)
 
+        # Checkpoint: persist progress so crash recovery can resume from here
+        await self._r.write_checkpoint(run_id, "s4", done)
+
         await self._xadd_event(run_id, "vote_cast", {
             "persona_id": persona_id,
             "top_5": top_5 or [],
@@ -103,6 +106,34 @@ class Orchestrator:
 
         if done >= config.num_personas:
             await self._transition_s5(run_id)
+
+    async def recover(self, run_id: str) -> None:
+        """Resume a crashed run from the last S4 checkpoint.
+
+        Reads checkpoint:s4 to find how many personas completed before the
+        crash, then re-dispatches only the remaining persona tasks.
+        Called by the /api/pipeline/{run_id}/recover endpoint (or manually).
+        """
+        config = await self._load_config(run_id)
+        s4_done = await self._r.read_checkpoint(run_id, "s4") or 0
+
+        await self._r.set(f"run:{run_id}:status", "running")
+        await self._xadd_event(run_id, "pipeline_recovered", {
+            "run_id": run_id,
+            "s4_checkpoint": s4_done,
+            "remaining_personas": config.num_personas - s4_done,
+        })
+
+        from app.workers.tasks import s4_vote_task
+        for i in range(s4_done, config.num_personas):
+            s4_vote_task.delay(run_id, f"persona_{i}")
+
+        logger.info(
+            "orchestrator_recovered",
+            run_id=run_id,
+            s4_checkpoint=s4_done,
+            remaining=config.num_personas - s4_done,
+        )
 
     async def on_s5_complete(self, run_id: str) -> None:
         config = await self._load_config(run_id)
