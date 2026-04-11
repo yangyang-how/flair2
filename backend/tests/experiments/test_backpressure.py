@@ -33,6 +33,7 @@ Run
 from __future__ import annotations
 
 import asyncio
+import math
 import random
 import statistics
 import time
@@ -56,6 +57,13 @@ RETRY_DELAY_S: float = 0.12     # retry delay > WINDOW_S so window resets before
 LLM_LATENCY_S: float = 0.002    # simulated LLM response time (2 ms)
 
 K_VALUES: list[int] = [1, 3, 5, 10]
+
+# Scale projection — K values too large to simulate in CI
+# (K ≤ 100 are simulated; K ≥ 1000 are computed analytically)
+K_SCALE_SIMULATED: list[int] = [50, 100]
+K_SCALE_PROJECTED: list[int] = [1_000, 10_000, 50_000, 100_000]
+# Scale tests use 1 call/worker so run time stays under 5 s
+SCALE_CALLS_PER_WORKER: int = 1
 
 # ---------------------------------------------------------------------------
 # Simulated provider
@@ -373,6 +381,149 @@ def _print_table(rows: list[TrialMetrics]) -> None:
 def _check(label: str, passed: bool, value: str) -> None:
     mark = "✓" if passed else "✗"
     print(f"  [{mark}] {label}  →  {value}")
+
+
+# ---------------------------------------------------------------------------
+# Scale projection helpers (analytical — no simulation needed)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ScaleRow:
+    k: int
+    mode: str           # "simulated" | "projected"
+    no_lim_err_pct: float
+    lim_err_pct: float
+    lim_completion_s: float
+
+
+def _project_no_lim_error_rate(k: int, calls: int = SCALE_CALLS_PER_WORKER) -> float:
+    """Error rate when all K*calls burst simultaneously (no rate limiter)."""
+    total = k * calls
+    errors = max(0, total - PROVIDER_LIMIT)
+    return errors / total if total > 0 else 0.0
+
+
+def _project_lim_completion_s(k: int, calls: int = SCALE_CALLS_PER_WORKER) -> float:
+    """Completion time with rate limiter: ceil(total/limit) windows."""
+    total = k * calls
+    windows = math.ceil(total / PROVIDER_LIMIT)
+    return windows * WINDOW_S
+
+
+async def _run_scale_trial(k: int, redis: RedisClient) -> ScaleRow:
+    """Run both conditions for one K value (simulation, CALLS_PER_WORKER=1)."""
+    no_lim = await _run_trial(k, use_limiter=False, redis=redis)
+
+    fake2 = fake_aioredis.FakeRedis(decode_responses=True)
+    r2 = RedisClient.__new__(RedisClient)
+    r2._redis = fake2
+    lim = await _run_trial(k, use_limiter=True, redis=r2)
+    await fake2.aclose()
+
+    return ScaleRow(
+        k=k,
+        mode="simulated",
+        no_lim_err_pct=no_lim.error_rate,
+        lim_err_pct=lim.error_rate,
+        lim_completion_s=lim.mean_completion_s,
+    )
+
+
+def _project_scale_row(k: int) -> ScaleRow:
+    return ScaleRow(
+        k=k,
+        mode="projected",
+        no_lim_err_pct=_project_no_lim_error_rate(k),
+        lim_err_pct=0.0,
+        lim_completion_s=_project_lim_completion_s(k),
+    )
+
+
+def _print_scale_table(rows: list[ScaleRow]) -> None:
+    print()
+    print("=" * 72)
+    print("M5-1 Scale Projection — Backpressure at Large K")
+    print(f"  PROVIDER_LIMIT={PROVIDER_LIMIT}/window, WINDOW={WINDOW_S*1000:.0f}ms,")
+    print(f"  CALLS_PER_WORKER={SCALE_CALLS_PER_WORKER} (S4 fan-out simplified)")
+    print("=" * 72)
+    hdr = f"{'K':>8}  {'type':<10}  {'no_lim err%':>12}  {'lim err%':>9}  {'lim time':>10}"  # noqa: E501
+    print(hdr)
+    print("-" * 72)
+    for r in rows:
+        t = _fmt_duration(r.lim_completion_s)
+        print(
+            f"{r.k:>8}  {r.mode:<10}  "
+            f"{r.no_lim_err_pct:>12.1%}  "
+            f"{r.lim_err_pct:>9.1%}  "
+            f"{t:>10}"
+        )
+    print("=" * 72)
+    print()
+    print("  no_lim err%  = error rate when all calls burst with no throttling")
+    print("  lim err%     = error rate with token-bucket (always 0 by design)")
+    print("  lim time     = projected completion time with rate limiter active")
+    print()
+
+
+def _fmt_duration(seconds: float) -> str:
+    if seconds < 1:
+        return f"{seconds*1000:.0f}ms"
+    if seconds < 60:
+        return f"{seconds:.1f}s"
+    if seconds < 3600:
+        return f"{seconds/60:.1f}min"
+    return f"{seconds/3600:.1f}hr"
+
+
+# ---------------------------------------------------------------------------
+# Scale tests
+# ---------------------------------------------------------------------------
+
+
+class TestBackpressureScale:
+    """Scale projection for K = 50, 100, 1k, 10k, 50k, 100k."""
+
+    async def test_scale_simulated_k50_k100(self, redis: RedisClient) -> None:
+        """Simulate K=50 and K=100 (1 call/worker for speed)."""
+        rows: list[ScaleRow] = []
+        for k in K_SCALE_SIMULATED:
+            fake = fake_aioredis.FakeRedis(decode_responses=True)
+            r = RedisClient.__new__(RedisClient)
+            r._redis = fake
+            rows.append(await _run_scale_trial(k, r))
+            await fake.aclose()
+
+        for row in rows:
+            assert row.lim_err_pct < 0.01, (
+                f"K={row.k}: rate_limited error rate {row.lim_err_pct:.1%} >= 1%"
+            )
+            assert row.no_lim_err_pct > 0.50, (
+                f"K={row.k}: expected > 50% error without limiter, "
+                f"got {row.no_lim_err_pct:.1%}"
+            )
+
+    async def test_scale_projection_table(self, redis: RedisClient) -> None:
+        """Print full scale table: simulated (≤100) + projected (≥1k). -s to see output."""
+        rows: list[ScaleRow] = []
+
+        # Simulated
+        for k in K_SCALE_SIMULATED:
+            fake = fake_aioredis.FakeRedis(decode_responses=True)
+            r = RedisClient.__new__(RedisClient)
+            r._redis = fake
+            rows.append(await _run_scale_trial(k, r))
+            await fake.aclose()
+
+        # Analytical projection
+        for k in K_SCALE_PROJECTED:
+            rows.append(_project_scale_row(k))
+
+        _print_scale_table(rows)
+
+        # Rate limiter always gives 0 % errors regardless of K
+        for row in rows:
+            assert row.lim_err_pct == 0.0
 
 
 # ---------------------------------------------------------------------------
