@@ -48,9 +48,12 @@ pytestmark = pytest.mark.skipif(
 )
 
 # ── Experiment parameters ────────────────────────────────────────────────────
-LATENCY_ITERATIONS: int = 1_000   # number of ops per operation type
-RACE_WORKERS: int = 100           # concurrent workers competing for one key
-MEMORY_RUNS: int = 100            # concurrent pipeline run simulations
+# Each list becomes a separate parametrized test case so you can compare
+# results across scales in one run.
+LATENCY_ITERATIONS_CASES: list[int] = [500, 1_000, 2_000, 5_000]
+RACE_WORKERS_CASES: list[int] = [10, 50, 100, 500, 1_000, 5_000]
+MEMORY_RUNS_CASES: list[int] = [10, 50, 100, 500, 1_000]
+
 MEMORY_VIDEOS_PER_RUN: int = 100  # S1 results written per run
 MEMORY_PAYLOAD_BYTES: int = 512   # bytes per S1 result value (realistic pattern JSON)
 
@@ -99,43 +102,45 @@ class TestNetworkLatency:
             "max":  round(max(ms), 3),
         }
 
-    async def test_setnx_latency(self, redis: aioredis.Redis) -> None:
+    @pytest.mark.parametrize("iterations", LATENCY_ITERATIONS_CASES)
+    async def test_setnx_latency(self, redis: aioredis.Redis, iterations: int) -> None:
         latencies: list[float] = []
-        for i in range(LATENCY_ITERATIONS):
+        for i in range(iterations):
             key = f"m6:latency:setnx:{i}"
             t0 = time.perf_counter()
             await redis.set(key, "v", nx=True, ex=60)
             latencies.append(time.perf_counter() - t0)
 
         stats = self._percentiles(latencies)
-        print(f"\n[M6-1] SETNX latency over {LATENCY_ITERATIONS} iterations (ms): {stats}")
+        print(f"\n[M6-1] SETNX latency over {iterations} iterations (ms): {stats}")
 
-        # Sanity: even in the worst conditions, p99 should be < 500 ms
         assert stats["p99"] < 500, f"p99 latency {stats['p99']} ms is unexpectedly high"
 
-    async def test_xadd_latency(self, redis: aioredis.Redis) -> None:
+    @pytest.mark.parametrize("iterations", LATENCY_ITERATIONS_CASES)
+    async def test_xadd_latency(self, redis: aioredis.Redis, iterations: int) -> None:
         stream = "m6:latency:stream"
         latencies: list[float] = []
-        for i in range(LATENCY_ITERATIONS):
+        for i in range(iterations):
             t0 = time.perf_counter()
             await redis.xadd(stream, {"event": "test", "seq": str(i)})
             latencies.append(time.perf_counter() - t0)
 
         stats = self._percentiles(latencies)
-        print(f"\n[M6-1] XADD latency over {LATENCY_ITERATIONS} iterations (ms): {stats}")
+        print(f"\n[M6-1] XADD latency over {iterations} iterations (ms): {stats}")
 
         assert stats["p99"] < 500
 
-    async def test_incr_latency(self, redis: aioredis.Redis) -> None:
+    @pytest.mark.parametrize("iterations", LATENCY_ITERATIONS_CASES)
+    async def test_incr_latency(self, redis: aioredis.Redis, iterations: int) -> None:
         key = "m6:latency:counter"
         latencies: list[float] = []
-        for _ in range(LATENCY_ITERATIONS):
+        for _ in range(iterations):
             t0 = time.perf_counter()
             await redis.incr(key)
             latencies.append(time.perf_counter() - t0)
 
         stats = self._percentiles(latencies)
-        print(f"\n[M6-1] INCR latency over {LATENCY_ITERATIONS} iterations (ms): {stats}")
+        print(f"\n[M6-1] INCR latency over {iterations} iterations (ms): {stats}")
 
         assert stats["p99"] < 500
 
@@ -151,11 +156,12 @@ class TestRaceCondition:
     issue SET NX at genuinely overlapping times.  The Redis server must still
     guarantee that exactly one wins.
 
-    This test fires RACE_WORKERS (100) concurrent SET NX commands against the
+    This test fires workers (10–5000) concurrent SET NX commands against the
     same key and asserts that exactly one coroutine gets a truthy response.
     """
 
-    async def test_exactly_one_winner(self, redis: aioredis.Redis) -> None:
+    @pytest.mark.parametrize("workers", RACE_WORKERS_CASES)
+    async def test_exactly_one_winner(self, redis: aioredis.Redis, workers: int) -> None:
         lock_key = f"m6:race:lock:{uuid.uuid4().hex}"
         winners: list[int] = []
 
@@ -164,14 +170,15 @@ class TestRaceCondition:
             if result:
                 winners.append(worker_id)
 
-        await asyncio.gather(*[compete(i) for i in range(RACE_WORKERS)])
+        await asyncio.gather(*[compete(i) for i in range(workers)])
 
-        print(f"\n[M6-2] {RACE_WORKERS} workers competed; winner: {winners}")
+        print(f"\n[M6-2] {workers} workers competed; winner: {winners}")
         assert len(winners) == 1, (
             f"Expected exactly 1 winner, got {len(winners)}: {winners}"
         )
 
-    async def test_winner_value_stored(self, redis: aioredis.Redis) -> None:
+    @pytest.mark.parametrize("workers", RACE_WORKERS_CASES)
+    async def test_winner_value_stored(self, redis: aioredis.Redis, workers: int) -> None:
         """The value stored must match the winner's worker_id (no corruption)."""
         lock_key = f"m6:race:value:{uuid.uuid4().hex}"
         winners: list[int] = []
@@ -181,7 +188,7 @@ class TestRaceCondition:
             if result:
                 winners.append(worker_id)
 
-        await asyncio.gather(*[compete(i) for i in range(RACE_WORKERS)])
+        await asyncio.gather(*[compete(i) for i in range(workers)])
 
         stored = await redis.get(lock_key)
         assert len(winners) == 1
@@ -208,7 +215,8 @@ class TestMemoryPressure:
       Redis overhead (key names, encoding)  ≈ 2–3× → ~10–15 MB total
     """
 
-    async def test_memory_under_concurrent_runs(self, redis: aioredis.Redis) -> None:
+    @pytest.mark.parametrize("runs", MEMORY_RUNS_CASES)
+    async def test_memory_under_concurrent_runs(self, redis: aioredis.Redis, runs: int) -> None:
         payload = json.dumps({
             "pattern": "hook_question",
             "description": "Opens with a compelling question to draw viewers in",
@@ -225,16 +233,16 @@ class TestMemoryPressure:
                 key = f"m6:memory:result:s1:{run_id}:{video_idx}"
                 await redis.set(key, value, ex=3600)
 
-        run_ids = [f"run-{uuid.uuid4().hex[:8]}" for _ in range(MEMORY_RUNS)]
+        run_ids = [f"run-{uuid.uuid4().hex[:8]}" for _ in range(runs)]
         await asyncio.gather(*[simulate_run(rid) for rid in run_ids])
 
         info = await redis.info("memory")
         used_mb = info["used_memory"] / (1024 * 1024)
         peak_mb = info.get("used_memory_peak", info["used_memory"]) / (1024 * 1024)
 
-        total_keys = MEMORY_RUNS * MEMORY_VIDEOS_PER_RUN
+        total_keys = runs * MEMORY_VIDEOS_PER_RUN
         print(
-            f"\n[M6-3] Memory after {MEMORY_RUNS} runs × {MEMORY_VIDEOS_PER_RUN} keys "
+            f"\n[M6-3] Memory after {runs} runs × {MEMORY_VIDEOS_PER_RUN} keys "
             f"({total_keys} total):\n"
             f"  used_memory:      {used_mb:.2f} MB\n"
             f"  used_memory_peak: {peak_mb:.2f} MB\n"
