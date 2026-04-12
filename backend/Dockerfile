@@ -29,10 +29,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 # Copy venv from builder
 COPY --from=builder /app/venv /app/venv
 
-# Copy application code, tests, and pytest config
+# Copy application code, tests, pytest config, and dataset
 COPY pyproject.toml .
 COPY app/ ./app/
 COPY tests/ ./tests/
+COPY data/ ./data/
 
 # Use venv python
 ENV PATH="/app/venv/bin:$PATH" \
