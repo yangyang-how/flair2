@@ -1,21 +1,114 @@
+/* ── V1 Design Language: Flair AI Campaign Studio ───────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@200;300;400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-border: #334155;
-  --color-text: #e2e8f0;
-  --color-text-muted: #94a3b8;
-  --color-accent: #818cf8;
-  --color-accent-hover: #6366f1;
-  --color-success: #4ade80;
-  --color-error: #f87171;
-  --color-warning: #fbbf24;
+  /* Neutrals */
+  --color-bg: #ECEAF3;
+  --color-ink: #0E0C14;
+  --color-surface: rgba(255, 255, 255, 0.55);
+  --color-surface-hover: rgba(255, 255, 255, 0.75);
+  --color-border: rgba(14, 12, 20, 0.08);
+  --color-text: #0E0C14;
+  --color-text-muted: rgba(14, 12, 20, 0.55);
+  --color-text-light: rgba(14, 12, 20, 0.35);
+
+  /* Discovery (S1-S2) — Gold */
+  --disc-a: #F0A030;
+  --disc-b: #C07010;
+  --disc-c: #FFD580;
+  --disc-d: #FFE8A0;
+
+  /* Studio (S3) — Teal */
+  --stud-a: #30B8A8;
+  --stud-b: #108878;
+  --stud-c: #80E8D8;
+  --stud-d: #B0F0E8;
+
+  /* Evaluate (S4-S5) — Rose */
+  --eval-a: #E87090;
+  --eval-b: #B84060;
+  --eval-c: #FFB8C8;
+  --eval-d: #FFD8E0;
+
+  /* Personalize (S6) — Purple */
+  --pers-a: #8070D0;
+  --pers-b: #5040A0;
+  --pers-c: #B8B0F0;
+  --pers-d: #D8D4FF;
+
+  /* Functional */
+  --color-accent: var(--stud-a);
+  --color-accent-hover: var(--stud-b);
+  --color-success: #30B8A8;
+  --color-error: #E87090;
+  --color-warning: #F0A030;
+
+  /* Fonts */
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Cormorant Garamond', serif;
+  --font-ui: 'DM Sans', sans-serif;
 }
 
 body {
-  @apply bg-[var(--color-bg)] text-[var(--color-text)] font-sans antialiased;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-weight: 300;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Typography ─────────────────────────────────────────────────── */
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.font-body {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 300;
+}
+
+.font-ui {
+  font-family: var(--font-ui);
+  font-weight: 300;
+}
+
+/* ── Blob Animations ────────────────────────────────────────────── */
+
+@keyframes morph {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  50% { border-radius: 50% 60% 30% 60% / 40% 70% 60% 30%; }
+  75% { border-radius: 40% 30% 60% 50% / 60% 40% 50% 70%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Background Watermark ───────────────────────────────────────── */
+
+.watermark {
+  position: fixed;
+  pointer-events: none;
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  opacity: 0.04;
+  letter-spacing: 0.05em;
+  z-index: 0;
 }

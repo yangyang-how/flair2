@@ -1,6 +1,6 @@
 /**
- * Tab switcher — used for Results page (Scripts | Video Prompts)
- * and potentially Insights page.
+ * Tab switcher — V1 design language.
+ * Minimal, uppercase, with section color active state.
  */
 
 import { useState } from "react";
@@ -27,22 +27,22 @@ export default function Tabs({
 
   return (
     <div className={className}>
-      <div className="flex border-b border-[var(--color-border)]">
+      <div className="flex gap-1 border-b border-[var(--color-border)]">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActive(tab.id)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`px-5 py-2.5 font-ui text-[10px] font-medium uppercase tracking-[0.12em] transition-all duration-200 ${
               active === tab.id
-                ? "border-b-2 border-[var(--color-accent)] text-[var(--color-accent)]"
-                : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                ? "border-b-2 border-[var(--stud-b)] text-[var(--stud-b)]"
+                : "text-[var(--color-text-muted)] hover:text-[var(--color-ink)]"
             }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
-      <div className="pt-4">
+      <div className="pt-5">
         {tabs.find((t) => t.id === active)?.content}
       </div>
     </div>

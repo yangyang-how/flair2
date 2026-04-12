@@ -1,7 +1,6 @@
 /**
- * Shared text input component.
- *
- * Handles label, error state, and helper text.
+ * Text input — V1 design language.
+ * Semi-transparent white, subtle border, DM Sans.
  */
 
 import type { InputHTMLAttributes } from "react";
@@ -23,29 +22,29 @@ export default function Input({
   const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div className="space-y-1.5">
+    <div className={`space-y-1 ${className}`}>
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-[var(--color-text)]"
+          className="block font-ui text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--color-text-muted)]"
         >
           {label}
         </label>
       )}
       <input
         id={inputId}
-        className={`w-full rounded-lg border bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] ${
+        className={`w-full rounded-md border bg-[rgba(255,255,255,0.6)] px-4 py-3 font-ui text-sm font-light transition-colors placeholder:text-[var(--color-text-light)] focus:outline-none ${
           error
-            ? "border-[var(--color-error)]"
-            : "border-[var(--color-border)]"
-        } ${className}`}
+            ? "border-[var(--eval-a)] focus:border-[var(--eval-b)]"
+            : "border-[var(--color-border)] focus:border-[var(--stud-a)]"
+        }`}
         {...props}
       />
       {error && (
-        <p className="text-xs text-[var(--color-error)]">{error}</p>
+        <p className="font-ui text-[10px] text-[var(--eval-a)]">{error}</p>
       )}
       {helper && !error && (
-        <p className="text-xs text-[var(--color-text-muted)]">{helper}</p>
+        <p className="font-ui text-[10px] text-[var(--color-text-light)]">{helper}</p>
       )}
     </div>
   );
