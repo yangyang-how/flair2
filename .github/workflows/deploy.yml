@@ -10,7 +10,7 @@ on:
 
 env:
   AWS_REGION: us-west-2
-  ECR_REGISTRY: 966294739208.dkr.ecr.us-west-2.amazonaws.com
+  ECR_REGISTRY: 314727362981.dkr.ecr.us-west-2.amazonaws.com
   ECR_API_REPO: flair2-dev-api
   ECR_WORKER_REPO: flair2-dev-worker
   ECS_CLUSTER: flair2-dev-cluster
@@ -32,7 +32,6 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
@@ -109,7 +108,6 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Get ALB URL
