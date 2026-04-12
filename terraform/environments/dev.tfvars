@@ -1,5 +1,6 @@
-project = "flair2"
-env     = "dev"
+project    = "flair2"
+env        = "dev"
+account_id = "314727362981"
 
 aws_region = "us-west-2"
 
