@@ -14,7 +14,7 @@ terraform {
   #   terraform init -backend-config="key=env/prod/terraform.tfstate"
   # This keeps dev and prod state isolated in the same bucket.
   backend "s3" {
-    bucket = "flair2-terraform-state"
+    bucket = "flair2-terraform-state-314727362981"
     key    = "env/dev/terraform.tfstate"
     region = "us-west-2"
   }
