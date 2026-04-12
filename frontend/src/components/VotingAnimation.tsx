@@ -1,13 +1,10 @@
 /**
- * Voting Animation — 100-avatar React island with live SSE voting.
+ * Voting Animation — 100-persona evaluation visualization.
  *
- * Displays a 10x10 grid of persona avatars. As vote_cast events arrive,
- * the corresponding avatar animates and the leaderboard updates.
+ * V2's unique feature: AI personas evaluate candidate scripts.
+ * Uses the Evaluate section color palette (rose/pink).
  *
- * Can show either the live voting (SSE connected) or the final results
- * (loaded from API after pipeline completes).
- *
- * Issue: https://github.com/yangyang-how/flair2/issues/37
+ * Design: V1 aesthetic with 10x10 persona grid and live leaderboard.
  */
 
 import { useMemo, useState } from "react";
@@ -40,59 +37,40 @@ function deriveVotingState(events: SSEEvent[]) {
 
   for (const evt of events) {
     const d = evt.data as Record<string, unknown>;
-
     switch (evt.event) {
       case "pipeline_started":
         totalPersonas = (d.total_personas as number) || 100;
         break;
-
       case "stage_started":
-        if (d.stage === "S4_MAP") {
-          totalPersonas = (d.total_items as number) || totalPersonas;
-        }
+        if (d.stage === "S4_MAP") totalPersonas = (d.total_items as number) || totalPersonas;
         break;
-
       case "vote_cast": {
         const personaId = d.persona_id as string;
         const top5 = (d.top_5 as string[]) || [];
         const completed = (d.completed as number) || votes.length + 1;
         const idx = completed - 1;
-
         if (!votedSet.has(idx)) {
           votedSet.add(idx);
           votes.push({ personaId, top5, index: idx });
-
-          for (const scriptId of top5) {
-            tally[scriptId] = (tally[scriptId] || 0) + 1;
-          }
+          for (const scriptId of top5) tally[scriptId] = (tally[scriptId] || 0) + 1;
         }
         break;
       }
-
       case "s5_complete":
         topIds = (d.top_ids as string[]) || [];
         break;
-
       case "pipeline_complete":
         pipelineDone = true;
         break;
     }
   }
 
-  // Build sorted leaderboard
   const leaderboard: LeaderboardEntry[] = Object.entries(tally)
     .map(([scriptId, voteCount]) => ({ scriptId, votes: voteCount }))
     .sort((a, b) => b.votes - a.votes)
     .slice(0, 10);
 
-  return {
-    votes,
-    votedSet,
-    leaderboard,
-    totalPersonas,
-    pipelineDone,
-    topIds,
-  };
+  return { votes, votedSet, leaderboard, totalPersonas, pipelineDone, topIds };
 }
 
 // ── Component ─────────────────────────────────────────────
@@ -105,16 +83,10 @@ export default function VotingAnimation({ runId }: VotingAnimationProps) {
   const { events, connected, error } = useSSE(runId);
   const [showGrid, setShowGrid] = useState(true);
 
-  const {
-    votes,
-    votedSet,
-    leaderboard,
-    totalPersonas,
-    pipelineDone,
-    topIds,
-  } = useMemo(() => deriveVotingState(events), [events]);
+  const { votedSet, leaderboard, totalPersonas, pipelineDone, topIds } =
+    useMemo(() => deriveVotingState(events), [events]);
 
-  const voteCount = votes.length;
+  const voteCount = votedSet.size;
   const progress = totalPersonas > 0 ? (voteCount / totalPersonas) * 100 : 0;
 
   return (
@@ -122,24 +94,23 @@ export default function VotingAnimation({ runId }: VotingAnimationProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Audience Vote</h2>
-          <p className="text-sm text-[var(--color-text-muted)]">
+          <h2 className="font-display text-[28px] tracking-[0.08em]">Audience Vote</h2>
+          <p className="font-body text-base text-[var(--color-text-muted)]">
             {pipelineDone
-              ? "Voting complete — see the winners below"
-              : `${voteCount}/${totalPersonas} votes cast`}
+              ? "Voting complete \u2014 see the winners below"
+              : `${voteCount} of ${totalPersonas} personas have voted`}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowGrid((s) => !s)}
-            className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+            className="font-ui text-[10px] uppercase tracking-[0.1em] text-[var(--color-text-muted)] hover:text-[var(--color-ink)] transition-colors"
           >
             {showGrid ? "Hide grid" : "Show grid"}
           </button>
           <span
-            className={`h-2 w-2 rounded-full ${
-              connected ? "bg-[var(--color-success)]" : "bg-[var(--color-error)]"
-            }`}
+            className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-[var(--eval-a)]" : "bg-[var(--color-text-light)]"}`}
+            style={connected ? { animation: "dotPulse 1.5s ease-in-out infinite" } : undefined}
           />
         </div>
       </div>
@@ -148,60 +119,47 @@ export default function VotingAnimation({ runId }: VotingAnimationProps) {
       <ProgressBar
         value={progress}
         label={`${voteCount} of ${totalPersonas} personas`}
+        color="var(--eval-a)"
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
         {/* Avatar grid */}
         <AnimatePresence>
           {showGrid && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <AvatarGrid
-                total={totalPersonas}
-                votedSet={votedSet}
-              />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <AvatarGrid total={totalPersonas} votedSet={votedSet} />
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Leaderboard */}
         <div className={showGrid ? "" : "lg:col-span-2 max-w-md mx-auto w-full"}>
-          <Leaderboard
-            entries={leaderboard}
-            topIds={topIds}
-            pipelineDone={pipelineDone}
-            maxVotes={totalPersonas}
-          />
+          <Leaderboard entries={leaderboard} pipelineDone={pipelineDone} maxVotes={totalPersonas} />
         </div>
       </div>
 
-      {/* Final actions */}
+      {/* Completion */}
       {pipelineDone && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border border-[var(--color-success)]/30 bg-[var(--color-success)]/5 p-4 text-center"
+          className="rounded-[10px] border border-[var(--stud-c)]/40 bg-[var(--stud-d)]/30 p-6 text-center"
         >
-          <p className="text-sm text-[var(--color-success)]">
-            Voting complete — {leaderboard[0]?.scriptId || "Script"} won with{" "}
-            {leaderboard[0]?.votes || 0} votes
+          <p className="font-body text-base text-[var(--stud-b)]">
+            Voting complete \u2014 {leaderboard[0]?.scriptId.slice(0, 8) || "Script"} won with {leaderboard[0]?.votes || 0} votes
           </p>
           <a
             href={`/results/${runId}`}
-            className="mt-2 inline-block rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]"
+            className="mt-3 inline-block font-ui rounded-full bg-[var(--stud-b)] px-6 py-2.5 text-[11px] font-medium uppercase tracking-[0.1em] text-white hover:bg-[var(--stud-a)] transition-colors"
           >
             View Results
           </a>
         </motion.div>
       )}
 
-      {/* Error */}
       {error && !pipelineDone && (
-        <div className="rounded-lg border border-[var(--color-error)]/30 bg-[var(--color-error)]/5 p-3">
-          <p className="text-sm text-[var(--color-error)]">{error}</p>
+        <div className="rounded-[10px] border border-[var(--eval-c)] bg-[var(--eval-d)]/30 p-4">
+          <p className="font-ui text-[11px] text-[var(--eval-b)]">{error}</p>
         </div>
       )}
     </div>
@@ -210,23 +168,23 @@ export default function VotingAnimation({ runId }: VotingAnimationProps) {
 
 // ── Avatar Grid ───────────────────────────────────────────
 
-function AvatarGrid({
-  total,
-  votedSet,
-}: {
-  total: number;
-  votedSet: Set<number>;
-}) {
-  // Generate stable colors for each avatar
+function AvatarGrid({ total, votedSet }: { total: number; votedSet: Set<number> }) {
+  // Use rose palette for voted avatars — evaluation stage color
   const colors = useMemo(() => {
-    const hues = Array.from({ length: total }, (_, i) => (i * 137.5) % 360);
-    return hues.map((h) => `hsl(${h}, 50%, 60%)`);
+    return Array.from({ length: total }, (_, i) => {
+      // Spread across the eval color range: light pink → rose → deep rose
+      const t = i / total;
+      const hue = 340 + t * 30; // 340-370 (rose range)
+      const sat = 55 + t * 20;
+      const light = 65 - t * 15;
+      return `hsl(${hue}, ${sat}%, ${light}%)`;
+    });
   }, [total]);
 
   return (
     <Card padding="sm">
       <div
-        className="grid gap-1"
+        className="grid gap-[3px]"
         style={{
           gridTemplateColumns: `repeat(${Math.min(10, Math.ceil(Math.sqrt(total)))}, 1fr)`,
         }}
@@ -236,28 +194,22 @@ function AvatarGrid({
           return (
             <motion.div
               key={i}
-              className="relative aspect-square rounded-md"
+              className="relative aspect-square rounded-[4px]"
               style={{
-                backgroundColor: hasVoted ? colors[i] : "var(--color-border)",
+                backgroundColor: hasVoted ? colors[i] : "rgba(14,12,20,0.04)",
               }}
               animate={
                 hasVoted
-                  ? {
-                      scale: [1, 1.2, 1],
-                      opacity: 1,
-                    }
-                  : { scale: 1, opacity: 0.3 }
+                  ? { scale: [1, 1.15, 1], opacity: 1 }
+                  : { scale: 1, opacity: 0.4 }
               }
-              transition={{
-                duration: 0.3,
-                ease: "easeOut",
-              }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
               {hasVoted && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white/80"
+                  className="absolute inset-0 flex items-center justify-center font-ui text-[7px] font-medium text-white/70"
                 >
                   {i + 1}
                 </motion.div>
@@ -273,32 +225,27 @@ function AvatarGrid({
 // ── Leaderboard ───────────────────────────────────────────
 
 function Leaderboard({
-  entries,
-  topIds,
-  pipelineDone,
-  maxVotes,
+  entries, pipelineDone, maxVotes,
 }: {
   entries: LeaderboardEntry[];
-  topIds: string[];
   pipelineDone: boolean;
   maxVotes: number;
 }) {
   return (
     <Card padding="sm">
-      <h3 className="mb-3 text-sm font-semibold text-[var(--color-text-muted)]">
+      <h3 className="mb-3 font-display text-sm tracking-[0.12em]">
         Leaderboard
       </h3>
 
       {entries.length === 0 ? (
-        <p className="py-4 text-center text-sm text-[var(--color-text-muted)]">
+        <p className="py-6 text-center font-body text-sm text-[var(--color-text-muted)]">
           Waiting for votes...
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <AnimatePresence mode="popLayout">
             {entries.map((entry, rank) => {
               const isWinner = pipelineDone && rank === 0;
-              const isFinalTop = topIds.includes(entry.scriptId);
               const barWidth = maxVotes > 0 ? (entry.votes / maxVotes) * 100 : 0;
 
               return (
@@ -307,30 +254,25 @@ function Leaderboard({
                   layout
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className={`flex items-center gap-2 rounded-md p-1.5 text-sm ${
-                    isWinner
-                      ? "bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20"
-                      : ""
+                  className={`flex items-center gap-2 rounded-[6px] p-1.5 ${
+                    isWinner ? "bg-[var(--eval-d)]/40 border border-[var(--eval-c)]/30" : ""
                   }`}
                 >
-                  <span className="w-5 shrink-0 text-right text-xs font-mono text-[var(--color-text-muted)]">
+                  <span className="w-5 shrink-0 text-right font-display text-xs text-[var(--color-text-muted)]">
                     {rank + 1}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="truncate font-mono text-xs">
+                      <span className="truncate font-ui text-[10px] tracking-[0.04em]">
                         {entry.scriptId.slice(0, 8)}
-                        {isFinalTop && pipelineDone && (
-                          <span className="ml-1 text-[var(--color-success)]">*</span>
-                        )}
                       </span>
-                      <span className="ml-2 shrink-0 text-xs font-medium text-[var(--color-text-muted)]">
+                      <span className="ml-2 shrink-0 font-display text-xs text-[var(--eval-b)]">
                         {entry.votes}
                       </span>
                     </div>
-                    <div className="mt-1 h-1 overflow-hidden rounded-full bg-[var(--color-bg)]">
+                    <div className="mt-1 h-[2px] overflow-hidden rounded-full bg-[rgba(14,12,20,0.04)]">
                       <motion.div
-                        className="h-full rounded-full bg-[var(--color-accent)]"
+                        className="h-full rounded-full bg-[var(--eval-a)]"
                         initial={{ width: 0 }}
                         animate={{ width: `${barWidth}%` }}
                         transition={{ duration: 0.3 }}
