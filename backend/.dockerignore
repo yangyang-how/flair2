@@ -15,9 +15,6 @@ venv/
 env/
 
 
-# Data files (sample_videos.json, results.json — not needed in image)
-data/
-
 # Dev / local config
 .env
 .env.*
