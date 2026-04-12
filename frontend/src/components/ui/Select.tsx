@@ -1,10 +1,10 @@
 /**
- * Shared select/dropdown component.
+ * Select dropdown — V1 design language.
  */
 
 import type { SelectHTMLAttributes } from "react";
 
-interface Option {
+interface SelectOption {
   value: string;
   label: string;
 }
@@ -12,7 +12,7 @@ interface Option {
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
-  options: Option[];
+  options: SelectOption[];
   placeholder?: string;
 }
 
@@ -28,22 +28,22 @@ export default function Select({
   const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div className="space-y-1.5">
+    <div className={`space-y-1 ${className}`}>
       {label && (
         <label
           htmlFor={selectId}
-          className="block text-sm font-medium text-[var(--color-text)]"
+          className="block font-ui text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--color-text-muted)]"
         >
           {label}
         </label>
       )}
       <select
         id={selectId}
-        className={`w-full rounded-lg border bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] ${
+        className={`w-full rounded-md border bg-[rgba(255,255,255,0.6)] px-4 py-3 font-ui text-sm font-light transition-colors focus:outline-none ${
           error
-            ? "border-[var(--color-error)]"
-            : "border-[var(--color-border)]"
-        } ${className}`}
+            ? "border-[var(--eval-a)] focus:border-[var(--eval-b)]"
+            : "border-[var(--color-border)] focus:border-[var(--stud-a)]"
+        }`}
         {...props}
       >
         {placeholder && (
@@ -58,7 +58,7 @@ export default function Select({
         ))}
       </select>
       {error && (
-        <p className="text-xs text-[var(--color-error)]">{error}</p>
+        <p className="font-ui text-[10px] text-[var(--eval-a)]">{error}</p>
       )}
     </div>
   );

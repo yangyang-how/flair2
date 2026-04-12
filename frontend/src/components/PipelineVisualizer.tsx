@@ -21,15 +21,17 @@ interface StageInfo {
   id: string;
   label: string;
   description: string;
+  color: string;      // CSS variable for this stage's section
+  colorDark: string;
 }
 
 const STAGES: StageInfo[] = [
-  { id: "S1_MAP", label: "Discover", description: "Analyzing viral videos" },
-  { id: "S2_REDUCE", label: "Aggregate", description: "Extracting patterns" },
-  { id: "S3_SEQUENTIAL", label: "Generate", description: "Writing scripts" },
-  { id: "S4_MAP", label: "Vote", description: "100 personas voting" },
-  { id: "S5_REDUCE", label: "Rank", description: "Tallying results" },
-  { id: "S6_PERSONALIZE", label: "Personalize", description: "Adapting to your voice" },
+  { id: "S1_MAP", label: "Discover", description: "Analyzing viral videos", color: "var(--disc-a)", colorDark: "var(--disc-b)" },
+  { id: "S2_REDUCE", label: "Aggregate", description: "Extracting patterns", color: "var(--disc-a)", colorDark: "var(--disc-b)" },
+  { id: "S3_SEQUENTIAL", label: "Generate", description: "Writing scripts", color: "var(--stud-a)", colorDark: "var(--stud-b)" },
+  { id: "S4_MAP", label: "Vote", description: "100 personas voting", color: "var(--eval-a)", colorDark: "var(--eval-b)" },
+  { id: "S5_REDUCE", label: "Rank", description: "Tallying results", color: "var(--eval-a)", colorDark: "var(--eval-b)" },
+  { id: "S6_PERSONALIZE", label: "Personalize", description: "Adapting to your voice", color: "var(--pers-a)", colorDark: "var(--pers-b)" },
 ];
 
 type StageStatus = "pending" | "running" | "completed" | "failed";
@@ -209,15 +211,16 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
     <div className="space-y-6">
       {/* Connection status */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Pipeline Progress</h2>
+        <h2 className="font-display text-[28px] tracking-[0.08em]">Pipeline Progress</h2>
         <div className="flex items-center gap-2">
           <span
-            className={`h-2 w-2 rounded-full ${
-              connected ? "bg-[var(--color-success)]" : "bg-[var(--color-error)]"
+            className={`h-1.5 w-1.5 rounded-full ${
+              connected ? "bg-[var(--stud-a)]" : "bg-[var(--eval-a)]"
             }`}
+            style={connected ? { animation: "dotPulse 1.5s ease-in-out infinite" } : undefined}
           />
-          <span className="text-xs text-[var(--color-text-muted)]">
-            {connected ? "Connected" : error || "Disconnected"}
+          <span className="font-ui text-[10px] uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+            {connected ? "Live" : error || "Disconnected"}
           </span>
         </div>
       </div>

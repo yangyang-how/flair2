@@ -1,15 +1,13 @@
 /**
- * Status badge — used for pipeline run status, stage status, etc.
- *
- * Both tracks need this: Sam's pipeline viz shows stage badges,
- * Jess's runs page shows run status badges.
+ * Status badge — V1 design language.
+ * Uses pipeline section colors for each status.
  */
 
 const statusStyles = {
-  pending: "bg-yellow-500/10 text-[var(--color-warning)] border-yellow-500/20",
-  running: "bg-indigo-500/10 text-[var(--color-accent)] border-indigo-500/20",
-  completed: "bg-green-500/10 text-[var(--color-success)] border-green-500/20",
-  failed: "bg-red-500/10 text-[var(--color-error)] border-red-500/20",
+  pending: "bg-[var(--disc-d)] text-[var(--disc-b)] border-[var(--disc-c)]",
+  running: "bg-[var(--stud-d)] text-[var(--stud-b)] border-[var(--stud-c)]",
+  completed: "bg-[var(--stud-d)] text-[var(--stud-b)] border-[var(--stud-c)]",
+  failed: "bg-[var(--eval-d)] text-[var(--eval-b)] border-[var(--eval-c)]",
 } as const;
 
 type Status = keyof typeof statusStyles;
@@ -27,10 +25,10 @@ export default function Badge({
 }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusStyles[status]} ${className}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-ui text-[9px] font-medium uppercase tracking-[0.1em] ${statusStyles[status]} ${className}`}
     >
       {status === "running" && (
-        <span className="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+        <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current" style={{ animation: "dotPulse 1s ease-in-out infinite" }} />
       )}
       {label || status}
     </span>

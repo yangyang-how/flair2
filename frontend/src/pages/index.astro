@@ -2,53 +2,127 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Flair2 — AI Campaign Studio">
-  <div class="flex flex-col items-center justify-center gap-8 py-20 text-center">
-    <h1 class="text-5xl font-bold tracking-tight">
-      AI Campaign
-      <span class="text-[var(--color-accent)]">Studio</span>
+<BaseLayout title="Flair — AI Campaign Studio">
+  <div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
+    <!-- Title -->
+    <h1 class="font-display text-[clamp(42px,8vw,72px)] tracking-[0.06em] leading-none">
+      AI Campaign<br />
+      <span class="text-[var(--stud-a)]">Studio</span>
     </h1>
 
-    <p class="max-w-lg text-lg text-[var(--color-text-muted)]">
-      Multi-stage AI pipeline that generates social media marketing campaigns.
-      Analyze viral patterns, generate scripts, and let 100 AI personas vote
-      on the best content.
+    <p class="font-body max-w-md text-lg text-[var(--color-text-muted)]">
+      Analyze viral patterns, generate scripts with AI,
+      and let 100 personas vote on the best content.
     </p>
 
-    <div class="flex gap-4">
+    <!-- Blob grid -->
+    <div class="relative mt-8 flex flex-wrap items-center justify-center gap-6 md:gap-10">
+      <!-- Discovery blob -->
+      <a href="/create" class="group relative">
+        <div class="blob blob-discover flex flex-col items-center justify-center text-white">
+          <span class="font-display text-[42px] leading-none opacity-90">01</span>
+          <span class="font-display text-[13px] tracking-[0.18em] mt-1">Discover</span>
+          <span class="font-ui text-[9px] tracking-[0.08em] mt-2 opacity-60">S1 → S2</span>
+        </div>
+      </a>
+
+      <!-- Studio blob -->
+      <a href="/create" class="group relative">
+        <div class="blob blob-studio flex flex-col items-center justify-center text-white">
+          <span class="font-display text-[36px] leading-none opacity-90">02</span>
+          <span class="font-display text-[12px] tracking-[0.18em] mt-1">Generate</span>
+          <span class="font-ui text-[9px] tracking-[0.08em] mt-2 opacity-60">S3</span>
+        </div>
+      </a>
+
+      <!-- Evaluate blob -->
+      <a href="/create" class="group relative">
+        <div class="blob blob-evaluate flex flex-col items-center justify-center text-white">
+          <span class="font-display text-[36px] leading-none opacity-90">03</span>
+          <span class="font-display text-[12px] tracking-[0.18em] mt-1">Evaluate</span>
+          <span class="font-ui text-[9px] tracking-[0.08em] mt-2 opacity-60">S4 → S5</span>
+        </div>
+      </a>
+
+      <!-- Personalize blob -->
+      <a href="/create" class="group relative">
+        <div class="blob blob-personalize flex flex-col items-center justify-center text-white">
+          <span class="font-display text-[38px] leading-none opacity-90">04</span>
+          <span class="font-display text-[12px] tracking-[0.18em] mt-1">Personalize</span>
+          <span class="font-ui text-[9px] tracking-[0.08em] mt-2 opacity-60">S6</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- CTA -->
+    <div class="mt-10 flex gap-4">
       <a
         href="/create"
-        class="rounded-lg bg-[var(--color-accent)] px-6 py-3 font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+        class="font-ui rounded-full bg-[var(--stud-b)] px-8 py-3 text-[11px] font-medium uppercase tracking-[0.1em] text-white transition-colors hover:bg-[var(--stud-a)]"
       >
         Create Campaign
       </a>
       <a
         href="/runs"
-        class="rounded-lg border border-[var(--color-border)] px-6 py-3 font-medium text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
+        class="font-ui rounded-full border border-[var(--color-border)] px-8 py-3 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-text-muted)] transition-all hover:border-[var(--color-ink)] hover:text-[var(--color-ink)]"
       >
         View Runs
       </a>
     </div>
-
-    <div class="mt-12 grid max-w-2xl grid-cols-3 gap-8 text-left">
-      <div>
-        <h3 class="mb-2 font-semibold text-[var(--color-accent)]">Discover</h3>
-        <p class="text-sm text-[var(--color-text-muted)]">
-          Analyze 100 viral videos to extract structural patterns that drive engagement.
-        </p>
-      </div>
-      <div>
-        <h3 class="mb-2 font-semibold text-[var(--color-accent)]">Generate</h3>
-        <p class="text-sm text-[var(--color-text-muted)]">
-          Create 50 candidate scripts using proven patterns, personalized to your voice.
-        </p>
-      </div>
-      <div>
-        <h3 class="mb-2 font-semibold text-[var(--color-accent)]">Evaluate</h3>
-        <p class="text-sm text-[var(--color-text-muted)]">
-          100 AI personas vote on the best scripts. Watch the election unfold live.
-        </p>
-      </div>
-    </div>
   </div>
 </BaseLayout>
+
+<style>
+  .blob {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    animation: morph 8s ease-in-out infinite, float 6s ease-in-out infinite;
+  }
+  .blob:hover {
+    transform: scale(1.06);
+  }
+
+  .blob-discover {
+    width: clamp(160px, 18vw, 220px);
+    height: clamp(170px, 19vw, 230px);
+    background: radial-gradient(ellipse 80% 60% at 33% 26%,
+      var(--disc-c), var(--disc-a), var(--disc-b));
+    box-shadow:
+      inset 0 -16px 32px rgba(192, 112, 16, 0.3),
+      0 8px 32px rgba(240, 160, 48, 0.25);
+    animation-delay: 0s, 0s;
+  }
+
+  .blob-studio {
+    width: clamp(130px, 14vw, 170px);
+    height: clamp(120px, 13vw, 160px);
+    background: radial-gradient(ellipse 80% 60% at 33% 26%,
+      var(--stud-c), var(--stud-a), var(--stud-b));
+    box-shadow:
+      inset 0 -16px 32px rgba(16, 136, 120, 0.3),
+      0 8px 32px rgba(48, 184, 168, 0.25);
+    animation-delay: -2s, -1s;
+  }
+
+  .blob-evaluate {
+    width: clamp(135px, 15vw, 175px);
+    height: clamp(125px, 14vw, 165px);
+    background: radial-gradient(ellipse 80% 60% at 33% 26%,
+      var(--eval-c), var(--eval-a), var(--eval-b));
+    box-shadow:
+      inset 0 -16px 32px rgba(184, 64, 96, 0.3),
+      0 8px 32px rgba(232, 112, 144, 0.25);
+    animation-delay: -4s, -2s;
+  }
+
+  .blob-personalize {
+    width: clamp(140px, 16vw, 185px);
+    height: clamp(130px, 15vw, 175px);
+    background: radial-gradient(ellipse 80% 60% at 33% 26%,
+      var(--pers-c), var(--pers-a), var(--pers-b));
+    box-shadow:
+      inset 0 -16px 32px rgba(80, 64, 160, 0.3),
+      0 8px 32px rgba(128, 112, 208, 0.25);
+    animation-delay: -6s, -3s;
+  }
+</style>

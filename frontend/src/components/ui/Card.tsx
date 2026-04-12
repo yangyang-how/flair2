@@ -1,8 +1,6 @@
 /**
- * Card container — surface-colored box with border.
- *
- * Used for: script cards (results page), run list items,
- * performance entries, dashboard panels.
+ * Card container — V1 design language.
+ * Semi-transparent white with subtle border, rounded corners.
  */
 
 import type { ReactNode } from "react";
@@ -15,8 +13,8 @@ interface CardProps {
 
 const paddings = {
   sm: "p-3",
-  md: "p-4",
-  lg: "p-6",
+  md: "p-5",
+  lg: "p-7",
 } as const;
 
 export default function Card({
@@ -26,7 +24,7 @@ export default function Card({
 }: CardProps) {
   return (
     <div
-      className={`rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] ${paddings[padding]} ${className}`}
+      className={`rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-[0_6px_24px_rgba(14,12,20,0.08)] ${paddings[padding]} ${className}`}
     >
       {children}
     </div>
