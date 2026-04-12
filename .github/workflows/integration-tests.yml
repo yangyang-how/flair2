@@ -93,7 +93,7 @@ jobs:
                 \"name\": \"worker\",
                 \"command\": [\"python\", \"-m\", \"pytest\",
                               \"tests/experiments/test_elasticache_integration.py\",
-                              \"-v\", \"--tb=short\", \"--no-header\"],
+                              \"-v\", \"--tb=short\", \"--no-header\", \"-s\"],
                 \"environment\": [{
                   \"name\": \"ELASTICACHE_URL\",
                   \"value\": \"${{ steps.elasticache.outputs.url }}\"
