@@ -211,9 +211,10 @@ resource "aws_security_group" "elasticache" {
 # ── Modules ───────────────────────────────────────────────────────────────────
 
 module "iam" {
-  source  = "./modules/iam"
-  project = var.project
-  env     = var.env
+  source     = "./modules/iam"
+  project    = var.project
+  env        = var.env
+  account_id = var.account_id
 }
 
 module "s3" {

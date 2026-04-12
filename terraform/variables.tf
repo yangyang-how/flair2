@@ -1,3 +1,8 @@
+variable "account_id" {
+  description = "AWS account ID — used to scope IAM policy resource ARNs"
+  type        = string
+}
+
 variable "project" {
   description = "Project name — used as a prefix for all resource names"
   type        = string
