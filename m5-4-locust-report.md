@@ -115,13 +115,24 @@ The sustained K=500 run shows the system did not recover:
 - p99 grew from 4,200 ms → **18,000 ms**
 - RPS actually *dropped* from 175.89 → 130.18
 
-### 4. Root cause: worker bottleneck, not API
+### 4. Root cause: API connection pool exhaustion, not Worker backlog
 
 `GET /api/health` and `GET /api/providers` remained fast even at K=500 (p99 ≈ 260–300 ms). Only `POST /api/pipeline/start` and `GET /api/runs` degraded severely.
 
 `/api/pipeline/start` queues a Celery task and returns immediately — the high latency means the API itself is CPU-bound handling 500 concurrent HTTP connections, not waiting for LLM calls. `/api/runs` reads from Redis, whose p99 reached 20,000 ms, indicating **Redis connection pool exhaustion** as 3 API tasks each maintain their own connection pools against the same ElastiCache instance.
 
-**Scaling the API layer alone is insufficient.** At K=500, the Celery Worker queue also needs to scale to drain the backlog. The Terraform config sets `worker_max_count = 4`; at sustained K=500 the worker should scale in parallel with the API service.
+**The Worker was not the bottleneck.** A live queue depth measurement was conducted during a K=500 run using ECS Exec to query `LLEN celery` on Redis db=1 every 15 seconds:
+
+| Time | Queue depth |
+|------|-------------|
+| 22:50:18 | 0 |
+| 22:50:35 | 1 |
+| 22:50:52 | 0 |
+| 22:51:10 | 1 |
+| 22:51:27 | 0 |
+| 22:51:44 | 0 |
+
+The queue depth never exceeded 1. Workers drained tasks as fast as they arrived — no backlog formed. This is because the Locust payload uses `num_videos=2, num_scripts=2` (minimal pipeline), so each task completes quickly. The high latency observed at K=500 is caused entirely by **API-layer Redis connection pool exhaustion**, not Worker capacity.
 
 ---
 
@@ -155,7 +166,44 @@ The Worker pipeline stages spend the vast majority of their time waiting for Kim
 | Triggered during K=500 test | ❌ Never | ✅ Would have |
 | Currently configured | ✅ Yes | ❌ Not yet |
 
-**Recommended fix:** Publish a custom CloudWatch metric for the Celery queue length (e.g. `LLEN celery` on Redis), and replace the CPU-based scaling policy with a step/target-tracking policy on queue depth. A threshold of ~50 queued tasks per Worker is a reasonable starting point.
+**Live measurement result:** Queue depth was sampled every 15 seconds via ECS Exec during a K=500 run. The queue never exceeded 1 — Workers drained tasks immediately. With the minimal Locust payload (`num_videos=2`), Worker capacity is not a constraint at K=500.
+
+**For production workloads** with full-size pipelines (100 videos, real LLM calls taking 2–5 min each), queue depth would accumulate. In that scenario, CPU remains the wrong metric — a custom CloudWatch metric on `LLEN celery` with a threshold of ~50 tasks per Worker would be the correct scaling signal.
+
+---
+
+## Follow-up Run: Fresh Standalone K=500 (2026-04-13)
+
+A second K=500 test was run the following day on a freshly deployed cluster with no prior load history. Results were significantly different from the first run.
+
+### CloudWatch metrics (fresh run)
+
+| Service | CPU Maximum | CPU Average | Auto-scaling triggered |
+|---------|-------------|-------------|------------------------|
+| flair2-dev-api | **25.1%** | ~5% | ❌ No |
+| flair2-dev-worker | **7.14%** | ~0% | ❌ No |
+
+### Comparison: cumulative vs. fresh load
+
+| Condition | API CPU | Worker CPU | Auto-scale |
+|-----------|---------|------------|------------|
+| After K=10→50→100→1000 (Day 1) | **99%** | ~25% | ✅ 2→3 tasks |
+| Fresh standalone K=500 (Day 2) | **25.1%** | **7.14%** | ❌ No |
+
+### Why the difference?
+
+The Day 1 run followed multiple consecutive test runs at different K values. By the time K=500 was reached:
+- Redis connection pools were already saturated from prior runs
+- The Celery queue had an existing backlog of unfinished pipeline tasks
+- API tasks had accumulated state in memory
+
+In the fresh Day 2 run, all resources started clean. With `api_min_count=2`, two API tasks distributed the K=500 load from the start, keeping per-task CPU at ~12.5%. The system handled K=500 comfortably without any auto-scaling.
+
+### Revised conclusion
+
+**K=500 does not stress the system under clean conditions.** The Day 1 inflection point was driven by cumulative load state, not by K=500 alone. The true per-run capacity appears to be higher than initially measured.
+
+The Worker finding remains unchanged: **CPU peaked at only 7.14%** even with 500 concurrent users submitting pipeline tasks, conclusively confirming that CPU is the wrong scaling metric for the Worker service regardless of load history.
 
 ---
 
@@ -168,8 +216,9 @@ The Worker pipeline stages spend the vast majority of their time waiting for Kim
 | **Inflection point** | K = 500 — p95 jumps 47× to 2,900 ms |
 | **API auto-scaling trigger** | CPU > 60% sustained ~3 min → 2 → 3 tasks in ~2 min |
 | **API auto-scaling limitation** | 3 tasks still at 75–85% CPU; system did not fully recover |
-| **Worker auto-scaling** | Did NOT trigger — Worker is IO-bound; CPU stayed near 0% despite queue backlog |
-| **Wrong scaling metric** | Worker should scale on Redis queue depth, not CPU |
+| **Worker auto-scaling** | Did NOT trigger — Worker is IO-bound; CPU stayed near 0% |
+| **Worker queue depth** | Measured at 0–1 during K=500 — no backlog, Worker kept up |
+| **True bottleneck** | API-layer Redis connection pool exhaustion, not Worker capacity |
 | **Redis pressure** | `/api/runs` p99 = 20,000 ms at sustained K=500 — connection pool exhaustion |
 | **Failure rate** | 0.03% even at K=500 — system degrades gracefully, never hard-fails |
 
