@@ -93,11 +93,12 @@ resource "aws_ecs_task_definition" "api" {
 # 2 replicas behind the ALB target group
 
 resource "aws_ecs_service" "api" {
-  name            = "${local.prefix}-api"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.api.arn
-  desired_count   = var.api_desired_count
-  launch_type     = "FARGATE"
+  name                   = "${local.prefix}-api"
+  cluster                = aws_ecs_cluster.main.id
+  task_definition        = aws_ecs_task_definition.api.arn
+  desired_count          = var.api_desired_count
+  launch_type            = "FARGATE"
+  enable_execute_command = true
 
   network_configuration {
     subnets          = var.private_subnet_ids
@@ -180,11 +181,12 @@ resource "aws_ecs_task_definition" "worker" {
 # No ALB — workers pull work from Redis, no inbound traffic needed
 
 resource "aws_ecs_service" "worker" {
-  name            = "${local.prefix}-worker"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.worker.arn
-  desired_count   = var.worker_desired_count
-  launch_type     = "FARGATE"
+  name                   = "${local.prefix}-worker"
+  cluster                = aws_ecs_cluster.main.id
+  task_definition        = aws_ecs_task_definition.worker.arn
+  desired_count          = var.worker_desired_count
+  launch_type            = "FARGATE"
+  enable_execute_command = true
 
   network_configuration {
     subnets          = var.private_subnet_ids
