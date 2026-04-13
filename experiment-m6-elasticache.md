@@ -1,7 +1,7 @@
 # CS6650 Distributed Systems — M6 ElastiCache Experiment Report
 
 **Project:** Flair2 — AI Campaign Studio
-**Team:** Sam Wu, Jess
+**Team:** Sam Wu, Jess Zhang
 **Repository:** [github.com/yangyang-how/flair2](https://github.com/yangyang-how/flair2)
 **Date:** April 12, 2026
 **Infrastructure:** AWS ElastiCache Redis (cache.t3.micro, us-west-2), ECS Fargate (private VPC subnet)
@@ -55,6 +55,10 @@ Run each operation 500, 1000, 2000, and 5000 times sequentially. Record wall-clo
 | 2,000 | 0.765 | 0.919 | 1.229 | 0.790 | 4.530 |
 | 5,000 | 0.715 | 0.854 | 0.978 | 0.732 | 5.096 |
 
+![M6-1: ElastiCache latency experiment (SETNX / XADD / INCR) — observation 1](screenshots/M6-1-1.png)
+
+![M6-1: ElastiCache latency experiment — observation 2](screenshots/M6-1-2.png)
+
 ### Conclusions
 
 1. **p50 is consistently ~0.75–0.85 ms** across all three operations — well within the sub-2 ms budget for same-AZ ElastiCache.
@@ -90,6 +94,12 @@ The failure was confirmed by two independent test cases on separate keys:
 - `test_winner_value_stored[5000]`: winners = `[0, 4758]`
 
 Note: worker 0 appears as a winner in both failures. The second winner differs (4435 vs 4758) because each test uses a unique key. Overall test run result: **27 passed, 2 failed in 135.14s**.
+
+![M6-2: SETNX concurrency under load — run evidence 1](screenshots/M6-2-1.png)
+
+![M6-2: SETNX concurrency under load — run evidence 2](screenshots/M6-2-2.png)
+
+![M6-2: Failure case — two winners at 5000 concurrent workers](screenshots/M6-failure.png)
 
 ### Analysis
 
@@ -131,6 +141,12 @@ Simulate N concurrent pipeline runs, each writing 100 Redis keys (512-byte JSON 
 
 *Note: used_memory_peak of 52.71 MB for the 10/50/100 cases reflects a previous high-water mark from the 500-run test that ran in the same Redis instance.*
 
+![M6-3: Memory pressure under concurrent pipeline runs — observation 1](screenshots/M6-3-1.png)
+
+![M6-3: Memory pressure — observation 2](screenshots/M6-3-2.png)
+
+![M6-3: Warning threshold (500+ runs)](screenshots/M6-warning.png)
+
 ### Analysis
 
 Memory scales roughly linearly with key count, at ~1 KB per key (512-byte value + key name overhead + Redis encoding). This matches the expected 2× overhead ratio.
@@ -147,6 +163,8 @@ At 500 runs (50,000 keys), usage crosses the 50 MB warning threshold. At 1000 ru
 ---
 
 ## Summary
+
+![M6 experiments — summary dashboard or composite](screenshots/M6-summary.png)
 
 | Experiment | Key Finding |
 |---|---|
