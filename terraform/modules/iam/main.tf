@@ -97,6 +97,16 @@ resource "aws_iam_role_policy" "ecs_task_permissions" {
           "logs:CreateLogStream", "logs:PutLogEvents"
         ]
         Resource = "arn:aws:logs:*:${var.account_id}:log-group:/ecs/${local.prefix}/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ]
+        Resource = "*"
       }
     ]
   })
