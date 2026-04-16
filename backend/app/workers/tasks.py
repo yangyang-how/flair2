@@ -92,12 +92,23 @@ def s1_analyze_task(self, run_id: str, video_json: str):
             video = VideoInput.model_validate_json(video_json)
             provider = _get_provider(config)
 
+            from app.pipeline.orchestrator import Orchestrator
+            orchestrator = Orchestrator(redis)
+
+            await orchestrator.emit_event(run_id, "s1_task_started", {
+                "video_id": video.video_id,
+                "description": (video.description or "")[:80],
+            })
+
             await _acquire_rate_limit_token(redis, config.reasoning_model)
             pattern = await s1_analyze(video, provider)
             await redis.set(f"result:s1:{run_id}:{video.video_id}", pattern.model_dump_json())
 
-            from app.pipeline.orchestrator import Orchestrator
-            await Orchestrator(redis).on_s1_complete(run_id, video.video_id)
+            await orchestrator.on_s1_complete(run_id, video.video_id, pattern_summary={
+                "hook_type": pattern.hook_type,
+                "pacing": pattern.pacing,
+                "trigger_count": len(pattern.engagement_triggers),
+            })
         finally:
             await redis.aclose()
 

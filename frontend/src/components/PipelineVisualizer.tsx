@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSSE, type SSEEvent } from "../lib/sse-client";
 import { Badge, ProgressBar } from "./ui";
+import S1DiscoverGrid from "./S1DiscoverGrid";
 
 // ── Stage definitions ─────────────────────────────────────
 
@@ -21,7 +22,7 @@ interface StageInfo {
   id: string;
   label: string;
   description: string;
-  color: string;      // CSS variable for this stage's section
+  color: string;
   colorDark: string;
 }
 
@@ -38,8 +39,8 @@ type StageStatus = "pending" | "running" | "completed" | "failed";
 
 interface StageState {
   status: StageStatus;
-  progress: number; // 0-100
-  detail: string;   // e.g. "42/100 videos"
+  progress: number;
+  detail: string;
 }
 
 function initialStageStates(): Record<string, StageState> {
@@ -166,7 +167,6 @@ function deriveStageStates(events: SSEEvent[]): {
 
       case "pipeline_complete":
         pipelineDone = true;
-        // Mark all stages as completed
         for (const s of STAGES) {
           stages[s.id] = { status: "completed", progress: 100, detail: stages[s.id].detail };
         }
@@ -174,7 +174,6 @@ function deriveStageStates(events: SSEEvent[]): {
 
       case "pipeline_error":
         pipelineError = (d.error as string) || "Pipeline failed";
-        // Mark current running stage as failed
         for (const s of STAGES) {
           if (stages[s.id].status === "running") {
             stages[s.id] = { ...stages[s.id], status: "failed" };
@@ -204,6 +203,9 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
     () => deriveStageStates(events),
     [events],
   );
+
+  const s1Active = stages.S1_MAP.status === "running" || stages.S1_MAP.status === "completed";
+  const totalVideos = runConfig?.totalVideos || 0;
 
   // Elapsed timer
   const [elapsed, setElapsed] = useState(0);
@@ -331,6 +333,19 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
         </motion.div>
       </div>
 
+      {/* S1 Discover Grid */}
+      <AnimatePresence>
+        {s1Active && totalVideos > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <S1DiscoverGrid events={events} totalVideos={totalVideos} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Stall warning */}
       <AnimatePresence>
         {stalled && !pipelineError && (
@@ -405,8 +420,10 @@ function formatEventLabel(evt: SSEEvent): { label: string; detail: string; color
       return { label: "Pipeline started", detail: `${d.total_videos} videos, ${d.total_personas} personas, top ${d.top_n}`, color: "var(--stud-a)" };
     case "stage_started":
       return { label: `${d.stage} started`, detail: d.total_items ? `${d.total_items} items` : "", color: "var(--color-accent)" };
+    case "s1_task_started":
+      return { label: "S1 Analyze", detail: `started ${d.video_id}`, color: "var(--disc-a)" };
     case "s1_progress":
-      return { label: `S1 Analyze`, detail: `video ${d.video_id} (${d.completed}/${d.total})`, color: "var(--disc-a)" };
+      return { label: "S1 Analyze", detail: `${d.video_id} → ${d.hook_type || "done"} (${d.completed}/${d.total})`, color: "var(--disc-a)" };
     case "s2_complete":
       return { label: "S2 Aggregate complete", detail: `${d.pattern_count} patterns`, color: "var(--disc-a)" };
     case "s3_progress":
@@ -414,7 +431,7 @@ function formatEventLabel(evt: SSEEvent): { label: string; detail: string; color
     case "s3_complete":
       return { label: "S3 Generate complete", detail: `${d.script_count} scripts`, color: "var(--stud-a)" };
     case "vote_cast":
-      return { label: `S4 Vote`, detail: `${d.persona_id} voted (${d.completed}/${d.total})`, color: "var(--eval-a)" };
+      return { label: "S4 Vote", detail: `${d.persona_id} voted (${d.completed}/${d.total})`, color: "var(--eval-a)" };
     case "s5_complete":
       return { label: "S5 Rank complete", detail: `top ${d.top_n}`, color: "var(--eval-a)" };
     case "s6_progress":
@@ -532,7 +549,6 @@ function StageNode({
 
   return (
     <div className="relative">
-      {/* Connector line */}
       {!isLast && (
         <div className="absolute left-[19px] top-10 h-[calc(100%)] w-px bg-[var(--color-border)]" />
       )}
@@ -543,7 +559,6 @@ function StageNode({
           state.status === "running" ? "bg-[var(--color-surface)]" : ""
         }`}
       >
-        {/* Circle indicator */}
         <div className="relative z-10 mt-0.5">
           <motion.div
             className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors ${
@@ -587,7 +602,6 @@ function StageNode({
           </motion.div>
         </div>
 
-        {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium">{stage.label}</span>
@@ -597,7 +611,6 @@ function StageNode({
             {state.detail || stage.description}
           </p>
 
-          {/* Progress bar for running stages with fan-out */}
           <AnimatePresence>
             {state.status === "running" && state.progress > 0 && (
               <motion.div

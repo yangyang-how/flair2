@@ -66,15 +66,24 @@ class Orchestrator:
             s1_analyze_task.delay(run_id, video.model_dump_json())
         logger.info("orchestrator_s1_dispatched", run_id=run_id, count=len(videos))
 
-    async def on_s1_complete(self, run_id: str, video_id: str) -> None:
+    async def emit_event(self, run_id: str, event: str, data: dict) -> None:
+        await self._xadd_event(run_id, event, data)
+
+    async def on_s1_complete(
+        self, run_id: str, video_id: str, pattern_summary: dict | None = None,
+    ) -> None:
         done = await self._r.incr(f"run:{run_id}:s1:done")
         config = await self._load_config(run_id)
 
-        await self._xadd_event(run_id, "s1_progress", {
+        event_data: dict = {
             "video_id": video_id,
             "completed": done,
             "total": config.num_videos,
-        })
+        }
+        if pattern_summary:
+            event_data.update(pattern_summary)
+
+        await self._xadd_event(run_id, "s1_progress", event_data)
 
         if done >= config.num_videos:
             await self._transition_s2(run_id)
