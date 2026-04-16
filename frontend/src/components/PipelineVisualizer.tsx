@@ -74,13 +74,6 @@ function deriveStageStates(events: SSEEvent[]): {
       case "stage_started": {
         const stageId = d.stage as string;
         if (stages[stageId]) {
-          // Mark all prior stages as completed
-          for (const s of STAGES) {
-            if (s.id === stageId) break;
-            if (stages[s.id].status !== "completed") {
-              stages[s.id] = { status: "completed", progress: 100, detail: "" };
-            }
-          }
           stages[stageId] = {
             status: "running",
             progress: 0,
@@ -187,14 +180,28 @@ interface PipelineVisualizerProps {
   runId: string;
 }
 
+const STALL_TIMEOUT_MS = 30_000;
+
 export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
   const { events, connected, error } = useSSE(runId);
   const [redirecting, setRedirecting] = useState(false);
+  const [stalled, setStalled] = useState(false);
 
   const { stages, pipelineDone, pipelineError } = useMemo(
     () => deriveStageStates(events),
     [events],
   );
+
+  // Stall detection: warn if no events arrive for 30s while connected
+  useEffect(() => {
+    if (!connected || pipelineDone || pipelineError) {
+      setStalled(false);
+      return;
+    }
+    setStalled(false);
+    const timer = setTimeout(() => setStalled(true), STALL_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [events.length, connected, pipelineDone, pipelineError]);
 
   // Auto-redirect to vote page on completion
   useEffect(() => {
@@ -215,12 +222,12 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
         <div className="flex items-center gap-2">
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              connected ? "bg-[var(--stud-a)]" : "bg-[var(--eval-a)]"
+              stalled ? "bg-[var(--color-warning, #f59e0b)]" : connected ? "bg-[var(--stud-a)]" : "bg-[var(--eval-a)]"
             }`}
-            style={connected ? { animation: "dotPulse 1.5s ease-in-out infinite" } : undefined}
+            style={connected && !stalled ? { animation: "dotPulse 1.5s ease-in-out infinite" } : undefined}
           />
           <span className="font-ui text-[10px] uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
-            {connected ? "Live" : error || "Disconnected"}
+            {stalled ? "Stalled" : connected ? "Live" : error || "Disconnected"}
           </span>
         </div>
       </div>
@@ -273,6 +280,25 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
           </span>
         </motion.div>
       </div>
+
+      {/* Stall warning */}
+      <AnimatePresence>
+        {stalled && !pipelineError && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="rounded-lg border border-[var(--color-warning, #f59e0b)]/30 bg-[var(--color-warning, #f59e0b)]/5 p-4"
+          >
+            <p className="text-sm font-medium text-[var(--color-warning, #f59e0b)]">
+              Pipeline appears stalled
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+              No progress events received for 30 seconds. Workers may be failing silently — check CloudWatch logs.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Error banner */}
       <AnimatePresence>
