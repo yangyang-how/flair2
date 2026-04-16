@@ -99,6 +99,7 @@ export function useSSE(runId: string | null): SSEState {
     const eventTypes = [
       "pipeline_started",
       "stage_started",
+      "s1_task_started",
       "s1_progress",
       "s2_complete",
       "s3_progress",
