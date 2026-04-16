@@ -16,7 +16,7 @@ BACKOFF_SECS = [1, 2, 4]
 MAX_RETRIES = 3
 
 KIMI_BASE_URL = "https://api.kimi.com/coding/v1"
-KIMI_MODEL = "kimi-for-coding/k2p5"
+KIMI_MODEL = "kimi-k2.5"
 KIMI_USER_AGENT = "claude-code/0.1.0"
 
 
