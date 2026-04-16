@@ -15,6 +15,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useSSE, type SSEEvent } from "../lib/sse-client";
 import { Badge, ProgressBar } from "./ui";
 import S1DiscoverGrid from "./S1DiscoverGrid";
+import { getRunStatus } from "../lib/api-client";
 
 // ── Stage definitions ─────────────────────────────────────
 
@@ -222,16 +223,35 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
     return () => clearInterval(tick);
   }, [events.length, pipelineDone, pipelineError]);
 
-  // Stall detection: warn if no events arrive for 30s while connected
+  // Stall detection + API diagnosis
+  const [stallDiagnosis, setStallDiagnosis] = useState<string | null>(null);
+
   useEffect(() => {
     if (!connected || pipelineDone || pipelineError) {
       setStalled(false);
+      setStallDiagnosis(null);
       return;
     }
     setStalled(false);
-    const timer = setTimeout(() => setStalled(true), STALL_TIMEOUT_MS);
+    setStallDiagnosis(null);
+    const timer = setTimeout(async () => {
+      setStalled(true);
+      const status = await getRunStatus(runId);
+      if (!status) {
+        setStallDiagnosis("Cannot reach API — backend may be down.");
+      } else if (status.status === "failed") {
+        setStallDiagnosis(`Backend reports run FAILED at stage ${status.current_stage || "unknown"}.`);
+      } else if (status.status === "running") {
+        setStallDiagnosis(
+          `Backend says run is still "running" at ${status.current_stage || "unknown"}, but no events arriving. ` +
+          "Workers may have crashed or the Kimi API key in Secrets Manager may be invalid."
+        );
+      } else {
+        setStallDiagnosis(`Run status: ${status.status}, stage: ${status.current_stage || "unknown"}.`);
+      }
+    }, STALL_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [events.length, connected, pipelineDone, pipelineError]);
+  }, [events.length, connected, pipelineDone, pipelineError, runId]);
 
   // Auto-redirect to vote page on completion
   useEffect(() => {
@@ -359,7 +379,7 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
               Pipeline appears stalled
             </p>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              No progress events received for 30 seconds. Workers may be failing silently — check CloudWatch logs.
+              {stallDiagnosis || "No progress events received for 30 seconds. Checking backend..."}
             </p>
           </motion.div>
         )}
