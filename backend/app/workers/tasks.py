@@ -56,6 +56,16 @@ async def _load_config(redis: RedisClient, run_id: str) -> PipelineConfig:
     return PipelineConfig.model_validate_json(raw)
 
 
+async def _report_failure(run_id: str, stage: str, error: str) -> None:
+    """Notify the orchestrator that a task has permanently failed."""
+    redis = RedisClient(settings.redis_url)
+    try:
+        from app.pipeline.orchestrator import Orchestrator
+        await Orchestrator(redis).on_failure(run_id, stage, error, recoverable=False)
+    finally:
+        await redis.aclose()
+
+
 async def _acquire_rate_limit_token(redis: RedisClient, provider_name: str) -> None:
     """Wait for a rate-limit token before making an LLM call.
 
@@ -94,9 +104,17 @@ def s1_analyze_task(self, run_id: str, video_json: str):
     try:
         asyncio.run(_run())
     except ProviderError as exc:
-        raise self.retry(exc=exc) from exc
-    except StageError:
-        raise
+        try:
+            raise self.retry(exc=exc) from exc
+        except self.MaxRetriesExceededError:
+            logger.error("s1_retries_exhausted", run_id=run_id, error=str(exc))
+            asyncio.run(_report_failure(run_id, "S1", f"Provider error after retries: {exc}"))
+    except StageError as exc:
+        logger.error("s1_stage_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S1", str(exc)))
+    except Exception as exc:
+        logger.error("s1_unexpected_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S1", f"Unexpected error: {exc}"))
 
 
 # ---------------------------------------------------------------------------
@@ -124,8 +142,12 @@ def s2_aggregate_task(self, run_id: str):
 
     try:
         asyncio.run(_run())
-    except StageError:
-        raise
+    except StageError as exc:
+        logger.error("s2_stage_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S2", str(exc)))
+    except Exception as exc:
+        logger.error("s2_unexpected_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S2", f"Unexpected error: {exc}"))
 
 
 # ---------------------------------------------------------------------------
@@ -157,9 +179,17 @@ def s3_generate_task(self, run_id: str):
     try:
         asyncio.run(_run())
     except ProviderError as exc:
-        raise self.retry(exc=exc) from exc
-    except StageError:
-        raise
+        try:
+            raise self.retry(exc=exc) from exc
+        except self.MaxRetriesExceededError:
+            logger.error("s3_retries_exhausted", run_id=run_id, error=str(exc))
+            asyncio.run(_report_failure(run_id, "S3", f"Provider error after retries: {exc}"))
+    except StageError as exc:
+        logger.error("s3_stage_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S3", str(exc)))
+    except Exception as exc:
+        logger.error("s3_unexpected_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S3", f"Unexpected error: {exc}"))
 
 
 # ---------------------------------------------------------------------------
@@ -196,9 +226,17 @@ def s4_vote_task(self, run_id: str, persona_id: str):
     try:
         asyncio.run(_run())
     except ProviderError as exc:
-        raise self.retry(exc=exc) from exc
-    except StageError:
-        raise
+        try:
+            raise self.retry(exc=exc) from exc
+        except self.MaxRetriesExceededError:
+            logger.error("s4_retries_exhausted", run_id=run_id, error=str(exc))
+            asyncio.run(_report_failure(run_id, "S4", f"Provider error after retries: {exc}"))
+    except StageError as exc:
+        logger.error("s4_stage_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S4", str(exc)))
+    except Exception as exc:
+        logger.error("s4_unexpected_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S4", f"Unexpected error: {exc}"))
 
 
 # ---------------------------------------------------------------------------
@@ -227,8 +265,12 @@ def s5_rank_task(self, run_id: str):
 
     try:
         asyncio.run(_run())
-    except StageError:
-        raise
+    except StageError as exc:
+        logger.error("s5_stage_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S5", str(exc)))
+    except Exception as exc:
+        logger.error("s5_unexpected_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S5", f"Unexpected error: {exc}"))
 
 
 # ---------------------------------------------------------------------------
@@ -273,6 +315,14 @@ def s6_personalize_task(self, run_id: str, script_id: str):
     try:
         asyncio.run(_run())
     except ProviderError as exc:
-        raise self.retry(exc=exc) from exc
-    except StageError:
-        raise
+        try:
+            raise self.retry(exc=exc) from exc
+        except self.MaxRetriesExceededError:
+            logger.error("s6_retries_exhausted", run_id=run_id, error=str(exc))
+            asyncio.run(_report_failure(run_id, "S6", f"Provider error after retries: {exc}"))
+    except StageError as exc:
+        logger.error("s6_stage_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S6", str(exc)))
+    except Exception as exc:
+        logger.error("s6_unexpected_error", run_id=run_id, error=str(exc))
+        asyncio.run(_report_failure(run_id, "S6", f"Unexpected error: {exc}"))
