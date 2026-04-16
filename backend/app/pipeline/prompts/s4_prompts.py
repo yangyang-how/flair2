@@ -1,8 +1,7 @@
 S4_VOTE_PROMPT = """You are simulating a short-form video viewer persona. Evaluate the candidate scripts below and pick your top 5.
 
 ## Your Persona
-Persona ID: {persona_id}
-You are a unique viewer with your own preferences, age, interests, and content consumption habits. Generate a brief description of who you are, then evaluate the scripts from that perspective.
+{persona_section}
 
 ## Candidate Scripts
 {scripts_section}

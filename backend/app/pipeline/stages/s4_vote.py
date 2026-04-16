@@ -36,14 +36,44 @@ def _build_feedback_section(feedback: list[VideoPerformance] | None) -> str:
     return S4_FEEDBACK_SECTION.format(feedback_data="\n".join(lines))
 
 
+def _build_persona_section(persona_id: str, persona_data: dict | None) -> str:
+    if not persona_data or "description" not in persona_data:
+        return (
+            f"Persona ID: {persona_id}\n"
+            "You are a unique viewer with your own preferences, age, interests, "
+            "and content consumption habits. Generate a brief description of who "
+            "you are, then evaluate the scripts from that perspective."
+        )
+    parts = [f"Persona ID: {persona_id}"]
+    if persona_data.get("name"):
+        parts.append(f"Name: {persona_data['name']}")
+    if persona_data.get("age"):
+        parts.append(f"Age: {persona_data['age']}")
+    if persona_data.get("location"):
+        parts.append(f"Location: {persona_data['location']}")
+    if persona_data.get("occupation"):
+        parts.append(f"Occupation: {persona_data['occupation']}")
+    if persona_data.get("interests"):
+        parts.append(f"Interests: {', '.join(persona_data['interests'])}")
+    if persona_data.get("platform_behavior"):
+        parts.append(f"Platform behavior: {persona_data['platform_behavior']}")
+    if persona_data.get("attention_style"):
+        parts.append(f"Attention style: {persona_data['attention_style']}")
+    parts.append(f"Profile: {persona_data['description']}")
+    parts.append("Evaluate the scripts from this persona's perspective. Stay in character.")
+    return "\n".join(parts)
+
+
 async def s4_vote(
     scripts: list[CandidateScript],
     persona_id: str,
     provider: ReasoningProvider,
     feedback: list[VideoPerformance] | None = None,
+    persona_data: dict | None = None,
 ) -> PersonaVote:
     """One persona evaluates all scripts, picks top 5. Pure function."""
     prompt = S4_VOTE_PROMPT.format(
+        persona_section=_build_persona_section(persona_id, persona_data),
         persona_id=persona_id,
         scripts_section=_build_scripts_section(scripts),
         feedback_section=_build_feedback_section(feedback),

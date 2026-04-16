@@ -133,9 +133,20 @@ class Orchestrator:
             "remaining_personas": config.num_personas - s4_done,
         })
 
+        from pathlib import Path
+
+        from app.config import settings
+        from app.runner.data_loader import load_personas_from_json
         from app.workers.tasks import s4_vote_task
-        for i in range(s4_done, config.num_personas):
-            s4_vote_task.delay(run_id, f"persona_{i}")
+
+        personas_path = Path(settings.personas_path)
+        if personas_path.exists():
+            personas = load_personas_from_json(personas_path, limit=config.num_personas)
+            for i in range(s4_done, min(len(personas), config.num_personas)):
+                s4_vote_task.delay(run_id, json.dumps(personas[i]))
+        else:
+            for i in range(s4_done, config.num_personas):
+                s4_vote_task.delay(run_id, json.dumps({"persona_id": f"persona_{i}"}))
 
         logger.info(
             "orchestrator_recovered",
@@ -205,9 +216,25 @@ class Orchestrator:
             "stage": "S4_MAP",
             "total_items": config.num_personas,
         })
+
+        from pathlib import Path
+
+        from app.config import settings
+        from app.runner.data_loader import load_personas_from_json
         from app.workers.tasks import s4_vote_task
-        for i in range(config.num_personas):
-            s4_vote_task.delay(run_id, f"persona_{i}")
+
+        personas_path = Path(settings.personas_path)
+        if personas_path.exists():
+            personas = load_personas_from_json(personas_path, limit=config.num_personas)
+            for persona in personas:
+                s4_vote_task.delay(run_id, json.dumps(persona))
+            remaining = config.num_personas - len(personas)
+            for i in range(remaining):
+                pid = f"persona_{len(personas) + i}"
+                s4_vote_task.delay(run_id, json.dumps({"persona_id": pid}))
+        else:
+            for i in range(config.num_personas):
+                s4_vote_task.delay(run_id, json.dumps({"persona_id": f"persona_{i}"}))
 
     async def _transition_s5(self, run_id: str) -> None:
         await self._r.set(f"run:{run_id}:stage", "S5_REDUCE")

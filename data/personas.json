@@ -1,0 +1,1577 @@
+[
+  {
+    "persona_id": "persona_0",
+    "name": "Luna Silva",
+    "age": 16,
+    "location": "São Paulo, Brazil",
+    "occupation": "High school student / street dancer",
+    "interests": [
+      "futsal tricks",
+      "meme culture",
+      "freestyle dance",
+      "Brazilian funk"
+    ],
+    "platform_behavior": "Binges dance challenges late at night and only likes videos she plans to recreate.",
+    "attention_style": "Hooks on high-energy transitions and trending sounds; swipes away from anything that feels like an ad or lecture.",
+    "description": "Luna treats TikTok as her choreography notebook, saving every second video to a private folder. She’s fiercely loyal to Brazilian creators but secretly watches Spanish soccer compilations. Her phone is permanently on 12% battery."
+  },
+  {
+    "persona_id": "persona_1",
+    "name": "Kenji Tanaka",
+    "age": 28,
+    "location": "Tokyo, Japan",
+    "occupation": "Software engineer",
+    "interests": [
+      "tech reviews",
+      "ASMR cooking",
+      "urban walks",
+      "minimalist design"
+    ],
+    "platform_behavior": "Scrolls silently on the Yamanote Line, rarely comments, but maintains hundreds of playlists.",
+    "attention_style": "Stays for satisfying visual symmetry and calm narration; swipes on loud jumpscares or confrontation videos.",
+    "description": "Kenji uses short-form videos as a decompression chamber between coding sprints. He adores micro-documentaries about Tokyo alleyways and will rewatch a perfect egg sandwich assembly dozens of times."
+  },
+  {
+    "persona_id": "persona_2",
+    "name": "Grace Ochieng",
+    "age": 42,
+    "location": "Kisumu, Kenya",
+    "occupation": "Small-scale farmer",
+    "interests": [
+      "sustainable farming",
+      "gospel music",
+      "family comedy",
+      "co-op economics"
+    ],
+    "platform_behavior": "Watches during lunch breaks under acacia trees and shares directly via WhatsApp to her co-op group.",
+    "attention_style": "Hooks on practical agricultural tips and gospel harmonies; swipes on excessive profanity or flashy consumerism.",
+    "description": "Grace views her phone as a farming toolkit first and entertainment second. She loves creators who mix Luo humor with irrigation advice and has a soft spot for videos of babies dancing."
+  },
+  {
+    "persona_id": "persona_3",
+    "name": "Marcus Chen",
+    "age": 20,
+    "location": "New York, USA",
+    "occupation": "Economics student",
+    "interests": [
+      "personal finance",
+      "gym motivation",
+      "NYC food tours",
+      "productivity hacks"
+    ],
+    "platform_behavior": "Algorithmically curates a “productivity” feed between classes, pausing often to take notes.",
+    "attention_style": "Stays for data-driven money tips and NYC insider hacks; swipes on generic motivational quotes or dance trends.",
+    "description": "Marcus is building his personal brand one saved video at a time, convinced that short-form finance education is his edge. He still secretly watches cat compilations when stressed about exams."
+  },
+  {
+    "persona_id": "persona_4",
+    "name": "Carmen Vega",
+    "age": 64,
+    "location": "Valencia, Spain",
+    "occupation": "Retired primary teacher",
+    "interests": [
+      "flamenco",
+      "historical trivia",
+      "grandparenting hacks",
+      "Mediterranean gardening"
+    ],
+    "platform_behavior": "Learns platform features from her grandchildren and uploads videos of her garden every Sunday.",
+    "attention_style": "Hooks on storytelling and traditional music; swipes on fast cuts that hurt her eyes or disrespectful pranks.",
+    "description": "Carmen has accidentally gone live three times while trying to video call her sister. She follows history channels religiously and leaves long, loving comments that younger viewers screenshot for wholesomeness."
+  },
+  {
+    "persona_id": "persona_5",
+    "name": "Aira Santos",
+    "age": 24,
+    "location": "Manila, Philippines",
+    "occupation": "ER nurse",
+    "interests": [
+      "medical skits",
+      "dance challenges",
+      "rescue animal videos",
+      "night-shift vlogs"
+    ],
+    "platform_behavior": "Consumes medical comedy during night shifts and sends trauma-informed skits to her group chat.",
+    "attention_style": "Stays for dark-humor hospital stories and synchronized dance breaks; swipes on dangerous health misinformation or gore.",
+    "description": "Aira uses short-form videos to process the chaos of the ER and stay current with Gen Z slang. She’ll watch a 12-hour shift vlog but has zero patience for unverified wellness trends."
+  },
+  {
+    "persona_id": "persona_6",
+    "name": "Felix Braun",
+    "age": 31,
+    "location": "Berlin, Germany",
+    "occupation": "Freelance graphic designer",
+    "interests": [
+      "brutalist architecture",
+      "techno production",
+      "thrift flips",
+      "experimental editing"
+    ],
+    "platform_behavior": "Treats the algorithm as a mood board, downloading sounds and color palettes for client projects.",
+    "attention_style": "Hooks on experimental editing and underground music; swipes on corporate brand content or beige minimalism.",
+    "description": "Felix is perpetually chasing the next visual trend three weeks before it hits the mainstream. He runs a hidden account where he posts abstract clips of Berlin traffic lights set to industrial techno."
+  },
+  {
+    "persona_id": "persona_7",
+    "name": "Dwayne Miller",
+    "age": 38,
+    "location": "Houston, USA",
+    "occupation": "Offshore oil rig technician",
+    "interests": [
+      "fishing tutorials",
+      "conspiracy theories",
+      "truck mods",
+      "survival skills"
+    ],
+    "platform_behavior": "Binges outdoors and conspiracy content during two-week offshore rotations with limited satellite data.",
+    "attention_style": "Stays for rugged survival tips and mechanical deep-dives; swipes on relationship drama or makeup tutorials.",
+    "description": "Dwayne downloads hundreds of videos before heading to the rig and returns to civilization with a backlog of hot takes. He trusts creators who get their hands dirty and dismisses anything filmed in a Los Angeles apartment."
+  },
+  {
+    "persona_id": "persona_8",
+    "name": "Dr. Priya Sharma",
+    "age": 52,
+    "location": "Mumbai, India",
+    "occupation": "Literature professor",
+    "interests": [
+      "poetry readings",
+      "Bollywood classics",
+      "linguistic deep dives",
+      "literary criticism"
+    ],
+    "platform_behavior": "Watches literary analysis and classic film breakdowns while sipping chai on her balcony.",
+    "attention_style": "Hooks on nuanced commentary and multilingual wordplay; swipes on shallow book summaries or sensationalized gossip.",
+    "description": "Dr. Sharma maintains a running mental bibliography of every text mentioned in her feed. She delights in finding young poets from small Indian towns and will debate a three-minute literary critique in the comments."
+  },
+  {
+    "persona_id": "persona_9",
+    "name": "Min-Jae Park",
+    "age": 17,
+    "location": "Seoul, South Korea",
+    "occupation": "High school senior",
+    "interests": [
+      "K-pop fancams",
+      "study with me",
+      "skincare routines",
+      "video editing"
+    ],
+    "platform_behavior": "Runs multiple fan accounts, edits multi-layered transitions, and knows every trending sound by chart position.",
+    "attention_style": "Stays for flawless choreography and high-production skincare routines; swipes on messy bedrooms or poor lighting.",
+    "description": "Min-Jae considers short-form platforms his primary art form and judges camera angles with the precision of a film critic. He watches study-vlogs for motivation but usually ends up in the comments defending his favorite idol."
+  },
+  {
+    "persona_id": "persona_10",
+    "name": "Chidi Okonkwo",
+    "age": 26,
+    "location": "Lagos, Nigeria",
+    "occupation": "E-commerce entrepreneur",
+    "interests": [
+      "hustle motivation",
+      "Afrobeats",
+      "tech unboxings",
+      "digital marketing"
+    ],
+    "platform_behavior": "Consumes business advice and Afrobeats dance tutorials between client calls and drops fire emojis on hustle posts.",
+    "attention_style": "Hooks on revenue breakdowns and high-energy dance clips; swipes on pessimistic rants or slow-paced content without captions.",
+    "description": "Chidi treats every scroll session as market research, analyzing what makes a product video go viral. He believes in the power of manifestation and starts every morning with an entrepreneur’s monologue clip."
+  },
+  {
+    "persona_id": "persona_11",
+    "name": "Sophie Dubois",
+    "age": 29,
+    "location": "Lyon, France",
+    "occupation": "Line cook",
+    "interests": [
+      "Michelin secrets",
+      "cheese making",
+      "service industry rants",
+      "kitchen techniques"
+    ],
+    "platform_behavior": "Watches behind-the-scenes kitchen chaos after midnight shifts and duets cooking videos with brutal honesty.",
+    "attention_style": "Stays for technique-focused food prep and industry gossip; swipes on fake recipe hacks or unrealistic home kitchens.",
+    "description": "Sophie can identify a knife’s brand from a two-second clip and will passionately debate whether a pasta recipe is authentic. She uses the platform to scout new restaurants and mock overly staged cooking aesthetics."
+  },
+  {
+    "persona_id": "persona_12",
+    "name": "Arthur Wilson",
+    "age": 61,
+    "location": "Christchurch, New Zealand",
+    "occupation": "Retired landscape architect",
+    "interests": [
+      "native plants",
+      "woodworking",
+      "bird calls",
+      "slow living"
+    ],
+    "platform_behavior": "Posts slow, meditative videos of his garden and binge-watches woodworking channels with the sound up.",
+    "attention_style": "Hooks on nature sounds and master craftsmanship; swipes on aggressive sales pitches or rapid-fire jump cuts.",
+    "description": "Arthur joined the platform to document his native plant restoration project and was surprised to find a community of young naturalists. He prefers videos longer than forty seconds because anything shorter feels “rushed and rude.”"
+  },
+  {
+    "persona_id": "persona_13",
+    "name": "Zara Khan",
+    "age": 19,
+    "location": "London, UK",
+    "occupation": "Gap-year student / barista",
+    "interests": [
+      "thrifting hauls",
+      "political satire",
+      "skateboarding fails",
+      "fast-fashion ethics"
+    ],
+    "platform_behavior": "Scrolls between shifts at the coffee shop, actively engaging in comment-section debates about fast fashion.",
+    "attention_style": "Stays for politically sharp satire and authentic thrift finds; swipes on drop-shipping scams or performative activism.",
+    "description": "Zara uses short-form videos to stay informed and express her anarchic sense of humor. She’ll watch a twenty-part explainer on labor rights but will immediately block anyone using the phrase “gatekeep.”"
+  },
+  {
+    "persona_id": "persona_14",
+    "name": "Wei Ling",
+    "age": 35,
+    "location": "Singapore",
+    "occupation": "Corporate litigator",
+    "interests": [
+      "luxury minimalism",
+      "true crime summaries",
+      "meal prep",
+      "efficiency systems"
+    ],
+    "platform_behavior": "Schedules fifteen-minute “content breaks” between case reviews and ruthlessly unfollows accounts that post more than once a day.",
+    "attention_style": "Hooks on minimalist aesthetics and concise legal or business insights; swipes on clutter, noise, or unscripted rambling.",
+    "description": "Wei Ling approaches short-form content with the discipline of a court case, evaluating every second for value. She appreciates true crime summaries that respect victims and follows exactly 100 accounts to maintain a pristine feed."
+  },
+  {
+    "persona_id": "persona_15",
+    "name": "Tala Bearspaw",
+    "age": 23,
+    "location": "Calgary, Canada",
+    "occupation": "Indigenous beadwork artist",
+    "interests": [
+      "land stewardship",
+      "powwow clips",
+      "Indigenous comedy",
+      "beadwork tutorials"
+    ],
+    "platform_behavior": "Uses the platform to educate about Indigenous issues and save clips of traditional practices for community workshops.",
+    "attention_style": "Stays for land-based teachings and Indigenous humor; swipes on cultural appropriation or pan-Indian stereotypes.",
+    "description": "Tala balances her feed between beadwork tutorials and powwow grand entries, often stitching videos to add historical context. She has little patience for non-Natives playing flute music over “spiritual” content."
+  },
+  {
+    "persona_id": "persona_16",
+    "name": "Huong Nguyen",
+    "age": 45,
+    "location": "Hanoi, Vietnam",
+    "occupation": "Textile factory supervisor",
+    "interests": [
+      "karaoke covers",
+      "rice farming hacks",
+      "soap operas",
+      "rural DIY"
+    ],
+    "platform_behavior": "Watches during factory breaks and shares agricultural life hacks with her village family chat.",
+    "attention_style": "Hooks on practical DIY and emotional karaoke performances; swipes on elaborate pranks or luxury lifestyles she finds unrealistic.",
+    "description": "Huong sees short-form video as a bridge between her factory job and her rice paddies back home. She loves creators who film from actual rural Vietnam and will rewatch a satisfying harvest video multiple times."
+  },
+  {
+    "persona_id": "persona_17",
+    "name": "Marisol Reyes",
+    "age": 33,
+    "location": "Mexico City, Mexico",
+    "occupation": "Stay-at-home mom of twins",
+    "interests": [
+      "cleaning hacks",
+      "toddler meal prep",
+      "regional comedy",
+      "bilingual parenting"
+    ],
+    "platform_behavior": "Multitasks during nap time, primarily saving cleaning hacks and bilingual parenting comedy to reference later.",
+    "attention_style": "Stays for relatable mom chaos and satisfying before-and-afters; swipes on judgmental parenting advice or unrealistic morning routines.",
+    "description": "Marisol’s algorithm is a carefully curated survival guide for raising twins in a small apartment. She appreciates humor that acknowledges the messiness of motherhood and has no time for influencers with live-in nannies pretending to struggle."
+  },
+  {
+    "persona_id": "persona_18",
+    "name": "Oliver Jenkins",
+    "age": 27,
+    "location": "Perth, Australia",
+    "occupation": "Marine biologist",
+    "interests": [
+      "ocean facts",
+      "spearfishing",
+      "underwater cinematography",
+      "conservation"
+    ],
+    "platform_behavior": "Dives deep into marine science communication and shares clips with conservation hashtags during fieldwork downtime.",
+    "attention_style": "Hooks on underwater cinematography and weird ocean facts; swipes on shark sensationalism or plastic straw shaming without systemic context.",
+    "description": "Oliver treats the platform as an informal classroom, debunking ocean myths in the comments when his satellite connection allows. He once went viral for a thirty-second clip of a cuttlefish changing colors and still finds it hilarious."
+  },
+  {
+    "persona_id": "persona_19",
+    "name": "Kasia Nowak",
+    "age": 22,
+    "location": "Warsaw, Poland",
+    "occupation": "Accessibility consultant",
+    "interests": [
+      "disabled gamers",
+      "retro synthwave",
+      "bookTok",
+      "disability rights"
+    ],
+    "platform_behavior": "Curates an accessibility-focused feed, testing caption quality and advocating for disabled creators.",
+    "attention_style": "Stays for adaptive gaming and synthwave aesthetics; swipes on videos without captions or inspiration porn.",
+    "description": "Kasia uses short-form platforms to build community around disability pride and retro-futurism. She is quick to call out inaccessible trends but will enthusiastically duet a creator who gets captioning right."
+  },
+  {
+    "persona_id": "persona_20",
+    "name": "Omar Hassan",
+    "age": 48,
+    "location": "Cairo, Egypt",
+    "occupation": "Taxi driver",
+    "interests": [
+      "football highlights",
+      "prank calls",
+      "mechanical repairs",
+      "Cairo street humor"
+    ],
+    "platform_behavior": "Watches football highlights between fares and loudly narrates mechanical repair videos to his passengers.",
+    "attention_style": "Hooks on street-level Cairo humor and engine teardowns; swipes on pretentious luxury content or generic pranks.",
+    "description": "Omar’s taxi dashboard doubles as a mobile cinema, playing shorts at red lights to stay awake during night shifts. He trusts creators who film in real workshops and considers perfectly timed football compilations a form of art."
+  },
+  {
+    "persona_id": "persona_21",
+    "name": "Yara Demir",
+    "age": 25,
+    "location": "Istanbul, Turkey",
+    "occupation": "Vintage curator",
+    "interests": [
+      "Ottoman history",
+      "street style",
+      "carpet restoration",
+      "bazaar culture"
+    ],
+    "platform_behavior": "Hunts for vintage textile restoration clips and Ottoman architecture tours to inspire her bazaar stall.",
+    "attention_style": "Stays for historical deep dives and saturated color palettes; swipes on fast fashion hauls or AI-generated history “facts.”",
+    "description": "Yara runs her curation business through stories and DMs, treating the platform as both archive and marketplace. She can spend an hour analyzing a single carpet-weaving video and frequently gets lost in niche restoration subcultures."
+  },
+  {
+    "persona_id": "persona_22",
+    "name": "Somchai Ruan",
+    "age": 55,
+    "location": "Chiang Mai, Thailand",
+    "occupation": "Buddhist monk",
+    "interests": [
+      "meditation guidance",
+      "temple cats",
+      "philosophical musings",
+      "forest walks"
+    ],
+    "platform_behavior": "Shares morning meditation guidance and gentle clips of temple cats with his followers and neighboring monasteries.",
+    "attention_style": "Hooks on slow, intentional movements and nature sounds; swipes on aggression, greed, or digitally distorted faces.",
+    "description": "Somchai approaches the platform as an extension of his teaching, preferring content that encourages pause and reflection. He is bemused by the frantic pace of trending sounds but appreciates when young people use the medium to ask philosophical questions."
+  },
+  {
+    "persona_id": "persona_23",
+    "name": "Jamal Thompson",
+    "age": 18,
+    "location": "Atlanta, USA",
+    "occupation": "SoundCloud rapper",
+    "interests": [
+      "beat-making",
+      "sneaker culture",
+      "hood documentaries",
+      "underground hip-hop"
+    ],
+    "platform_behavior": "Studies beat-making tutorials and underground rap battles, frequently posting freestyles from his bedroom studio.",
+    "attention_style": "Stays for raw lyricism and producer breakdowns; swipes on industry plant content or overproduced pop-rap trends.",
+    "description": "Jamal treats every scroll session as A&R research, hunting for the next sound before it hits the radio. He respects authenticity above all else and will defend Atlanta’s underground scene in lengthy comment threads."
+  },
+  {
+    "persona_id": "persona_24",
+    "name": "Elsa Lindqvist",
+    "age": 30,
+    "location": "Stockholm, Sweden",
+    "occupation": "Climate campaigner",
+    "interests": [
+      "zero-waste swaps",
+      "train travel",
+      "climate explainers",
+      "sustainable fashion"
+    ],
+    "platform_behavior": "Consumes climate explainers and slow-travel vlogs, often fact-checking claims in the comments with peer-reviewed links.",
+    "attention_style": "Hooks on data visualization and scenic train journeys; swipes on greenwashing ads or jet-set influencer lifestyles.",
+    "description": "Elsa uses short-form video to make complex environmental science accessible to her followers. She appreciates creators who show the mundane reality of sustainable living and has a zero-tolerance policy for fast-fashion hauls."
+  },
+  {
+    "persona_id": "persona_25",
+    "name": "Luna",
+    "age": 19,
+    "location": "São Paulo, Brazil",
+    "occupation": "Streetwear reseller",
+    "interests": [
+      "sneaker culture",
+      "breakdancing",
+      "urban art"
+    ],
+    "platform_behavior": "Binges haul videos at 2x speed.",
+    "attention_style": "Hooks on rare sneaker reveals, swipes on generic unboxings",
+    "description": "Luna scouts thrift stores across São Paulo for vintage Nike drops. She films her own dance freestyles in abandoned lots but rarely posts them. Her algorithm is 90% street culture and 10% cat memes."
+  },
+  {
+    "persona_id": "persona_26",
+    "name": "Kenji",
+    "age": 52,
+    "location": "Osaka, Japan",
+    "occupation": "Logistics manager",
+    "interests": [
+      "fingerstyle guitar",
+      "bonsai care",
+      "train documentaries"
+    ],
+    "platform_behavior": "Watches exclusively during his 45-minute commuter train ride.",
+    "attention_style": "Hooks on close-up guitar techniques, swipes on loud clickbait thumbnails",
+    "description": "Kenji keeps a notebook of song tabs he learns from 30-second tutorials. He never comments but diligently saves every bonsai pruning video. He recently started a hidden account to post his own progress clips."
+  },
+  {
+    "persona_id": "persona_27",
+    "name": "Amara",
+    "age": 16,
+    "location": "Kaduna, Nigeria",
+    "occupation": "Secondary school student",
+    "interests": [
+      "agritech drones",
+      "Afrobeat dance",
+      "solar DIY"
+    ],
+    "platform_behavior": "Downloads videos to watch during unreliable power outages.",
+    "attention_style": "Hooks on rural innovation, swipes on overly polished luxury lifestyles",
+    "description": "Amara dreams of building automated irrigation systems for her family farm. She watches Nigerian creators explain Arduino basics and pauses frequently to take notes in the dark with a battery lamp."
+  },
+  {
+    "persona_id": "persona_28",
+    "name": "Jasmine",
+    "age": 29,
+    "location": "Ho Chi Minh City, Vietnam",
+    "occupation": "Stay-at-home mom",
+    "interests": [
+      "budget meal prep",
+      "diaper bag hacks",
+      "K-pop choreography"
+    ],
+    "platform_behavior": "Scrolls with one hand while rocking a baby to sleep.",
+    "attention_style": "Hooks on under-60-second recipes using local ingredients, swipes on jump-scare pranks",
+    "description": "Jasmine has perfected the art of silent-scroll so her toddler won't wake. She collects Vietnamese-market equivalents of viral TikTok ingredients and rates their affordability in her head."
+  },
+  {
+    "persona_id": "persona_29",
+    "name": "Herb",
+    "age": 65,
+    "location": "Sarasota, Florida, USA",
+    "occupation": "Retired marine biologist",
+    "interests": [
+      "manatee conservation",
+      "vintage comedy",
+      "woodworking"
+    ],
+    "platform_behavior": "Watches only in the morning with coffee, never after 8 PM.",
+    "attention_style": "Hooks on slow wildlife footage with narration, swipes on fast cuts with synthesized voices",
+    "description": "Herb still wears his old research lab coat around the house. He sends manatee videos to his grandchildren via email screenshots because he refuses to learn how to share links."
+  },
+  {
+    "persona_id": "persona_30",
+    "name": "Min-jae",
+    "age": 22,
+    "location": "Seoul, South Korea",
+    "occupation": "Coffee roaster",
+    "interests": [
+      "ASMR latte art",
+      "K-indie music",
+      "skincare ingredient science"
+    ],
+    "platform_behavior": "Cycles between 15 platforms before settling on shorts at midnight.",
+    "attention_style": "Hooks on satisfying sensory visuals, swipes on aggressive sales pitches",
+    "description": "Min-jae analyzes the viscosity of milk foam in latte art videos like a forensic scientist. He runs a tiny fan account for an underground Seoul band and argues about niacinamide percentages in comment sections."
+  },
+  {
+    "persona_id": "persona_31",
+    "name": "Bogdan",
+    "age": 38,
+    "location": "Kraków, Poland",
+    "occupation": "Construction foreman",
+    "interests": [
+      "medieval sword fighting",
+      "concrete polishing",
+      "Polish folk metal"
+    ],
+    "platform_behavior": "Watches during cigarette breaks on scaffolding.",
+    "attention_style": "Hooks on historical weapon replicas, swipes on relationship drama skits",
+    "description": "Bogdan has a surprisingly delicate touch for watercolor painting despite his calloused hands. He uses YouTube Shorts to learn HEMA techniques he practices with broomsticks in his garage."
+  },
+  {
+    "persona_id": "persona_32",
+    "name": "Zawadi",
+    "age": 21,
+    "location": "Nairobi, Kenya",
+    "occupation": "Environmental science student",
+    "interests": [
+      "thrifting",
+      "climate activism",
+      "Gengetone dance"
+    ],
+    "platform_behavior": "Shares every environmental video to her WhatsApp status before watching fully.",
+    "attention_style": "Hooks on locally-shot sustainability hacks, swipes on performative western activism",
+    "description": "Zawadi coordinates campus clean-ups and films them vertically for her growing follower base. She believes the algorithm underestimates her interest in physics lectures and constantly searches for them to train it."
+  },
+  {
+    "persona_id": "persona_33",
+    "name": "Callum",
+    "age": 34,
+    "location": "Manchester, UK",
+    "occupation": "Warehouse supervisor",
+    "interests": [
+      "fantasy football",
+      "niche British comedy",
+      "indoor plants"
+    ],
+    "platform_behavior": "Binges shorts during his 3 AM insomnia spells.",
+    "attention_style": "Hooks on deadpan northern humor, swipes on American influencer culture",
+    "description": "Callum talks to his monstera plants while watching plant care tips and swears they respond better afterward. He maintains a complex spreadsheet ranking every comedian he's discovered through Shorts."
+  },
+  {
+    "persona_id": "persona_34",
+    "name": "Priya",
+    "age": 26,
+    "location": "Mumbai, India",
+    "occupation": "Dance instructor",
+    "interests": [
+      "Bollywood classics",
+      "micro-fiction",
+      "street food challenges"
+    ],
+    "platform_behavior": "Duets every trending dance challenge with her own classical twist.",
+    "attention_style": "Hooks on intricate footwork tutorials, swipes on generic lip-sync trends",
+    "description": "Priya teaches Bollywood fusion to corporate employees on weekends and practices in her tiny apartment between furniture. She has a strict rule of never watching shorts while eating vada pav because she once laughed and choked."
+  },
+  {
+    "persona_id": "persona_35",
+    "name": "Jules",
+    "age": 31,
+    "location": "Melbourne, Australia",
+    "occupation": "Non-binary barista",
+    "interests": [
+      "thrift flipping",
+      "queer history",
+      "specialty mushrooms"
+    ],
+    "platform_behavior": "Curates playlists of 10-second clips to show customers during slow shifts.",
+    "attention_style": "Hooks on before-and-after transformations, swipes on alpha-male motivation content",
+    "description": "Jules once turned a 1980s wedding dress into a ballgown for their chihuahua and documented every stitch. They run a digital zine linking vintage fashion finds to the queer activists who originally wore them."
+  },
+  {
+    "persona_id": "persona_36",
+    "name": "Rizky",
+    "age": 15,
+    "location": "Bandung, Indonesia",
+    "occupation": "High school student",
+    "interests": [
+      "mobile MOBA esports",
+      "anime editing",
+      "street photography"
+    ],
+    "platform_behavior": "Watches exclusively with earphones hidden under hoodie during class.",
+    "attention_style": "Hooks on sick transition edits, swipes on lengthy sponsored segments",
+    "description": "Rizky dreams of becoming a video editor for a major Jakarta esports team and practices by making AMVs of his own gameplay. He trades editing templates with friends via Bluetooth to avoid using data."
+  },
+  {
+    "persona_id": "persona_37",
+    "name": "Nadia",
+    "age": 44,
+    "location": "Cairo, Egypt",
+    "occupation": "ICU nurse",
+    "interests": [
+      "medical mystery cases",
+      "one-pot meals",
+      "Coptic textile art"
+    ],
+    "platform_behavior": "Binges trauma-cleaning and hospital story videos after night shifts.",
+    "attention_style": "Hooks on real ER scenarios with professional commentary, swipes on unqualified health advice",
+    "description": "Nadia has seen every medical drama clip on the platform and critiques their accuracy out loud to an empty apartment. She recently started crocheting while watching cooking tutorials to decompress from 12-hour shifts."
+  },
+  {
+    "persona_id": "persona_38",
+    "name": "Dale",
+    "age": 56,
+    "location": "Des Moines, Iowa, USA",
+    "occupation": "Corn and soybean farmer",
+    "interests": [
+      "antique tractor restoration",
+      "dad jokes",
+      "weather pattern analysis"
+    ],
+    "platform_behavior": "Watches while waiting in grain elevator lines during harvest.",
+    "attention_style": "Hooks on engine rebuild time-lapses, swipes on crypto-bro advice",
+    "description": "Dale has a barn full of 1950s Farmall tractors he documents with shaky phone footage. He enters every comment section with a pun prepared and treats thumbs-down as a badge of honor from people who can't handle the torque."
+  },
+  {
+    "persona_id": "persona_39",
+    "name": "Marta",
+    "age": 27,
+    "location": "Barcelona, Spain",
+    "occupation": "Freelance graphic designer",
+    "interests": [
+      "brutalist architecture",
+      "glitch art",
+      "Catalan rap"
+    ],
+    "platform_behavior": "Scans for typography inspiration during her metro commute.",
+    "attention_style": "Hooks on experimental motion graphics, swipes on generic day-in-my-life content",
+    "description": "Marta photographs peeling posters around Barcelona to use as texture in her digital collages. She maintains a secret collection of the worst-designed ads she finds on Shorts, using them as reverse inspiration."
+  },
+  {
+    "persona_id": "persona_40",
+    "name": "Ebba",
+    "age": 13,
+    "location": "Stockholm, Sweden",
+    "occupation": "Secondary school student",
+    "interests": [
+      "Minecraft redstone",
+      "room organization",
+      "Nordic folk music"
+    ],
+    "platform_behavior": "Watches entirely on a hand-me-down iPad with a cracked screen.",
+    "attention_style": "Hooks on satisfying storage solutions, swipes on loud prank content",
+    "description": "Ebba builds complex automatic farms in Minecraft that she documents in silent screen recordings. She rearranges her bookshelf weekly based on organizational videos and gets anxious when creators don't color-code their pantry."
+  },
+  {
+    "persona_id": "persona_41",
+    "name": "Somchai",
+    "age": 49,
+    "location": "Bangkok, Thailand",
+    "occupation": "Tuk-tuk driver",
+    "interests": [
+      "Thai lottery numerology",
+      "street food reviews",
+      "Muay Thai technique breakdowns"
+    ],
+    "platform_behavior": "Watches between fares at street food stalls.",
+    "attention_style": "Hooks on local vendor cooking processes, swipes on generic western food hacks",
+    "description": "Somchai can predict which street food cart will go viral based on the owner's knife skills alone. He consults Shorts for lottery number interpretations derived from his dreams and shares them with his passenger network."
+  },
+  {
+    "persona_id": "persona_42",
+    "name": "Diego",
+    "age": 24,
+    "location": "Mexico City, Mexico",
+    "occupation": "Anthropology grad student",
+    "interests": [
+      "Mesoamerican history memes",
+      "lucha libre",
+      "mezcal production"
+    ],
+    "platform_behavior": "Uses shorts as primary source material for thesis on digital folklore.",
+    "attention_style": "Hooks on indigenous language preservation clips, swipes on misappropriated tribal aesthetic content",
+    "description": "Diego moderates a Discord server dedicated to decoding viral conspiracy theories through an anthropological lens. He collects footage of rural mezcaleros because their production methods mirror those his grandfather used in Oaxaca."
+  },
+  {
+    "persona_id": "persona_43",
+    "name": "Dorothy",
+    "age": 61,
+    "location": "Cape Town, South Africa",
+    "occupation": "Retired primary school teacher",
+    "interests": [
+      "bird call identification",
+      "watercolour tutorials",
+      "gentle hatha yoga"
+    ],
+    "platform_behavior": "Watches with reading glasses perched on her nose while knitting.",
+    "attention_style": "Hooks on slow-paced nature cinematography, swipes on aggressive confrontation videos",
+    "description": "Dorothy keeps a life-list of birds she's identified through shorts sent by her former students. She recently learned how to pause videos precisely mid-wing-flap to sketch the plumage details in her garden journal."
+  },
+  {
+    "persona_id": "persona_44",
+    "name": "Omar",
+    "age": 32,
+    "location": "Dubai, UAE",
+    "occupation": "Real estate agent",
+    "interests": [
+      "luxury car detailing",
+      "personal finance",
+      "desert camping"
+    ],
+    "platform_behavior": "Networks in comment sections of high-end lifestyle creators.",
+    "attention_style": "Hooks on ROI breakdowns and restoration projects, swipes on get-rich-quick schemes",
+    "description": "Omar splits his time between showing penthouses and restoring a 1980s Land Cruiser in his cousin's garage. He treats Shorts like a business seminar, taking screenshots of financial advice to debate with his colleagues over karak tea."
+  },
+  {
+    "persona_id": "persona_45",
+    "name": "Inês",
+    "age": 42,
+    "location": "Lisbon, Portugal",
+    "occupation": "Bakery owner",
+    "interests": [
+      "sourdough microbiology",
+      "Azorean tile patterns",
+      "small business accounting"
+    ],
+    "platform_behavior": "Watches fermentation time-lapses while waiting for dough to proof.",
+    "attention_style": "Hooks on scientific baking explanations, swipes on fake-baker cake decorating tricks",
+    "description": "Inês inherited her grandmother's sourdough starter and treats it like a family member with its own Instagram. She keeps a spreadsheet of every baking tip she learns from shorts, color-coded by flour type and hydration percentage."
+  },
+  {
+    "persona_id": "persona_46",
+    "name": "Sven",
+    "age": 19,
+    "location": "Oslo, Norway",
+    "occupation": "Skate shop assistant",
+    "interests": [
+      "punk basement shows",
+      "electronics repair",
+      "urban foraging"
+    ],
+    "platform_behavior": "Watches DIY tutorials while riding the tram to work.",
+    "attention_style": "Hooks on raw, unpolished repair footage, swipes on polished brand sponsorships",
+    "description": "Sven fixes vintage skate decks and thrifted synthesizers in equal measure, documenting both with fisheye-lens footage. He believes the best short-form content happens in poorly lit kitchens and garages, not professional studios."
+  },
+  {
+    "persona_id": "persona_47",
+    "name": "Analyn",
+    "age": 36,
+    "location": "Cebu City, Philippines",
+    "occupation": "BPO team leader",
+    "interests": [
+      "K-drama recap edits",
+      "manifestation journaling",
+      "karaoke battles"
+    ],
+    "platform_behavior": "Scrolls during mandated break times in a fluorescent-lit office pantry.",
+    "attention_style": "Hooks on emotional K-drama scene compilations, swipes on workplace productivity hustle culture",
+    "description": "Analyn sings along to karaoke shorts with her headset mic muted during night shifts. She keeps a manifestation board made entirely of screenshots from aspirational travel videos and believes the algorithm sends her signs."
+  },
+  {
+    "persona_id": "persona_48",
+    "name": "Vikram",
+    "age": 29,
+    "location": "Bangalore, India",
+    "occupation": "Software engineer",
+    "interests": [
+      "mechanical keyboard builds",
+      "cricket analytics",
+      "South Indian cooking"
+    ],
+    "platform_behavior": "Watches tech teardowns during compilation waits at the office.",
+    "attention_style": "Hooks on detailed engineering breakdowns, swipes on vague life hack compilations",
+    "description": "Vikram has built seven custom keyboards and can identify a switch type by the sound in a short-form clip. He debates cricket statistics in comment sections under aliases named after famous bowlers from the 90s."
+  },
+  {
+    "persona_id": "persona_49",
+    "name": "Camille",
+    "age": 23,
+    "location": "Paris, France",
+    "occupation": "Fashion design student",
+    "interests": [
+      "haute couture history",
+      "vintage flea markets",
+      "textile dyeing"
+    ],
+    "platform_behavior": "Uses shorts as a visual scrapbook during fabric sourcing trips.",
+    "attention_style": "Hooks on archival runway footage, swipes on fast-fashion hauls",
+    "description": "Camille can date a Chanel jacket to the exact season by its button placement and learned this skill through obsessive short-form archives. She haunts the Marché aux Puces every weekend searching for the deadstock fabrics she sees in restoration videos."
+  },
+  {
+    "persona_id": "persona_50",
+    "name": "Jin",
+    "age": 19,
+    "location": "Seoul, South Korea",
+    "occupation": "Design student / café barista",
+    "interests": [
+      "K-beauty tutorials",
+      "indie game dev",
+      "street fashion",
+      "ASMR"
+    ],
+    "platform_behavior": "Scrolls during subway commutes and late-night closing shifts, saving aesthetic references to shared folders.",
+    "attention_style": "Hooked by visually satisfying transitions and soft ASMR; swipes instantly on loud jumpscares or clickbait drama.",
+    "description": "Jin studies visual design and works part-time in a Hongdae café, where they pick up on micro-trends before they blow up. They curate their feed like a mood board and often DM creators to ask about specific color-grading presets. Despite their artistic taste, they secretly binge on cozy cooking videos to cope with exam stress."
+  },
+  {
+    "persona_id": "persona_51",
+    "name": "Amara",
+    "age": 34,
+    "location": "Lagos, Nigeria",
+    "occupation": "Logistics coordinator",
+    "interests": [
+      "Afrobeat dance challenges",
+      "personal finance",
+      "meal prep",
+      "true crime"
+    ],
+    "platform_behavior": "Binges during her lunch break and after putting the kids to bed, rarely posting but commenting enthusiastically.",
+    "attention_style": "Hooked by storytelling videos with captions she can watch on mute; swipes on generic lip-syncs without context.",
+    "description": "Amara is a busy mother of two who uses short-form platforms for quick recipes and financial literacy tips. She has a private list of trusted creators whose product recommendations she actually buys. She avoids prank content and anything that feels exploitative of children."
+  },
+  {
+    "persona_id": "persona_52",
+    "name": "Björn",
+    "age": 58,
+    "location": "Reykjavík, Iceland",
+    "occupation": "Fisheries inspector",
+    "interests": [
+      "Woodworking",
+      "Northern Lights photography",
+      "dry humor",
+      "sea shanties"
+    ],
+    "platform_behavior": "Only opens the app on Sunday afternoons and prefers longer YouTube Shorts over rapid-fire TikTok feeds.",
+    "attention_style": "Hooked by craftsmanship and process videos; swipes away from overproduced influencer drama or flashy car content.",
+    "description": "Björn got his first smartphone two years ago and is still amazed by the global woodworking community. He shares videos with his colleagues at the harbor over coffee and has recently started documenting his own boat repairs in shaky, no-filter clips. He values quiet, competent creators who let the work speak for itself."
+  },
+  {
+    "persona_id": "persona_53",
+    "name": "Zara",
+    "age": 16,
+    "location": "Karachi, Pakistan",
+    "occupation": "High school student",
+    "interests": [
+      "Bollywood edits",
+      "STEM explainers",
+      "calligraphy",
+      "thrift flips"
+    ],
+    "platform_behavior": "Active commenter and duet creator who uses the platform as a study break between physics and chemistry.",
+    "attention_style": "Hooked by educational content disguised as trends or memes; swipes on bullying pranks or toxic relationship advice.",
+    "description": "Zara dreams of becoming an aerospace engineer and follows science communicators who break down rocket physics in sixty seconds. She runs a small anonymous account where she posts Urdu poetry overlays on ambient watercolor videos. Her algorithm is carefully trained to avoid gossip and prioritize learning."
+  },
+  {
+    "persona_id": "persona_54",
+    "name": "Mateo",
+    "age": 28,
+    "location": "Medellín, Colombia",
+    "occupation": "Bicycle courier",
+    "interests": [
+      "Urban exploration",
+      "plant care",
+      "rap freestyles",
+      "history mini-documentaries"
+    ],
+    "platform_behavior": "Watches while waiting for delivery orders in parks and plazas, often with one earbud in.",
+    "attention_style": "Hooked by localized content in Paisa slang or Colombian history; swipes on generic luxury lifestyle flexes.",
+    "description": "Mateo knows every alley in Medellín and loves creators who highlight hidden neighborhood gems and street art. His apartment has turned into a jungle of pothos and monsteras inspired by propagation tutorials. He is fiercely loyal to Medellín-based comedians and shares their sketches in his courier WhatsApp group."
+  },
+  {
+    "persona_id": "persona_55",
+    "name": "Fatima",
+    "age": 42,
+    "location": "Casablanca, Morocco",
+    "occupation": "Dental hygienist",
+    "interests": [
+      "Minimalist home décor",
+      "Quranic recitation",
+      "skincare over 40",
+      "travel hacking"
+    ],
+    "platform_behavior": "Watches early morning with coffee, very selective with likes, and maintains organized saved collections.",
+    "attention_style": "Hooked by slow-paced aesthetic morning routines; swipes on fast cuts with aggressive music or excessive product hauls.",
+    "description": "Fatima is renovating her seaside apartment and uses saved videos as a visual blueprint for every room. She appreciates creators who offer detailed, unsponsored reviews of mature skincare and modest fashion. She mutes any audio that feels chaotic and prefers calm, narrated content in Darija or classical Arabic."
+  },
+  {
+    "persona_id": "persona_56",
+    "name": "Kai",
+    "age": 22,
+    "location": "Auckland, New Zealand",
+    "occupation": "Apprentice electrician",
+    "interests": [
+      "Rugby highlights",
+      "fishing fails",
+      "DIY electronics",
+      "Māori language learning"
+    ],
+    "platform_behavior": "Scrolls during smoko breaks and after the gym, favoring content from mates and local tradies.",
+    "attention_style": "Hooked by bloopers, authentic mistakes, and unscripted banter; swipes on perfectly polished fake scenarios.",
+    "description": "Kai is reclaiming his te reo Māori through daily language challenges and shares them with his whānau group chat. He follows rugby analysts for deep tactical breakdowns rather than hype reels. His own account is full of accidental sparks and job-site humor that his apprenticeship supervisor pretends not to see."
+  },
+  {
+    "persona_id": "persona_57",
+    "name": "Yuki",
+    "age": 31,
+    "location": "Sapporo, Japan",
+    "occupation": "Sushi chef",
+    "interests": [
+      "Snowboarding tricks",
+      "fermentation science",
+      "jazz piano",
+      "capsule wardrobe"
+    ],
+    "platform_behavior": "Watches during predawn train rides to the fish market, preferring muted or headphone-friendly content.",
+    "attention_style": "Hooked by detailed process explanations and knife skills; swipes on mukbang or excessive eating challenges.",
+    "description": "Yuki is obsessed with the biochemistry behind aging fish and follows culinary scientists who explain osmosis in food. She recently started a private account to document her own miso and koji experiments in her tiny apartment kitchen. On weekends she searches for backcountry snowboarding POV videos to plan her next powder trip."
+  },
+  {
+    "persona_id": "persona_58",
+    "name": "Omar",
+    "age": 14,
+    "location": "Cairo, Egypt",
+    "occupation": "Secondary school student",
+    "interests": [
+      "Football skills",
+      "coding tutorials",
+      "meme history",
+      "beat-making"
+    ],
+    "platform_behavior": "Doom-scrolls after homework, heavy on shares to friends, and judges videos by the comment section.",
+    "attention_style": "Hooked by 'day in the life' of professionals and quick coding tricks; swipes on repetitive dance trends he has seen ten times.",
+    "description": "Omar is teaching himself Python through sixty-second tutorials and dreams of building mobile games. He sends at least twenty videos a day to his school group chat, usually football bloopers or programmer memes. He is surprisingly critical of content quality and will immediately unfollow creators who post misinformation about technology."
+  },
+  {
+    "persona_id": "persona_59",
+    "name": "Ingrid",
+    "age": 53,
+    "location": "Berlin, Germany",
+    "occupation": "Gallery curator",
+    "interests": [
+      "Contemporary art analysis",
+      "vintage synths",
+      "urban gardening",
+      "political satire"
+    ],
+    "platform_behavior": "Uses the platform for research, follows niche artists directly, and avoids the algorithmic For You Page.",
+    "attention_style": "Hooked by critical commentary and art history facts; swipes on consumerist hauls and generic lifestyle advice.",
+    "description": "Ingrid is skeptical of algorithm-driven culture but appreciates how short-form democratizes art criticism beyond academia. She often forwards videos to her network of emerging artists and uses them as conversation starters for exhibition themes. She keeps a physical notebook of creators whose aesthetic aligns with her gallery's next season."
+  },
+  {
+    "persona_id": "persona_60",
+    "name": "Raj",
+    "age": 26,
+    "location": "Mumbai, India",
+    "occupation": "Auto-rickshaw driver",
+    "interests": [
+      "Regional comedy",
+      "cricket analysis",
+      "gadget unboxings",
+      "roadside food reviews"
+    ],
+    "platform_behavior": "Watches between fares at roadside chai stalls, often with the volume up in a crowd.",
+    "attention_style": "Hooked by relatable local humor in Marathi or Hindi; swipes on generic English-only motivational speeches.",
+    "description": "Raj knows every pothole in Mumbai and follows creators who speak his specific neighborhood dialect and review street food he actually eats. He recently bought a budget smartphone specifically for watching cricket highlights during IPL season. His favorite creators are the ones who film unscripted conversations with fellow drivers and chaiwallahs."
+  },
+  {
+    "persona_id": "persona_61",
+    "name": "Sofia",
+    "age": 18,
+    "location": "Athens, Greece",
+    "occupation": "Gap year traveler",
+    "interests": [
+      "Backpacking hacks",
+      "ancient history reconstructions",
+      "sea glass art",
+      "hostel interviews"
+    ],
+    "platform_behavior": "Watches on ferries and in hostels, heavily saving travel tips and budget itineraries.",
+    "attention_style": "Hooked by genuine travel mishaps and local recommendations; swipes on sponsored luxury resort content.",
+    "description": "Sofia is island-hopping the Aegean on a tight budget and uses short-form videos to find free walking tours and family-run tavernas. She documents her own journey on a burner account with shaky, unedited clips she never promotes. She is drawn to creators who respect local culture rather than treating destinations as backdrops."
+  },
+  {
+    "persona_id": "persona_62",
+    "name": "Darnell",
+    "age": 36,
+    "location": "Atlanta, USA",
+    "occupation": "High school basketball coach",
+    "interests": [
+      "Sneaker restoration",
+      "BBQ techniques",
+      "player development drills",
+      "90s hip-hop trivia"
+    ],
+    "platform_behavior": "Watches during halftime breaks and while smoking meats on weekends, saving drills to team playlists.",
+    "attention_style": "Hooked by detailed tutorials with clear, repeatable steps; swipes on clickbait conspiracy theories or toxic masculinity rants.",
+    "description": "Darnell runs weekend basketball clinics and curates playlists of skill-development shorts for his players to study. He has a legendary sneaker collection and often DM's restoration artists for advice on vintage Jordans. He values educators who break down complex movements into simple progressions that even beginners can grasp."
+  },
+  {
+    "persona_id": "persona_63",
+    "name": "Anika",
+    "age": 45,
+    "location": "Bangalore, India",
+    "occupation": "UX researcher",
+    "interests": [
+      "Carnatic music fusion",
+      "productivity systems",
+      "mid-century architecture",
+      "cat behavior"
+    ],
+    "platform_behavior": "Curates a meticulous 'watch later' list and prefers informative content over pure entertainment.",
+    "attention_style": "Hooked by data visualization or design breakdowns; swipes on fear-mongering health trends and hustle culture.",
+    "description": "Anika uses short-form platforms to spot emerging UI patterns and digital behaviors among Gen Z users she interviews. She plays veena on weekends and follows musicians who blend Carnatic scales with electronic beats. Her feed is a careful balance of professional development and two-minute cat psychology explainers."
+  },
+  {
+    "persona_id": "persona_64",
+    "name": "Luca",
+    "age": 20,
+    "location": "Milan, Italy",
+    "occupation": "Fashion design student",
+    "interests": [
+      "Runway analysis",
+      "pattern making",
+      "vintage cinema",
+      "hyperpop music"
+    ],
+    "platform_behavior": "Constantly screenshots references for mood boards and follows archival fashion accounts.",
+    "attention_style": "Hooked by rare runway footage and garment construction details; swipes on fast-fashion hauls and uninspired trend cycles.",
+    "description": "Luca works part-time at a vintage boutique and treats his feed like a living research library for his thesis. He is critical of disposable trend cycles and follows slow-fashion activists who deconstruct tailoring techniques. He has a private account where he posts sketches overlaid on clips of Fellini films and hyperpop tracks."
+  },
+  {
+    "persona_id": "persona_65",
+    "name": "Priya",
+    "age": 29,
+    "location": "Singapore",
+    "occupation": "Biotech patent analyst",
+    "interests": [
+      "Molecular gastronomy",
+      "bouldering",
+      "Singaporean heritage cooking",
+      "neuroscience basics"
+    ],
+    "platform_behavior": "Watches during lab incubation waits and on the MRT, favoring content she can consume with subtitles.",
+    "attention_style": "Hooked by science explained through food metaphors; swipes on celebrity gossip and unsubstantiated wellness claims.",
+    "description": "Priya lives in a high-rise but misses her grandmother's Peranakan recipes, which she learns through family cooking accounts. She recently got into bouldering and watches technique breakdowns between experiments at the bench. She appreciates creators who cite peer-reviewed papers and will aggressively correct misinformation in the comments."
+  },
+  {
+    "persona_id": "persona_66",
+    "name": "Hassan",
+    "age": 17,
+    "location": "Amman, Jordan",
+    "occupation": "Aspiring filmmaker",
+    "interests": [
+      "Cinematography breakdowns",
+      "street photography",
+      "Arabic poetry",
+      "indie film edits"
+    ],
+    "platform_behavior": "Studies framing and transitions like homework, often taking notes in a dedicated notebook.",
+    "attention_style": "Hooked by film analysis and camera technique deep-dives; swipes on low-effort reaction videos with no original commentary.",
+    "description": "Hassan shoots short films on his phone and treats the platform like a free film school between his academic classes. He is fascinated by how color grading affects mood and often recreates shots he sees in his own neighborhood. He dreams of attending film school in Cairo and uses the app to build a visual reference library."
+  },
+  {
+    "persona_id": "persona_67",
+    "name": "Elena",
+    "age": 38,
+    "location": "Santiago, Chile",
+    "occupation": "Veterinary technician",
+    "interests": [
+      "Wildlife rehabilitation",
+      "embroidery",
+      "Chilean folk music",
+      "sustainable fashion"
+    ],
+    "platform_behavior": "Watches during quiet night shifts at the clinic, favoring calming content between emergency calls.",
+    "attention_style": "Hooked by animal rescue stories with happy endings; swipes on dangerous pet trend challenges or misinformation about exotic animals.",
+    "description": "Elena volunteers at a native wildlife sanctuary and uses the platform to educate pet owners about coexisting with local species. She has a side business selling embroidered patches inspired by regional flora and fauna. She is protective of her algorithm and blocks any creator who promotes harmful pet products or irresponsible breeding."
+  },
+  {
+    "persona_id": "persona_68",
+    "name": "Tunde",
+    "age": 24,
+    "location": "Accra, Ghana",
+    "occupation": "Freelance graphic designer",
+    "interests": [
+      "Afrobeats production",
+      "typography",
+      "streetwear",
+      "African tech startups"
+    ],
+    "platform_behavior": "Active networker who slides into creators' DMs looking for collaborations and design inspiration.",
+    "attention_style": "Hooked by design process time-lapses and bold typography experiments; swipes on unoriginal recycled memes.",
+    "description": "Tunde works from a co-working space in Osu and sources color-palette inspiration from travel creators across the continent. He is building a personal brand around Pan-African design aesthetics and often remixes traditional patterns with modern streetwear visuals. He treats comments sections like professional networking events."
+  },
+  {
+    "persona_id": "persona_69",
+    "name": "Nadia",
+    "age": 13,
+    "location": "Warsaw, Poland",
+    "occupation": "Middle school student",
+    "interests": [
+      "Figure skating",
+      "K-pop choreography",
+      "BookTok",
+      "slime ASMR"
+    ],
+    "platform_behavior": "Watches in bed with headphones, very active in fandom comment sections and fan-account communities.",
+    "attention_style": "Hooked by emotional storytimes or satisfying tactile textures; swipes on scary horror content or school-related stress videos.",
+    "description": "Nadia is learning Korean through song lyrics and runs a fan account dedicated to her favorite Lithuanian figure skater. She uses the platform primarily for escapism and avoids anything that reminds her of upcoming exams or social drama. Her saved folder is full of book recommendations and satisfying slime-popping compilations."
+  },
+  {
+    "persona_id": "persona_70",
+    "name": "Kenji",
+    "age": 65,
+    "location": "Osaka, Japan",
+    "occupation": "Retired train conductor",
+    "interests": [
+      "Model railroading",
+      "comedy manzai",
+      "retro gaming",
+      "temple gardens"
+    ],
+    "platform_behavior": "Watches in the morning with tea, preferring subscribed creators over the chaotic For You Page.",
+    "attention_style": "Hooked by nostalgic Showa-era content and miniature craftsmanship; swipes on aggressive youth slang he cannot understand.",
+    "description": "Kenji has an elaborate N-scale layout in his spare room and follows miniature scenery builders from around the world. He enjoys watching young comedians attempt traditional manzai and often discusses videos with his wife over breakfast. He is patiently learning how to use the comment section to ask questions about model train wiring."
+  },
+  {
+    "persona_id": "persona_71",
+    "name": "Isla",
+    "age": 32,
+    "location": "Glasgow, Scotland",
+    "occupation": "Paramedic",
+    "interests": [
+      "Dark humor medical sketches",
+      "bagpipe music",
+      "true crime",
+      "home renovation"
+    ],
+    "platform_behavior": "Watches to decompress after night shifts, with sporadic bursts of engagement followed by long silences.",
+    "attention_style": "Hooked by relatable dark humor and honest depictions of emergency work; swipes on toxic positivity or 'live laugh love' content.",
+    "description": "Isla has seen it all on the job and uses short-form videos to laugh about the absurdity of emergency medicine with other first responders. She is currently renovating a Victorian terrace and saves DIY tips between callouts. She has zero patience for influencers who romanticize healthcare or give dangerous medical advice."
+  },
+  {
+    "persona_id": "persona_72",
+    "name": "Diego",
+    "age": 41,
+    "location": "Mexico City, Mexico",
+    "occupation": "Food truck owner",
+    "interests": [
+      "Taco innovation",
+      "lucha libre history",
+      "vinyl collecting",
+      "urban cycling"
+    ],
+    "platform_behavior": "Watches for competitor research and recipe ideas during prep time at the truck.",
+    "attention_style": "Hooked by street food process videos from around the world; swipes on overproduced studio cooking shows with no soul.",
+    "description": "Diego's food truck specializes in fusion tacos and he scouts global street food trends through his feed for weekly special inspiration. He is a former competitive cyclist who still commutes through the chaotic city center every morning. He is fiercely proud of CDMX and promotes local creators who highlight the city's informal economy and food culture."
+  },
+  {
+    "persona_id": "persona_73",
+    "name": "Freya",
+    "age": 27,
+    "location": "Oslo, Norway",
+    "occupation": "Marine biologist",
+    "interests": [
+      "Deep sea creatures",
+      "cold water swimming",
+      "knitting",
+      "environmental activism"
+    ],
+    "platform_behavior": "Watches on research vessels with poor WiFi, downloading content in batches for offline viewing.",
+    "attention_style": "Hooked by rare marine footage or educational ocean facts; swipes on pseudo-science wellness trends and anti-vaccine rhetoric.",
+    "description": "Freya spends months at sea studying polar ecosystems and uses downloaded shorts to stay connected to knitting communities back home. She is vocal in comments about ocean conservation and will patiently correct misinformation about marine life. She finds the platform oddly soothing during long Arctic nights when the ship has no other entertainment."
+  },
+  {
+    "persona_id": "persona_74",
+    "name": "Wei",
+    "age": 15,
+    "location": "Shanghai, China",
+    "occupation": "High school student",
+    "interests": [
+      "Competitive math",
+      "street basketball",
+      "sneaker culture",
+      "cityscape photography"
+    ],
+    "platform_behavior": "Watches during strict study breaks, algorithm-aware and frequently resets his feed to avoid distractions.",
+    "attention_style": "Hooked by intellectual challenges, impossible puzzles, and architectural breakdowns; swipes on superficial beauty standards or repetitive dance content.",
+    "description": "Wei is preparing for the gaokao and uses short-form math explainers to relax between heavy study sessions in his cram school dormitory. He is obsessed with Shanghai's architectural contrast and shoots drone footage of the Bund on weekends. He runs a small account dedicated to geometric proofs explained through basketball court diagrams."
+  },
+  {
+    "persona_id": "persona_75",
+    "name": "Leo",
+    "age": 19,
+    "location": "São Paulo, Brazil",
+    "occupation": "Apprentice mechanic / skateboarder",
+    "interests": [
+      "street skating",
+      "Brazilian punk",
+      "DIY scooter repairs",
+      "underground hip-hop"
+    ],
+    "platform_behavior": "Binges raw, unedited skate fails and music clips in his garage between shifts.",
+    "attention_style": "Hooks on authenticity, scraped knees, and vintage camcorder vibes; swipes immediately on polished influencer aesthetics or energy-drink ads.",
+    "description": "Leo fixes scooters by day and skates São Paulo's plazas by night, curating playlists of '90s Brazilian punk. He follows only skaters who film on old handycams and thinks face-tuning is a crime against culture. His feed is a chaotic mix of bail compilations and engine teardowns."
+  },
+  {
+    "persona_id": "persona_76",
+    "name": "Margaret",
+    "age": 64,
+    "location": "Auckland, New Zealand",
+    "occupation": "Retired librarian",
+    "interests": [
+      "bird watching",
+      "crossword puzzles",
+      "colonial history",
+      "knitting"
+    ],
+    "platform_behavior": "Watches Shorts while having morning tea, usually favoring nature or antique book restoration content.",
+    "attention_style": "Hooks on slow, narrated bird footage or gentle book repair; swipes on loud flashing transitions, pranks, or anything with a air-horn sound effect.",
+    "description": "After forty years of shushing teenagers, Margaret now enjoys the internet's quiet corners. She keeps a notebook of birds she's identified via TikTok and sends her grandchildren knitting tutorials she finds at 6 AM. She treats the algorithm like a digital aviary."
+  },
+  {
+    "persona_id": "persona_77",
+    "name": "Jin-ho",
+    "age": 34,
+    "location": "Seoul, South Korea",
+    "occupation": "SaaS startup founder",
+    "interests": [
+      "productivity hacks",
+      "esports",
+      "single-origin coffee",
+      "urban hiking"
+    ],
+    "platform_behavior": "Speed-scrolls during subway commutes, saving only actionable business tips and minimalist desk setups.",
+    "attention_style": "Hooks on data-driven case studies or clean aesthetic loops; swipes on relationship drama, pseudoscience, or captions with grammatical errors.",
+    "description": "Jin-ho runs a twelve-person team and treats his For You Page like an RSS feed for efficiency. He secretly watches League of Legends highlights at 2x speed and judges creators by their caption punctuation. He has zero patience for motivational quotes without citations."
+  },
+  {
+    "persona_id": "persona_78",
+    "name": "Amara",
+    "age": 32,
+    "location": "Lagos, Nigeria",
+    "occupation": "Pediatric nurse",
+    "interests": [
+      "Afrobeat dance",
+      "meal prepping",
+      "natural hair care",
+      "medical comedy"
+    ],
+    "platform_behavior": "Watches during night shifts between rounds, favoring comedy skits and quick one-pot recipes.",
+    "attention_style": "Hooks on relatable healthcare humor or Nigerian jollof shortcuts; swipes on dangerous viral challenges or medical misinformation.",
+    "description": "Amara works twelve-hour shifts at a busy Lagos hospital and uses short videos to stay awake between 2 AM and 4 AM. She duets dance trends in her scrubs and corrects health myths in the comments with gentle but firm authority. Her saved folder is full of meal-prep hacks she never has time to try."
+  },
+  {
+    "persona_id": "persona_79",
+    "name": "Caleb",
+    "age": 16,
+    "location": "Des Moines, Iowa, USA",
+    "occupation": "High school sophomore / FFA member",
+    "interests": [
+      "livestock shows",
+      "dirt track racing",
+      "country music",
+      "welding"
+    ],
+    "platform_behavior": "Scrolls on the school bus and in the barn, following farm mechanics and country singers.",
+    "attention_style": "Hooks on tractor restorations or livestock judging tips; swipes on city-centric luxury lifestyles or generic dance trends.",
+    "description": "Caleb wakes up at 5 AM to feed his show calves and watches engine teardowns during study hall. He thinks TikTok dances are overrated but will spend an hour watching a stranger rebuild a 1967 Ford F-100. He only follows creators who film with dirt under their fingernails."
+  },
+  {
+    "persona_id": "persona_80",
+    "name": "Kenji",
+    "age": 41,
+    "location": "Tokyo, Japan",
+    "occupation": "Sushi chef",
+    "interests": [
+      "knife sharpening",
+      "sumo wrestling",
+      "jazz records",
+      "urban fishing"
+    ],
+    "platform_behavior": "Watches late at night after service, favoring ASMR food prep and niche hobby content.",
+    "attention_style": "Hooks on precise knife skills or rare fish butchering; swipes on mukbang excess, fast-food reviews, or jump-cut chaos.",
+    "description": "Kenji has worked at the same sushiya for eighteen years and treats short-form videos like digital apprenticeships. He only follows accounts that film with natural lighting and muted audio, blocking anyone who uses air-horn sound effects. His rare likes go to elderly craftspeople working in silence."
+  },
+  {
+    "persona_id": "persona_81",
+    "name": "Freya",
+    "age": 22,
+    "location": "Stockholm, Sweden",
+    "occupation": "Climate campaigner",
+    "interests": [
+      "circular fashion",
+      "foraging",
+      "urban gardening",
+      "climate policy"
+    ],
+    "platform_behavior": "Activist scrolls focused on sustainable living and system-change explainers on her refurbished phone.",
+    "attention_style": "Hooks on thrift flips or scientific breakdowns of carbon capture; swipes on fast-fashion hauls or private-jet tours.",
+    "description": "Freya organizes campus strikes and runs a zero-waste TikTok where she debunks greenwashing. She keeps a spreadsheet of brands she'll never support and will pause a video to fact-check a sourcing claim. She believes the algorithm is a battlefield for public opinion."
+  },
+  {
+    "persona_id": "persona_82",
+    "name": "Dmitri",
+    "age": 55,
+    "location": "Moscow, Russia",
+    "occupation": "Long-haul truck driver",
+    "interests": [
+      "Soviet rock",
+      "dashcam compilations",
+      "roadside cooking",
+      "historical documentaries"
+    ],
+    "platform_behavior": "Watches while parked at highway diners on unreliable 4G, favoring trucking vlogs and archival footage.",
+    "attention_style": "Hooks on long-distance trucking life or rare military history clips; swipes on corporate motivational speak or beauty tutorials.",
+    "description": "Dmitri drives the M10 route and lives on instant noodles upgraded with sausage and arguments. He has a soft spot for melancholic acoustic covers of Soviet classics and spends his downtime debating WWII trivia in comment sections. He only trusts creators who film in actual trucks."
+  },
+  {
+    "persona_id": "persona_83",
+    "name": "Isabella",
+    "age": 29,
+    "location": "Manila, Philippines",
+    "occupation": "Kindergarten teacher",
+    "interests": [
+      "K-drama recaps",
+      "classroom hacks",
+      "Filipino indie pop",
+      "budget travel"
+    ],
+    "platform_behavior": "Binges during jeepney commutes and lunch breaks, favoring feel-good and educational content.",
+    "attention_style": "Hooks on clever classroom DIYs or emotional K-drama moments; swipes on horror jumpscares or explicit content near school hours.",
+    "description": "Isabella manages twenty-five hyperactive five-year-olds and uses short videos to recharge her optimism. She saves every teacher-hack video to a private folder and secretly dreams of visiting the K-drama filming locations in Seoul. She comments with rainbow emojis on every student-success story."
+  },
+  {
+    "persona_id": "persona_84",
+    "name": "Thabo",
+    "age": 21,
+    "location": "Johannesburg, South Africa",
+    "occupation": "Aspiring hip-hop producer",
+    "interests": [
+      "boom-bap beats",
+      "vintage sneakers",
+      "township entrepreneurship",
+      "jazz samples"
+    ],
+    "platform_behavior": "Scrolls between beat-making sessions in his aunt's garage, studying trending sounds and viral marketing.",
+    "attention_style": "Hooks on obscure sample flips or gritty street interviews; swipes on generic loop packs or sponsored alcohol ads.",
+    "description": "Thabo studies algorithm trends like they're music theory and believes the comments section is the best A&R in the world. He only respects creators who reply to every comment and thinks virality is 90% sound selection. His own account is a diary of beats made on secondhand equipment."
+  },
+  {
+    "persona_id": "persona_85",
+    "name": "Amina",
+    "age": 27,
+    "location": "Nairobi, Kenya",
+    "occupation": "Agricultural extension officer",
+    "interests": [
+      "permaculture",
+      "Swahili poetry",
+      "rural tech",
+      "long-distance running"
+    ],
+    "platform_behavior": "Watches during field visits under acacia trees, favoring practical farming tips and spoken-word performances.",
+    "attention_style": "Hooks on drip irrigation hacks or Swahili poetry slams; swipes on urban pranks or crypto pump schemes.",
+    "description": "Amina splits her time between Nairobi co-working spaces and upcountry farms, teaching smallholders how to use smartphones for crop pricing. She records her own Shorts about drought-resistant vegetables and prefers videos filmed in natural daylight without filters. She runs half-marathons to clear her feed anxiety."
+  },
+  {
+    "persona_id": "persona_86",
+    "name": "Rafael",
+    "age": 38,
+    "location": "Lisbon, Portugal",
+    "occupation": "Vintage furniture restorer",
+    "interests": [
+      "mid-century design",
+      "fado music",
+      "ceramic glazing",
+      "Portuguese maritime history"
+    ],
+    "platform_behavior": "Curates a slow, aesthetic feed of restoration processes and coastal walks from his cramped Alfama shop.",
+    "attention_style": "Hooks on satisfying veneer repairs or traditional craft demonstrations; swipes on clickbait unboxings or fake 'wait for it' captions.",
+    "description": "Rafael strips varnish off 1960s dressers for a living and treats his feed like a museum. He will block creators who use synthetic woodgrain stickers and calls them out in Portuguese. His ideal video is three minutes of someone quietly rebuilding a chair leg with hand tools."
+  },
+  {
+    "persona_id": "persona_87",
+    "name": "Chloe",
+    "age": 20,
+    "location": "Sydney, Australia",
+    "occupation": "Marine biology undergrad",
+    "interests": [
+      "shark tagging",
+      "underwater photography",
+      "sustainable seafood",
+      "surf culture"
+    ],
+    "platform_behavior": "Watches between dive sessions and lectures, favoring ocean science and conservation updates.",
+    "attention_style": "Hooks on rare deep-sea footage or marine-myth debunking; swipes on beach pollution denial or staged animal rescues.",
+    "description": "Chloe spends her weekends on research boats counting grey nurse sharks and her weekdays explaining why jellyfish are misunderstood. She has zero tolerance for influencers who touch wildlife for thumbnails and runs a side account exposing fake rescue videos. She thinks the ocean is louder than most trending sounds."
+  },
+  {
+    "persona_id": "persona_88",
+    "name": "Linh",
+    "age": 44,
+    "location": "Hanoi, Vietnam",
+    "occupation": "Electronics factory supervisor",
+    "interests": [
+      "lottery numerology",
+      "rice-farming techniques",
+      "90s Hong Kong films",
+      "karaoke"
+    ],
+    "platform_behavior": "Watches during cigarette breaks and before sleep, favoring nostalgia clips and comedy sketches.",
+    "attention_style": "Hooks on nostalgic movie clips or lottery prediction rituals; swipes on complex English-only tutorials or political arguments.",
+    "description": "Linh has worked on the same assembly line for two decades and uses short videos to escape into the golden age of Hong Kong cinema. She never comments but shares every funny sketch to her family WeChat group. She believes certain colors in a video predict her lottery numbers."
+  },
+  {
+    "persona_id": "persona_89",
+    "name": "Fatima",
+    "age": 31,
+    "location": "Dubai, UAE",
+    "occupation": "Luxury wedding planner",
+    "interests": [
+      "floral architecture",
+      "Arab calligraphy",
+      "desert photography",
+      "entrepreneurship"
+    ],
+    "platform_behavior": "Scrolls during vendor meetings for inspiration, favoring opulent event design and business advice.",
+    "attention_style": "Hooks on grand floral installations or candid bride reactions; swipes on messy reality drama or low-effort memes.",
+    "description": "Fatima plans six-figure weddings for expats and royalty alike, and her saved folder is full of ceiling drapery tutorials and Arabic calligraphy timelapses. She treats TikTok like a visual mood board and unfollows anyone who posts before 8 AM without coffee. She believes every transition should be seamless."
+  },
+  {
+    "persona_id": "persona_90",
+    "name": "Noah",
+    "age": 26,
+    "location": "Toronto, Canada",
+    "occupation": "Deaf graphic designer",
+    "interests": [
+      "visual storytelling",
+      "accessible UX design",
+      "indie animation",
+      "ASL poetry"
+    ],
+    "platform_behavior": "Watches exclusively with captions on, favoring strong visual composition and text-based humor.",
+    "attention_style": "Hooks on bold kinetic typography or silent comedy; swipes on content that relies entirely on spoken audio without captions.",
+    "description": "Noah designs websites for arts nonprofits and advocates for captioning standards across platforms. He follows animators and visual artists who communicate through motion alone, and he often DMs creators to remind them to add captions. He thinks good design should need no sound to be understood."
+  },
+  {
+    "persona_id": "persona_91",
+    "name": "Sean",
+    "age": 61,
+    "location": "Dublin, Ireland",
+    "occupation": "Retired firefighter",
+    "interests": [
+      "Gaelic football",
+      "traditional woodworking",
+      "pub history",
+      "coastal walking"
+    ],
+    "platform_behavior": "Watches in the pub or by the fireplace, favoring Irish history and hand-tool craft tutorials.",
+    "attention_style": "Hooks on hand-tool woodworking or local history deep-dives; swipes on teen slang he can't decipher or dangerous stunt videos.",
+    "description": "Sean spent thirty years running into burning buildings and now enjoys the slow satisfaction of carving spoons by the fire. He thinks most internet trends are nonsense but has a weakness for videos of sheepdogs herding flocks in Connemara. He only engages with content that feels like it was made by real people, not brands."
+  },
+  {
+    "persona_id": "persona_92",
+    "name": "Zoe",
+    "age": 24,
+    "location": "Miami, Florida, USA",
+    "occupation": "Crypto day trader",
+    "interests": [
+      "DeFi protocols",
+      "luxury real estate",
+      "Brazilian jiu-jitsu",
+      "street art"
+    ],
+    "platform_behavior": "Hyper-scrolls between trades, consuming market memes and motivational clips in fifteen-second bursts.",
+    "attention_style": "Hooks on macro-economic hot takes or BJJ technique breakdowns; swipes on slow-paced vlogs or astrology content.",
+    "description": "Zoe lives on espresso and volatility, treating her For You Page like a Bloomberg terminal with jokes. She screenshots every 'financial advice' video to fact-check later and blocks anyone promoting meme coins without whitepapers. She believes attention is the only currency that matters."
+  },
+  {
+    "persona_id": "persona_93",
+    "name": "Yolanda",
+    "age": 45,
+    "location": "Oaxaca, Mexico",
+    "occupation": "Zapotec pottery artist",
+    "interests": [
+      "indigenous textile patterns",
+      "mole recipes",
+      "mezcal production",
+      "archeology"
+    ],
+    "platform_behavior": "Watches in her studio between kiln firings, favoring traditional craft and cultural preservation content.",
+    "attention_style": "Hooks on ancient pottery techniques or regional cooking methods; swipes on generic mass-produced craft hacks or cultural appropriation.",
+    "description": "Yolanda learned coil-building from her grandmother and now sells to galleries in Mexico City. She uses short videos to document the fourteen-day process of firing black clay and gets angry when influencers call polymer clay 'authentic indigenous art.' Her feed is a defense of slow making."
+  },
+  {
+    "persona_id": "persona_94",
+    "name": "Omar",
+    "age": 48,
+    "location": "Cairo, Egypt",
+    "occupation": "Night-shift hospital security guard",
+    "interests": [
+      "Islamic astronomy",
+      "football tactics",
+      "80s Egyptian pop",
+      "chess puzzles"
+    ],
+    "platform_behavior": "Watches during quiet graveyard shifts, favoring strategy content and nostalgic music under desk lamps.",
+    "attention_style": "Hooks on chess gambits or restoration of vintage Arabic cassettes; swipes on screamers or workout challenges.",
+    "description": "Omar keeps watch over a quiet private hospital from midnight to 8 AM and uses his phone to study chess openings and listen to remastered Umm Kulthum clips. He prefers videos under thirty seconds so he can look up when the elevators ding. He believes the night shift deserves better content."
+  },
+  {
+    "persona_id": "persona_95",
+    "name": "Camille",
+    "age": 25,
+    "location": "Paris, France",
+    "occupation": "Paralympic swimmer",
+    "interests": [
+      "adaptive sports tech",
+      "French cinema",
+      "disability advocacy",
+      "pastry reviews"
+    ],
+    "platform_behavior": "Watches during physiotherapy sessions and travel, favoring sports science and accessible travel content.",
+    "attention_style": "Hooks on prosthetic innovation or candid conversations about disability; swipes on inspiration porn or pity-based narratives.",
+    "description": "Camille trains six days a week in the pool and spends her rest days exploring Parisian patisseries. She follows athletes who show the gritty reality of training, not just medal ceremonies, and she calls out creators who use disabled people as background props. She wants stories, not sob stories."
+  },
+  {
+    "persona_id": "persona_96",
+    "name": "Somchai",
+    "age": 19,
+    "location": "Chiang Mai, Thailand",
+    "occupation": "Novice Buddhist monk",
+    "interests": [
+      "Pali chanting",
+      "forest meditation",
+      "sustainable architecture",
+      "traditional Thai medicine"
+    ],
+    "platform_behavior": "Watches during allotted rest periods, favoring mindfulness and nature cinematography.",
+    "attention_style": "Hooks on temple construction timelapses or guided breathing techniques; swipes on consumerism hauls or aggressive pranks.",
+    "description": "Somchai ordained for three months to honor his grandmother and uses his old smartphone to learn ancient chanting melodies from elder monks in other provinces. He believes short-form video can be a dharma door if you curate it with intention. He never watches after sunset."
+  },
+  {
+    "persona_id": "persona_97",
+    "name": "Raj",
+    "age": 36,
+    "location": "Mumbai, India",
+    "occupation": "High school chemistry teacher",
+    "interests": [
+      "Bollywood trivia",
+      "kitchen science experiments",
+      "Mumbai street food",
+      "cricket analytics"
+    ],
+    "platform_behavior": "Projects viral science clips in class and scrolls during crowded local train commutes.",
+    "attention_style": "Hooks on explosive but safe chemistry demos or hidden food stalls; swipes on pseudoscience wellness or unverified academic shortcuts.",
+    "description": "Raj turns his classroom into a theater of reactions every Friday and uses TikTok to source new experiments that won't set off the fire alarm. He commutes two hours each way on the Western Line and has perfected one-handed scrolling in a crush of passengers. He grades videos like he grades homework."
+  },
+  {
+    "persona_id": "persona_98",
+    "name": "Nico",
+    "age": 28,
+    "location": "Berlin, Germany",
+    "occupation": "Underground techno DJ",
+    "interests": [
+      "modular synthesizers",
+      "brutalist architecture",
+      "queer nightlife history",
+      "vegan junk food"
+    ],
+    "platform_behavior": "Scrolls after 3 AM sets in Kreuzberg, favoring niche music production and subculture documentaries.",
+    "attention_style": "Hooks on rare 90s rave footage or synth patch tutorials; swipes on mainstream EDM drops or corporate festival content.",
+    "description": "Nico plays illegal warehouse parties and treats the algorithm like a crate-digging session for obscure East German electronic music. They only engage with content that feels like it was made before monetization existed. They believe the best videos are filmed in dimly lit basements with cigarette smoke in the frame."
+  },
+  {
+    "persona_id": "persona_99",
+    "name": "Eiko",
+    "age": 65,
+    "location": "Kyoto, Japan",
+    "occupation": "Moss garden caretaker",
+    "interests": [
+      "wabi-sabi aesthetics",
+      "haiku",
+      "traditional dyeing",
+      "bird songs"
+    ],
+    "platform_behavior": "Watches early morning with tea, favoring slow, seasonal nature content and traditional craft.",
+    "attention_style": "Hooks on moss cultivation or indigo dyeing processes; swipes on noisy transitions, artificial trends, or advertisements.",
+    "description": "Eiko tends a century-old temple garden and believes the internet should reflect the patience of growing moss. She follows only a dozen accounts, all dedicated to the changing seasons, and turns off her phone if she sees more than one ad in five minutes. She thinks silence is the most underrated sound on the platform."
+  }
+]

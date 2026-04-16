@@ -208,11 +208,13 @@ def s3_generate_task(self, run_id: str):
 # ---------------------------------------------------------------------------
 
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
-def s4_vote_task(self, run_id: str, persona_id: str):
+def s4_vote_task(self, run_id: str, persona_json: str):
     async def _run():
         redis = RedisClient(settings.redis_url)
         try:
-            # Idempotency: skip LLM call if result already stored (crash recovery)
+            persona_data = json.loads(persona_json)
+            persona_id = persona_data["persona_id"]
+
             existing = await redis.get(f"result:s4:{run_id}:{persona_id}")
             if existing is not None:
                 vote = PersonaVote.model_validate_json(existing)
@@ -226,7 +228,7 @@ def s4_vote_task(self, run_id: str, persona_id: str):
             provider = _get_provider(config)
 
             await _acquire_rate_limit_token(redis, config.reasoning_model)
-            vote = await s4_vote(scripts, persona_id, provider)
+            vote = await s4_vote(scripts, persona_id, provider, persona_data=persona_data)
             await redis.set(f"result:s4:{run_id}:{persona_id}", vote.model_dump_json())
 
             from app.pipeline.orchestrator import Orchestrator
