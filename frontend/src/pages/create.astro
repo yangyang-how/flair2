@@ -374,7 +374,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         top_n: parseInt((document.getElementById("top_n") as HTMLInputElement).value) || 10,
       });
 
-      window.location.href = `/pipeline/${run_id}`;
+      window.location.href = `/pipeline/?id=${run_id}`;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Unknown error";
       showError(`Failed to start pipeline: ${msg}`);

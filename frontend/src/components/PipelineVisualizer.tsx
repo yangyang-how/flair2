@@ -201,7 +201,7 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
     if (pipelineDone && !redirecting) {
       setRedirecting(true);
       const timer = setTimeout(() => {
-        window.location.href = `/vote/${runId}`;
+        window.location.href = `/vote/?id=${runId}`;
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -305,7 +305,7 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
               Pipeline complete — redirecting to voting results...
             </p>
             <a
-              href={`/vote/${runId}`}
+              href={`/vote/?id=${runId}`}
               className="mt-2 inline-block text-sm text-[var(--color-accent)] hover:underline"
             >
               Go now
