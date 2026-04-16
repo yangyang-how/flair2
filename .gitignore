@@ -64,3 +64,5 @@ data/*.parquet
 
 # Claude Code
 .claude/settings.json
+
+frontend/.wrangler/
