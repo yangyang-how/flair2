@@ -198,6 +198,15 @@ export function startPipeline(
   });
 }
 
+export async function getRunStatus(runId: string): Promise<RunStatus | null> {
+  try {
+    const runs = await listRuns();
+    return runs.runs.find((r) => r.run_id === runId) || null;
+  } catch {
+    return null;
+  }
+}
+
 export function getPipelineResults(
   runId: string,
 ): Promise<PipelineResults> {
