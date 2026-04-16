@@ -14,3 +14,5 @@ celery_app.conf.update(
     task_acks_late=True,
     worker_prefetch_multiplier=1,
 )
+
+import app.workers.tasks  # noqa: E402, F401 — registers all tasks with the Celery app
