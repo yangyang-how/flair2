@@ -52,16 +52,24 @@ function initialStageStates(): Record<string, StageState> {
 
 // ── Derive stage states from SSE events ───────────────────
 
+interface RunConfig {
+  totalVideos: number;
+  totalPersonas: number;
+  topN: number;
+}
+
 function deriveStageStates(events: SSEEvent[]): {
   stages: Record<string, StageState>;
   pipelineDone: boolean;
   pipelineError: string | null;
   runId: string | null;
+  runConfig: RunConfig | null;
 } {
   const stages = initialStageStates();
   let pipelineDone = false;
   let pipelineError: string | null = null;
   let runId: string | null = null;
+  let runConfig: RunConfig | null = null;
 
   for (const evt of events) {
     const d = evt.data as Record<string, unknown>;
@@ -69,6 +77,11 @@ function deriveStageStates(events: SSEEvent[]): {
     switch (evt.event) {
       case "pipeline_started":
         runId = (d.run_id as string) || null;
+        runConfig = {
+          totalVideos: (d.total_videos as number) || 0,
+          totalPersonas: (d.total_personas as number) || 0,
+          topN: (d.top_n as number) || 0,
+        };
         break;
 
       case "stage_started": {
@@ -171,7 +184,7 @@ function deriveStageStates(events: SSEEvent[]): {
     }
   }
 
-  return { stages, pipelineDone, pipelineError, runId };
+  return { stages, pipelineDone, pipelineError, runId, runConfig };
 }
 
 // ── Component ─────────────────────────────────────────────
@@ -187,10 +200,25 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
   const [redirecting, setRedirecting] = useState(false);
   const [stalled, setStalled] = useState(false);
 
-  const { stages, pipelineDone, pipelineError } = useMemo(
+  const { stages, pipelineDone, pipelineError, runConfig } = useMemo(
     () => deriveStageStates(events),
     [events],
   );
+
+  // Elapsed timer
+  const [elapsed, setElapsed] = useState(0);
+  const startTimeRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (events.length > 0 && !startTimeRef.current) {
+      startTimeRef.current = Date.now();
+    }
+    if (pipelineDone || pipelineError) return;
+    if (!startTimeRef.current) return;
+    const tick = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTimeRef.current!) / 1000));
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [events.length, pipelineDone, pipelineError]);
 
   // Stall detection: warn if no events arrive for 30s while connected
   useEffect(() => {
@@ -231,6 +259,28 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
           </span>
         </div>
       </div>
+
+      {/* Run info bar */}
+      {(runConfig || elapsed > 0) && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md bg-[var(--color-surface)] px-3 py-2 font-mono text-[11px] text-[var(--color-text-muted)]">
+          {elapsed > 0 && (
+            <span>
+              {pipelineDone ? "Completed in" : "Elapsed"}{" "}
+              <span className="text-[var(--color-text)]">
+                {elapsed >= 60 ? `${Math.floor(elapsed / 60)}m ${elapsed % 60}s` : `${elapsed}s`}
+              </span>
+            </span>
+          )}
+          {runConfig && (
+            <>
+              <span>{runConfig.totalVideos} videos</span>
+              <span>{runConfig.totalPersonas} personas</span>
+              <span>top {runConfig.topN}</span>
+            </>
+          )}
+          <span>{events.length} events received</span>
+        </div>
+      )}
 
       {/* Stage nodes */}
       <div className="space-y-3">
@@ -380,6 +430,31 @@ function formatEventLabel(evt: SSEEvent): { label: string; detail: string; color
   }
 }
 
+function EventRow({ evt }: { evt: SSEEvent }) {
+  const [expanded, setExpanded] = useState(false);
+  const { label, detail, color } = formatEventLabel(evt);
+  const time = evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString() : "";
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-start gap-2 px-3 py-1.5 font-mono text-[11px] text-left hover:bg-[var(--color-surface)]/50 transition-colors"
+      >
+        <span className="shrink-0 text-[var(--color-text-muted)] opacity-50 w-16">{time}</span>
+        <span className="shrink-0" style={{ color }}>{label}</span>
+        {detail && <span className="text-[var(--color-text-muted)] truncate">{detail}</span>}
+        <span className="ml-auto shrink-0 text-[var(--color-text-muted)] opacity-30">{expanded ? "-" : "+"}</span>
+      </button>
+      {expanded && (
+        <pre className="mx-3 mb-1.5 overflow-x-auto rounded bg-[var(--color-bg, #000)]/60 p-2 text-[10px] text-[var(--color-text-muted)]">
+          {JSON.stringify(evt.data, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
 function ActivityLog({ events }: { events: SSEEvent[] }) {
   const [open, setOpen] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
@@ -428,27 +503,9 @@ function ActivityLog({ events }: { events: SSEEvent[] }) {
                 </p>
               ) : (
                 <div className="divide-y divide-[var(--color-border)]/50">
-                  {events.map((evt, i) => {
-                    const { label, detail, color } = formatEventLabel(evt);
-                    const time = evt.timestamp
-                      ? new Date(evt.timestamp).toLocaleTimeString()
-                      : "";
-                    return (
-                      <div key={evt.id || i} className="flex items-start gap-2 px-3 py-1.5 font-mono text-[11px]">
-                        <span className="shrink-0 text-[var(--color-text-muted)] opacity-50 w-16">
-                          {time}
-                        </span>
-                        <span className="shrink-0" style={{ color }}>
-                          {label}
-                        </span>
-                        {detail && (
-                          <span className="text-[var(--color-text-muted)] truncate">
-                            {detail}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {events.map((evt, i) => (
+                    <EventRow key={evt.id || i} evt={evt} />
+                  ))}
                   <div ref={logEndRef} />
                 </div>
               )}
