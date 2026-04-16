@@ -149,7 +149,7 @@ export default function VotingAnimation({ runId }: VotingAnimationProps) {
             Voting complete \u2014 {leaderboard[0]?.scriptId.slice(0, 8) || "Script"} won with {leaderboard[0]?.votes || 0} votes
           </p>
           <a
-            href={`/results/${runId}`}
+            href={`/results/?id=${runId}`}
             className="mt-3 inline-block font-ui rounded-full bg-[var(--stud-b)] px-6 py-2.5 text-[11px] font-medium uppercase tracking-[0.1em] text-white hover:bg-[var(--stud-a)] transition-colors"
           >
             View Results

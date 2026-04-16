@@ -68,7 +68,7 @@ export default function ResultsView({ runId }: ResultsViewProps) {
         </p>
         <p className="mt-2 font-body text-base text-[var(--color-text-muted)]">{error}</p>
         <a
-          href={`/pipeline/${runId}`}
+          href={`/pipeline/?id=${runId}`}
           className="mt-4 inline-block font-ui text-[11px] uppercase tracking-[0.1em] text-[var(--stud-b)] hover:underline"
         >
           Check pipeline status

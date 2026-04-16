@@ -25,7 +25,7 @@ export default function VotePage() {
         <span className="mx-2">/</span>
         <a href="/runs" className="hover:text-[var(--color-text)]">Runs</a>
         <span className="mx-2">/</span>
-        <a href={`/pipeline/${id}`} className="hover:text-[var(--color-text)]">Pipeline</a>
+        <a href={`/pipeline/?id=${id}`} className="hover:text-[var(--color-text)]">Pipeline</a>
         <span className="mx-2">/</span>
         <span className="text-[var(--color-text)]">Vote</span>
       </nav>
