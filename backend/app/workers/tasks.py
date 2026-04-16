@@ -162,7 +162,7 @@ def s2_aggregate_task(self, run_id: str):
 
 
 # ---------------------------------------------------------------------------
-# S3 — generate candidate scripts (sequential)
+# S3 — generate candidate scripts concurrently
 # ---------------------------------------------------------------------------
 
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
@@ -175,8 +175,15 @@ def s3_generate_task(self, run_id: str):
             library = S2PatternLibrary.model_validate_json(raw)
             provider = _get_provider(config)
 
-            await _acquire_rate_limit_token(redis, config.reasoning_model)
-            scripts = await s3_generate(library, provider, num_scripts=config.num_scripts)
+            async def _acquire() -> None:
+                await _acquire_rate_limit_token(redis, config.reasoning_model)
+
+            scripts = await s3_generate(
+                library,
+                provider,
+                num_scripts=config.num_scripts,
+                acquire_token=_acquire,
+            )
             await redis.set(
                 f"scripts:candidates:{run_id}",
                 json.dumps([s.model_dump() for s in scripts]),

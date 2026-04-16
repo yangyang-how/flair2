@@ -34,8 +34,8 @@ INPUT: 100 videos from Tsinghua/Kuaishou dataset
 │  S2 REDUCE  N patterns  →  1 worker   →  pattern library     │
 └──────────────────────────────────────────────────────────────┘
 
-S3 SEQUENTIAL  pattern library  →  50 candidate scripts
-               (deliberate bottleneck — Amdahl's Law observation)
+S3 GENERATE    pattern library  →  50 candidate scripts
+               (concurrent via asyncio.gather, rate-limit guarded)
 
 ┌─ MapReduce Cycle 2 ──────────────────────────────────────────┐
 │  S4 MAP     100 simulated voters  →  N workers  →  top 5 ea  │
@@ -117,7 +117,6 @@ Redis is ephemeral — pipeline state is lost on restart. Final results (top 10 
 | SSE streaming | Frontend pipeline visualization | — |
 | Load balancing (ALB) | API tier horizontal scale-out | — |
 | CAP theorem (CP) | Redis single-node design decision | — |
-| Amdahl's Law | S3 deliberate sequential bottleneck | — |
 
 ---
 
