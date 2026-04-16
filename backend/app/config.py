@@ -29,8 +29,9 @@ class Settings(BaseSettings):
     openai_rpm: int = 60
     enable_rate_limiter: bool = True
 
-    # Dataset (local path — will be replaced by S3 in production)
+    # Datasets (local paths — will be replaced by S3 in production)
     dataset_path: str = "data/sample_videos.json"
+    personas_path: str = "data/personas.json"
 
     # Pipeline Defaults
     s1_video_count: int = 100
