@@ -1,9 +1,10 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PromptPreview from "../components/PromptPreview";
 ---
 
 <BaseLayout title="Create Campaign — Flair2">
-  <div class="mx-auto max-w-2xl">
+  <div class="mx-auto max-w-6xl">
     <h1 class="mb-2 text-3xl font-bold">Create Campaign</h1>
     <p class="mb-8 text-[var(--color-text-muted)]">
       Set up your creator profile and start the AI pipeline.
@@ -16,6 +17,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     >
     </div>
 
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
     <form id="create-form" class="flex flex-col gap-8">
       <!-- Quick Start — load an example profile -->
       <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
@@ -234,6 +236,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         Start Pipeline
       </button>
     </form>
+
+    <aside class="lg:sticky lg:top-8 lg:self-start">
+      <PromptPreview client:load />
+    </aside>
+    </div>
   </div>
 </BaseLayout>
 

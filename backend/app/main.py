@@ -15,6 +15,7 @@ from app.api.routes import (
     health,
     performance,
     pipeline,
+    prompts,
     providers,
     video,
 )
@@ -63,4 +64,5 @@ app.include_router(pipeline.router)
 app.include_router(video.router)
 app.include_router(performance.router)
 app.include_router(providers.router)
+app.include_router(prompts.router)
 app.include_router(creator_profiles.router)

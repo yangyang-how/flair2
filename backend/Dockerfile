@@ -53,5 +53,5 @@ EXPOSE 8000
 
 # API service default CMD
 # Celery worker overrides this in ECS task definition:
-#   celery -A app.worker worker --loglevel=info --concurrency=4
+#   celery -A app.worker worker --loglevel=info --pool=threads --concurrency=20
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

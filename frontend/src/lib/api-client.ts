@@ -224,6 +224,21 @@ export function getProviders(): Promise<Providers> {
   return request("/api/providers");
 }
 
+// ── Prompt preview ─────────────────────────────────────────
+
+export interface PromptTemplates {
+  s1: string;
+  s3: string;
+  s3_feedback: string;
+  s4: string;
+  s4_feedback: string;
+  s6: string;
+}
+
+export function getPromptTemplates(): Promise<PromptTemplates> {
+  return request("/api/prompts/preview");
+}
+
 // ── Sample Creator Profiles ────────────────────────────────
 
 export interface SampleCreatorProfile {
