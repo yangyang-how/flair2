@@ -98,7 +98,11 @@ class Orchestrator:
         await self._transition_s4(run_id, config)
 
     async def on_s4_complete(
-        self, run_id: str, persona_id: str, top_5: list[str] | None = None
+        self,
+        run_id: str,
+        persona_id: str,
+        top_5: list[str] | None = None,
+        persona_name: str | None = None,
     ) -> None:
         done = await self._r.incr(f"run:{run_id}:s4:done")
         config = await self._load_config(run_id)
@@ -108,6 +112,7 @@ class Orchestrator:
 
         await self._xadd_event(run_id, "vote_cast", {
             "persona_id": persona_id,
+            "persona_name": persona_name or persona_id,
             "top_5": top_5 or [],
             "completed": done,
             "total": config.num_personas,
