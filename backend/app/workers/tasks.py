@@ -251,6 +251,8 @@ def s4_vote_task(self, run_id: str, persona_json: str):
 
             persona_name = persona_data.get("name") or persona_id
             persona_location = persona_data.get("location")
+            persona_age = persona_data.get("age")
+            persona_occupation = persona_data.get("occupation")
 
             existing = await redis.get(f"result:s4:{run_id}:{persona_id}")
             if existing is not None:
@@ -272,6 +274,8 @@ def s4_vote_task(self, run_id: str, persona_json: str):
                 "persona_id": persona_id,
                 "name": persona_name,
                 "location": persona_location,
+                "age": persona_age,
+                "occupation": persona_occupation,
             })
 
             async with _acquire_provider_slot(redis, config.reasoning_model):
