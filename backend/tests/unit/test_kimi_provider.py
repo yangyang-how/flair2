@@ -2,8 +2,14 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from pydantic import BaseModel
 
+from app.models.errors import InvalidResponseError
 from app.providers.kimi import KimiProvider
+
+
+class _TinySchema(BaseModel):
+    key: str
 
 
 @pytest.fixture
@@ -55,7 +61,7 @@ class TestGenerateText:
             mock_client = MagicMock()
             mock_client.messages.create = AsyncMock(return_value=mock_resp)
             mock_client_fn.return_value = mock_client
-            result = await kimi_provider.generate_text("Give JSON", schema=dict)
+            result = await kimi_provider.generate_text("Give JSON", schema=_TinySchema)
             parsed = json.loads(result)
             assert parsed == {"key": "value"}
 
@@ -96,14 +102,43 @@ class TestRetryBehavior:
     @pytest.mark.asyncio
     async def test_retries_on_invalid_json(self, kimi_provider):
         bad_resp = _mock_message("not json")
-        good_resp = _mock_message('{"valid": true}')
+        good_resp = _mock_message('{"key": "ok"}')
         with patch.object(kimi_provider, "_get_client") as mock_client_fn:
             mock_client = MagicMock()
             mock_client.messages.create = AsyncMock(side_effect=[bad_resp, good_resp])
             mock_client_fn.return_value = mock_client
-            result = await kimi_provider.generate_text("Give JSON", schema=dict)
-            assert json.loads(result) == {"valid": True}
+            result = await kimi_provider.generate_text("Give JSON", schema=_TinySchema)
+            assert json.loads(result) == {"key": "ok"}
             assert mock_client.messages.create.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_retries_on_schema_mismatch(self, kimi_provider):
+        """Valid JSON but wrong shape — retry, don't fail immediately."""
+        wrong_shape = _mock_message('{"not_the_right_field": "oops"}')
+        right_shape = _mock_message('{"key": "recovered"}')
+        with patch.object(kimi_provider, "_get_client") as mock_client_fn:
+            mock_client = MagicMock()
+            mock_client.messages.create = AsyncMock(
+                side_effect=[wrong_shape, right_shape]
+            )
+            mock_client_fn.return_value = mock_client
+            result = await kimi_provider.generate_text(
+                "Give JSON", schema=_TinySchema
+            )
+            assert json.loads(result) == {"key": "recovered"}
+            assert mock_client.messages.create.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_raises_invalid_response_after_max_schema_retries(self, kimi_provider):
+        wrong = _mock_message('{"not_the_right_field": "oops"}')
+        with patch.object(kimi_provider, "_get_client") as mock_client_fn:
+            mock_client = MagicMock()
+            mock_client.messages.create = AsyncMock(return_value=wrong)
+            mock_client_fn.return_value = mock_client
+            with pytest.raises(InvalidResponseError) as exc_info:
+                await kimi_provider.generate_text("Give JSON", schema=_TinySchema)
+            assert "_TinySchema" in str(exc_info.value)
+            assert mock_client.messages.create.call_count == 3
 
 
 class TestAnalyzeContent:
