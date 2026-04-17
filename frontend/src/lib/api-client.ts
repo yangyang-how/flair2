@@ -239,6 +239,19 @@ export function getPromptTemplates(): Promise<PromptTemplates> {
   return request("/api/prompts/preview");
 }
 
+// ── Sample Creator Profiles ────────────────────────────────
+
+export interface SampleCreatorProfile {
+  id: string;
+  label: string;
+  description: string;
+  profile: CreatorProfile;
+}
+
+export function getSampleCreatorProfiles(): Promise<SampleCreatorProfile[]> {
+  return request("/api/creator-profiles/samples");
+}
+
 // ── Video ──────────────────────────────────────────────────
 
 export function generateVideo(
