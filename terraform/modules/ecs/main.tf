@@ -144,10 +144,14 @@ resource "aws_ecs_task_definition" "worker" {
     image     = var.ecr_worker_image_url
     essential = true
 
-    # Override CMD to start Celery instead of FastAPI
+    # Override CMD to start Celery instead of FastAPI.
+    # Threads pool + high concurrency: our tasks are I/O-bound (awaiting
+    # Kimi responses), so threads are the right primitive. Each thread
+    # adds ~8 MB of stack vs ~250 MB per prefork process, and the
+    # RedisSemaphore throttles the total at 29 anyway.
     command = [
       "celery", "-A", "app.workers.celery_app", "worker",
-      "--loglevel=info", "--concurrency=4"
+      "--loglevel=info", "--pool=threads", "--concurrency=20"
     ]
 
     environment = [
