@@ -99,7 +99,8 @@ function deriveStageStates(events: SSEEvent[]): {
         break;
       }
 
-      case "s1_progress": {
+      case "s1_progress":
+      case "s1_video_skipped": {
         const completed = d.completed as number;
         const total = d.total as number;
         stages.S1_MAP = {
@@ -460,6 +461,8 @@ function formatEventLabel(evt: SSEEvent): { label: string; detail: string; color
       return { label: "S1 Analyze", detail: `started ${d.video_id}`, color: "var(--disc-a)" };
     case "s1_progress":
       return { label: "S1 Analyze", detail: `${d.video_id} → ${d.hook_type || "done"} (${d.completed}/${d.total})`, color: "var(--disc-a)" };
+    case "s1_video_skipped":
+      return { label: "S1 Analyze", detail: `⚠ skipped ${d.video_id} (${d.completed}/${d.total}) — ${(d.reason as string || "").slice(0, 80)}`, color: "var(--color-error)" };
     case "s2_complete":
       return { label: "S2 Aggregate complete", detail: `${d.pattern_count} patterns`, color: "var(--disc-a)" };
     case "s3_progress":

@@ -10,13 +10,14 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import type { SSEEvent } from "../lib/sse-client";
 
-type CardState = "pending" | "processing" | "completed";
+type CardState = "pending" | "processing" | "completed" | "skipped";
 
 interface VideoCardData {
   videoId: string;
   index: number;
   state: CardState;
   description?: string;
+  skipReason?: string;
 }
 
 function deriveVideoStates(events: SSEEvent[], totalVideos: number): VideoCardData[] {
@@ -50,6 +51,21 @@ function deriveVideoStates(events: SSEEvent[], totalVideos: number): VideoCardDa
         index: videoOrder.indexOf(vid),
         state: "completed",
         description: existing?.description,
+      });
+    }
+
+    if (evt.event === "s1_video_skipped") {
+      const vid = d.video_id as string;
+      if (!cards.has(vid)) {
+        videoOrder.push(vid);
+      }
+      const existing = cards.get(vid);
+      cards.set(vid, {
+        videoId: vid,
+        index: videoOrder.indexOf(vid),
+        state: "skipped",
+        description: existing?.description,
+        skipReason: (d.reason as string) || undefined,
       });
     }
   }
@@ -100,6 +116,26 @@ function VideoCard({ card }: { card: VideoCardData }) {
     );
   }
 
+  if (card.state === "skipped") {
+    return (
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        className="aspect-square rounded-md flex items-center justify-center cursor-default border-2 border-[var(--color-error)] bg-[var(--color-error)]/10"
+        title={
+          card.skipReason
+            ? `${card.videoId} — skipped: ${card.skipReason.slice(0, 120)}`
+            : `${card.videoId} — skipped`
+        }
+      >
+        <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="var(--color-error)">
+          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+        </svg>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
@@ -125,6 +161,8 @@ export default function S1DiscoverGrid({ events, totalVideos }: S1DiscoverGridPr
 
   const processing = cards.filter((c) => c.state === "processing").length;
   const completed = cards.filter((c) => c.state === "completed").length;
+  const skipped = cards.filter((c) => c.state === "skipped").length;
+  const processed = completed + skipped;
 
   return (
     <div className="space-y-3">
@@ -135,7 +173,12 @@ export default function S1DiscoverGrid({ events, totalVideos }: S1DiscoverGridPr
             Analyzing {totalVideos} videos
           </span>
           <span className="font-mono text-[11px] text-[var(--color-text)]">
-            {completed}/{totalVideos}
+            {processed}/{totalVideos}
+            {skipped > 0 && (
+              <span className="ml-2 text-[var(--color-error)]">
+                ({skipped} skipped)
+              </span>
+            )}
           </span>
         </div>
         {processing > 0 && (

@@ -141,6 +141,49 @@ async def test_on_s1_complete_increments_counter(redis, config, videos):
         mock_s2.delay.assert_called_once_with("test-run")
 
 
+async def test_on_s1_skipped_still_transitions_to_s2(redis, config, videos):
+    """One bad video should not block S2 — skipped counts toward the threshold."""
+    with patch("app.workers.tasks.s1_analyze_task") as mock_task:
+        mock_task.delay = MagicMock()
+        await Orchestrator(redis).start("test-run", config, videos)
+
+    with patch("app.workers.tasks.s2_aggregate_task") as mock_s2:
+        mock_s2.delay = MagicMock()
+        orch = Orchestrator(redis)
+        await orch.on_s1_complete("test-run", "v0")
+        await orch.on_s1_complete("test-run", "v1")
+        # v2 can't be analyzed — skip it
+        await orch.on_s1_skipped("test-run", "v2", reason="sparse content")
+        # Counter reached num_videos=3 despite the skip → S2 runs
+        assert await redis.get("run:test-run:s1:done") == "3"
+        mock_s2.delay.assert_called_once_with("test-run")
+
+
+async def test_on_s1_skipped_emits_event(redis, config, videos):
+    with patch("app.workers.tasks.s1_analyze_task") as mock_task:
+        mock_task.delay = MagicMock()
+        await Orchestrator(redis).start("test-run", config, videos)
+
+    with patch("app.workers.tasks.s2_aggregate_task") as mock_s2:
+        mock_s2.delay = MagicMock()
+        await Orchestrator(redis).on_s1_skipped(
+            "test-run", "v_bad", reason="Provider error after retries"
+        )
+
+    entries = await redis.xread({"sse:test-run": "0-0"}, block=100, count=50)
+    payloads = [
+        json.loads(fields["payload"])
+        for _stream, msgs in entries
+        for _id, fields in msgs
+    ]
+    skipped = [p for p in payloads if p["event"] == "s1_video_skipped"]
+    assert len(skipped) == 1
+    assert skipped[0]["data"]["video_id"] == "v_bad"
+    assert "Provider error" in skipped[0]["data"]["reason"]
+    assert skipped[0]["data"]["completed"] == 1
+    assert skipped[0]["data"]["total"] == 3
+
+
 async def test_s1_complete_transitions_stage(redis, config, videos):
     with patch("app.workers.tasks.s1_analyze_task") as mock_task:
         mock_task.delay = MagicMock()

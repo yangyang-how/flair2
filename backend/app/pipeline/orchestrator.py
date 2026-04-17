@@ -88,6 +88,34 @@ class Orchestrator:
         if done >= config.num_videos:
             await self._transition_s2(run_id)
 
+    async def on_s1_skipped(
+        self, run_id: str, video_id: str, reason: str,
+    ) -> None:
+        """Mark one video as un-analyzable after retries exhausted.
+
+        Bumps the same counter as a successful analysis so S2 can still
+        trigger when the last video is processed. One bad input should
+        never block the other 99.
+        """
+        done = await self._r.incr(f"run:{run_id}:s1:done")
+        config = await self._load_config(run_id)
+
+        await self._xadd_event(run_id, "s1_video_skipped", {
+            "video_id": video_id,
+            "reason": reason[:300],
+            "completed": done,
+            "total": config.num_videos,
+        })
+        logger.warning(
+            "orchestrator_s1_video_skipped",
+            run_id=run_id,
+            video_id=video_id,
+            reason=reason[:200],
+        )
+
+        if done >= config.num_videos:
+            await self._transition_s2(run_id)
+
     async def on_s2_complete(self, run_id: str, pattern_count: int = 0) -> None:
         await self._xadd_event(run_id, "s2_complete", {"pattern_count": pattern_count})
         await self._transition_s3(run_id)

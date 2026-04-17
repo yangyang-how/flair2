@@ -12,6 +12,7 @@ Tasks are sync; async work runs inside asyncio.run().
 """
 
 import asyncio
+import contextlib
 import json
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -68,6 +69,16 @@ async def _report_failure(run_id: str, stage: str, error: str) -> None:
         await redis.aclose()
 
 
+async def _skip_s1_video(run_id: str, video_id: str, reason: str) -> None:
+    """Mark one S1 video as un-analyzable without killing the whole run."""
+    redis = RedisClient(settings.redis_url)
+    try:
+        from app.pipeline.orchestrator import Orchestrator
+        await Orchestrator(redis).on_s1_skipped(run_id, video_id, reason)
+    finally:
+        await redis.aclose()
+
+
 async def _acquire_rate_limit_token(redis: RedisClient, provider_name: str) -> None:
     """Wait for a rate-limit token before making an LLM call.
 
@@ -112,6 +123,12 @@ async def _acquire_provider_slot(
 
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
 def s1_analyze_task(self, run_id: str, video_json: str):
+    # Parse video_id up-front so the exception handlers can reference it
+    # when skipping — video_json might still be malformed, fall through.
+    video_id: str | None = None
+    with contextlib.suppress(Exception):
+        video_id = json.loads(video_json).get("video_id")
+
     async def _run():
         redis = RedisClient(settings.redis_url)
         try:
@@ -145,13 +162,30 @@ def s1_analyze_task(self, run_id: str, video_json: str):
         try:
             raise self.retry(exc=exc) from exc
         except self.MaxRetriesExceededError:
-            logger.error("s1_retries_exhausted", run_id=run_id, error=str(exc))
-            asyncio.run(_report_failure(run_id, "S1", f"Provider error after retries: {exc}"))
+            # One un-analyzable video (sparse description, LLM schema drift,
+            # etc.) should not kill the other 99. Mark it skipped and let S2
+            # aggregate whatever patterns succeeded.
+            logger.error(
+                "s1_retries_exhausted",
+                run_id=run_id,
+                video_id=video_id,
+                error=str(exc),
+            )
+            msg = f"Provider error after retries: {exc}"
+            if video_id:
+                asyncio.run(_skip_s1_video(run_id, video_id, msg))
+            else:
+                asyncio.run(_report_failure(run_id, "S1", msg))
     except StageError as exc:
-        logger.error("s1_stage_error", run_id=run_id, error=str(exc))
-        asyncio.run(_report_failure(run_id, "S1", str(exc)))
+        logger.error("s1_stage_error", run_id=run_id, video_id=video_id, error=str(exc))
+        if video_id:
+            asyncio.run(_skip_s1_video(run_id, video_id, str(exc)))
+        else:
+            asyncio.run(_report_failure(run_id, "S1", str(exc)))
     except Exception as exc:
-        logger.error("s1_unexpected_error", run_id=run_id, error=str(exc))
+        # Unexpected failures — could be infra. Still halt, since we don't
+        # know if the rest of the pipeline can recover.
+        logger.error("s1_unexpected_error", run_id=run_id, video_id=video_id, error=str(exc))
         asyncio.run(_report_failure(run_id, "S1", f"Unexpected error: {exc}"))
 
 
