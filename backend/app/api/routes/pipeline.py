@@ -11,7 +11,7 @@ from pathlib import Path
 
 import redis.asyncio as aioredis
 import structlog
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sse_starlette.sse import EventSourceResponse
 
 from app.api.deps import get_redis, get_session_id
@@ -102,22 +102,29 @@ async def pipeline_status(
     request: Request,
     r: aioredis.Redis = Depends(get_redis),
     last_event_id: str | None = Header(None, alias="Last-Event-ID"),
+    cursor: str | None = Query(None),
 ) -> EventSourceResponse:
     """Stream pipeline events via SSE.
 
     Uses Redis Streams (XREAD) — multi-tab safe. Each connection
-    maintains its own cursor. On reconnect, the browser sends
-    Last-Event-ID as a header automatically.
+    maintains its own cursor. Resume semantics (highest priority first):
+
+      1. `?cursor=X` query param — explicit client-controlled resume
+         for fresh mounts where the browser has no prior Last-Event-ID
+         (SPA navigation back to the pipeline page).
+      2. `Last-Event-ID` header — sent automatically by native
+         EventSource on transient reconnects.
+      3. "0-0" — start from the beginning of the stream.
     """
     # Verify run exists
     status = await r.get(f"run:{run_id}:status")
     if status is None:
         raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
 
-    cursor = last_event_id or "0-0"
+    resume_from = cursor or last_event_id or "0-0"
 
     return EventSourceResponse(
-        sse_event_generator(r, run_id, cursor, request),
+        sse_event_generator(r, run_id, resume_from, request),
     )
 
 
