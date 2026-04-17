@@ -224,6 +224,19 @@ export function getProviders(): Promise<Providers> {
   return request("/api/providers");
 }
 
+// ── Sample Creator Profiles ────────────────────────────────
+
+export interface SampleCreatorProfile {
+  id: string;
+  label: string;
+  description: string;
+  profile: CreatorProfile;
+}
+
+export function getSampleCreatorProfiles(): Promise<SampleCreatorProfile[]> {
+  return request("/api/creator-profiles/samples");
+}
+
 // ── Video ──────────────────────────────────────────────────
 
 export function generateVideo(

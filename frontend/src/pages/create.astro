@@ -17,6 +17,19 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
 
     <form id="create-form" class="flex flex-col gap-8">
+      <!-- Quick Start — load an example profile -->
+      <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+        <label class="mb-1.5 block text-sm font-medium" for="example_profile">
+          Quick Start — Load an Example Profile
+        </label>
+        <select id="example_profile" class="input-field">
+          <option value="">Loading examples…</option>
+        </select>
+        <p class="mt-1 text-xs text-[var(--color-text-muted)]">
+          Populates the form with a sample creator profile. Customize freely after loading, or pick "Start from scratch" to clear.
+        </p>
+      </section>
+
       <!-- Creator Profile -->
       <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
         <h2 class="mb-5 text-lg font-semibold">Creator Profile</h2>
@@ -237,7 +250,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </style>
 
 <script>
-  import { getProviders, startPipeline } from "../lib/api-client";
+  import {
+    getProviders,
+    getSampleCreatorProfiles,
+    startPipeline,
+    type SampleCreatorProfile,
+  } from "../lib/api-client";
 
   // ── Model dropdowns ─────────────────────────────────────
 
@@ -259,6 +277,61 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .catch(() => {
       reasoningEl.innerHTML = `<option value="">Failed to load — check API</option>`;
       videoEl.innerHTML = `<option value="">Skip video</option>`;
+    });
+
+  // ── Sample profile dropdown ─────────────────────────────
+
+  const exampleEl = document.getElementById("example_profile") as HTMLSelectElement;
+
+  function setField(id: string, value: string) {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (!el) return;
+    el.value = value;
+    // Fire input event so PromptPreview + any other observers react.
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  const PROFILE_FIELDS: Array<[string, (p: SampleCreatorProfile["profile"]) => string]> = [
+    ["tone", (p) => p.tone],
+    ["catchphrases", (p) => (p.catchphrases || []).join(", ")],
+    ["vocabulary", (p) => (p.vocabulary || []).join(", ")],
+    ["topics_to_avoid", (p) => (p.topics_to_avoid || []).join(", ")],
+    ["niche", (p) => p.niche || ""],
+    ["audience_description", (p) => p.audience_description || ""],
+    ["content_themes", (p) => (p.content_themes || []).join(", ")],
+    ["example_hooks", (p) => (p.example_hooks || []).join(", ")],
+    ["recent_topics", (p) => (p.recent_topics || []).join(", ")],
+  ];
+
+  function clearProfileFields() {
+    for (const [id] of PROFILE_FIELDS) setField(id, "");
+  }
+
+  function applyProfile(p: SampleCreatorProfile["profile"]) {
+    for (const [id, getter] of PROFILE_FIELDS) setField(id, getter(p));
+  }
+
+  getSampleCreatorProfiles()
+    .then((samples) => {
+      exampleEl.innerHTML =
+        `<option value="">— Start from scratch —</option>` +
+        samples
+          .map((s) => `<option value="${s.id}">${s.label} — ${s.description}</option>`)
+          .join("");
+
+      exampleEl.addEventListener("change", () => {
+        const id = exampleEl.value;
+        if (!id) {
+          clearProfileFields();
+          return;
+        }
+        const selected = samples.find((s) => s.id === id);
+        if (selected) applyProfile(selected.profile);
+      });
+    })
+    .catch(() => {
+      exampleEl.innerHTML = `<option value="">Failed to load examples</option>`;
+      exampleEl.disabled = true;
     });
 
   // ── Advanced toggle ─────────────────────────────────────

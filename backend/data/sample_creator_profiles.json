@@ -1,0 +1,98 @@
+[
+  {
+    "id": "movedaily",
+    "label": "MoveDaily",
+    "description": "Dorm-friendly fitness for college students",
+    "profile": {
+      "tone": "energetic, no-nonsense, practical",
+      "vocabulary": ["rep", "set", "PR", "form over ego", "gains", "compound", "bodyweight", "progressive overload"],
+      "catchphrases": ["let's get it", "form over ego", "bodyweight beats no weights"],
+      "topics_to_avoid": ["supplements", "diet shaming", "expensive gyms"],
+      "niche": "college-dorm fitness",
+      "audience_description": "College students 18-24 living in dorms who want to get fit without a gym membership",
+      "content_themes": ["dorm workouts", "10-minute routines", "progression tracking", "form breakdowns", "bodyweight basics"],
+      "example_hooks": ["I did 100 push-ups a day for 30 days and here's what actually changed", "Your dorm room has everything you need for a back workout", "The pull-up progression that actually works for beginners"],
+      "recent_topics": ["push-up variations", "morning routines", "bodyweight back workouts", "progressive overload for beginners"]
+    }
+  },
+  {
+    "id": "budgetbuilt",
+    "label": "Budget Built",
+    "description": "Personal finance for early-career Gen Z",
+    "profile": {
+      "tone": "calm, analytical, skeptical of hype",
+      "vocabulary": ["APR", "401(k)", "index fund", "compound", "emergency fund", "Roth", "HYSA", "diversify", "expense ratio"],
+      "catchphrases": ["the math works out", "future you will thank you", "don't chase yields"],
+      "topics_to_avoid": ["meme stocks", "crypto gambling", "get-rich-quick", "day trading"],
+      "niche": "early-career personal finance",
+      "audience_description": "22-28 year olds starting their first real job, worried about student debt and housing costs",
+      "content_themes": ["first paycheck breakdowns", "retirement basics", "student loan strategies", "rent vs buy math", "tax withholding"],
+      "example_hooks": ["I've never made more than $60k and I'll still retire at 50", "Everyone's first 401(k) mistake costs them $200k", "The real cost of your $5 daily coffee isn't what you think"],
+      "recent_topics": ["Roth conversions", "HYSA yield comparisons", "employer match basics", "health-savings accounts"]
+    }
+  },
+  {
+    "id": "kitchenconfident",
+    "label": "Kitchen Confident",
+    "description": "Weeknight cooking for busy adults",
+    "profile": {
+      "tone": "warm, encouraging, low-stakes, pragmatic",
+      "vocabulary": ["sheet pan", "one-pot", "meal prep", "batch cook", "deglaze", "season to taste", "pantry staple", "swap"],
+      "catchphrases": ["it doesn't have to be perfect", "close enough is good", "taste as you go"],
+      "topics_to_avoid": ["expensive gadgets", "celebrity chef drama", "diet culture", "food shaming"],
+      "niche": "weeknight home cooking",
+      "audience_description": "Working adults 25-40 who want to cook more but feel short on time and budget",
+      "content_themes": ["30-minute dinners", "pantry cooking", "one-pot meals", "ingredient substitutions", "budget tips"],
+      "example_hooks": ["This pasta saved my whole week and cost me $6", "I stopped meal prepping and I cook better than ever", "The one-pot chicken thigh recipe I make every single week"],
+      "recent_topics": ["one-pan chicken thighs", "15-minute weeknight soups", "freezer burrito batch cook", "pantry pasta variations"]
+    }
+  },
+  {
+    "id": "stackoverhead",
+    "label": "StackOverhead",
+    "description": "Dev tools & tech reviews for engineers",
+    "profile": {
+      "tone": "analytical, dry-humored, opinionated but evidence-based",
+      "vocabulary": ["benchmark", "throughput", "DX", "idiomatic", "refactor", "yak-shaving", "footgun", "JSON-schlep"],
+      "catchphrases": ["it depends", "but actually", "measure before you optimize"],
+      "topics_to_avoid": ["language wars", "crypto", "AI hype", "ten-year-old best-practice rehashes"],
+      "niche": "developer tools and productivity",
+      "audience_description": "Software engineers 24-40 — mid-career opinion-formers who evaluate tooling carefully",
+      "content_themes": ["editor setups", "CLI tools", "language runtimes", "build systems", "terminal productivity"],
+      "example_hooks": ["I switched from VS Code for a week and here's what surprised me", "This build tool is 40% faster than webpack and nobody uses it", "Your CI is slow for one very fixable reason"],
+      "recent_topics": ["uv vs pip performance", "tmux configs", "fish vs zsh daily-driver review", "neovim transition notes"]
+    }
+  },
+  {
+    "id": "skinfacts",
+    "label": "SkinFacts",
+    "description": "Evidence-based skincare, no-BS",
+    "profile": {
+      "tone": "confident, science-forward, slightly irreverent",
+      "vocabulary": ["retinol", "niacinamide", "actives", "barrier function", "fragrance-free", "ingredient list", "patch test", "sunscreen"],
+      "catchphrases": ["read the label", "the skincare industry lied to you", "sunscreen or it didn't happen"],
+      "topics_to_avoid": ["body shaming", "MLM brands", "fast-beauty trends", "injectable promotion"],
+      "niche": "evidence-based skincare",
+      "audience_description": "20-35 year old women tired of skincare marketing, looking for products that actually work",
+      "content_themes": ["routine simplification", "ingredient deep-dives", "product swaps at every price point", "sunscreen education", "barrier repair"],
+      "example_hooks": ["The $8 serum that out-performs $80 ones in every category", "I threw out half my skincare and my skin cleared up in a week", "Everything you've been told about retinol is wrong"],
+      "recent_topics": ["retinol intro routines", "SPF 50 comparisons", "fragrance-free moisturizer picks", "barrier-repair cleansers"]
+    }
+  },
+  {
+    "id": "aloneonward",
+    "label": "Alone Onward",
+    "description": "Solo budget-travel for first-timers",
+    "profile": {
+      "tone": "reassuring, curious, grounded, hopeful",
+      "vocabulary": ["hostel", "layover", "carry-on", "shoulder season", "slow travel", "local bus", "eSIM", "cash-only"],
+      "catchphrases": ["the hardest part is booking", "you'll figure it out on the ground", "nobody's watching you"],
+      "topics_to_avoid": ["luxury travel", "digital nomad hype", "visa politics", "destination shaming"],
+      "niche": "solo budget international travel",
+      "audience_description": "23-35 year olds who want to travel alone but feel intimidated by the logistics",
+      "content_themes": ["first-trip checklists", "language basics", "minimalist packing", "solo-safety practicalities", "local transit"],
+      "example_hooks": ["I traveled for a month on $500 and slept in a real bed every night", "What nobody tells you about your first solo trip", "The one app that replaced my entire travel wallet"],
+      "recent_topics": ["Lisbon on foot", "night-bus overnights in Vietnam", "hostel dorm etiquette", "eSIM setup for Europe"]
+    }
+  }
+]
