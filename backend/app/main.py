@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.deps import close_redis
-from app.api.routes import health, performance, pipeline, providers, video
+from app.api.routes import health, performance, pipeline, prompts, providers, video
 from app.config import settings
 
 logger = structlog.get_logger()
@@ -56,3 +56,4 @@ app.include_router(pipeline.router)
 app.include_router(video.router)
 app.include_router(performance.router)
 app.include_router(providers.router)
+app.include_router(prompts.router)
