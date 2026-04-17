@@ -72,7 +72,7 @@ async def s3_generate(
         async with slot:
             try:
                 response = await provider.generate_text(
-                    prompt, schema=CandidateScript, max_tokens=2048
+                    prompt, schema=CandidateScript, max_tokens=2048, temperature=0.9
                 )
                 data = json.loads(response)
                 data["script_id"] = str(uuid.uuid4())[:8]

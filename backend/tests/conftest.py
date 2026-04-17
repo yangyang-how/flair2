@@ -26,7 +26,9 @@ class MockReasoningProvider:
     def __init__(self):
         self.call_log: list[str] = []
 
-    async def generate_text(self, prompt: str, schema=None, max_tokens=None) -> str:
+    async def generate_text(
+        self, prompt: str, schema=None, max_tokens=None, temperature=None
+    ) -> str:
         self.call_log.append(prompt[:50])
         return "Mock generated text response."
 

@@ -21,7 +21,7 @@ def sample_script():
 
 @pytest.mark.asyncio
 async def test_s6_returns_final_result(sample_script, sample_creator_profile, mock_provider):
-    async def mock_gen(prompt, schema=None, max_tokens=None):
+    async def mock_gen(prompt, schema=None, max_tokens=None, temperature=None):
         return json.dumps(
             {
                 "personalized_script": "Yo what's up, so lowkey most people waste their mornings...",  # noqa: E501
@@ -40,7 +40,7 @@ async def test_s6_returns_final_result(sample_script, sample_creator_profile, mo
 
 @pytest.mark.asyncio
 async def test_s6_preserves_original_script(sample_script, sample_creator_profile, mock_provider):
-    async def mock_gen(prompt, schema=None, max_tokens=None):
+    async def mock_gen(prompt, schema=None, max_tokens=None, temperature=None):
         return json.dumps(
             {
                 "personalized_script": "Rewritten version",

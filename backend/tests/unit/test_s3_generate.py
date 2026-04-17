@@ -31,7 +31,7 @@ def sample_library():
 async def test_s3_generate_returns_scripts(sample_library, mock_provider):
     call_count = 0
 
-    async def mock_gen(prompt, schema=None, max_tokens=None):
+    async def mock_gen(prompt, schema=None, max_tokens=None, temperature=None):
         nonlocal call_count
         call_count += 1
         return json.dumps(
@@ -55,7 +55,7 @@ async def test_s3_generate_returns_scripts(sample_library, mock_provider):
 
 @pytest.mark.asyncio
 async def test_s3_generate_assigns_unique_ids(sample_library, mock_provider):
-    async def mock_gen(prompt, schema=None, max_tokens=None):
+    async def mock_gen(prompt, schema=None, max_tokens=None, temperature=None):
         return json.dumps(
             {
                 "script_id": "will_be_overridden",

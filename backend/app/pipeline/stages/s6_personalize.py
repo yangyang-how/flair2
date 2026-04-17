@@ -59,7 +59,9 @@ async def s6_personalize(
     )
 
     try:
-        response = await provider.generate_text(prompt, schema=S6Response, max_tokens=2048)
+        response = await provider.generate_text(
+            prompt, schema=S6Response, max_tokens=2048, temperature=0.7
+        )
         data = json.loads(response)
 
         # LLM sometimes returns video_prompt as a nested object instead of string

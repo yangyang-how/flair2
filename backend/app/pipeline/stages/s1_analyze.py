@@ -21,7 +21,9 @@ async def s1_analyze(video: VideoInput, provider: ReasoningProvider) -> S1Patter
     )
 
     try:
-        response = await provider.generate_text(prompt, schema=S1Pattern, max_tokens=2048)
+        response = await provider.generate_text(
+            prompt, schema=S1Pattern, max_tokens=2048, temperature=0.2
+        )
         data = json.loads(response)
         # Ensure video_id matches input (LLM may hallucinate a different one)
         data["video_id"] = video.video_id

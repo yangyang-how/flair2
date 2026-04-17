@@ -1,4 +1,10 @@
-"""Kimi (Moonshot AI) reasoning provider via OpenAI-compatible API."""
+"""Kimi (Moonshot AI) reasoning provider via the Anthropic Messages API.
+
+Kimi's coding endpoint migrated to an Anthropic-compatible schema
+(see /coding/v1/messages). The legacy OpenAI /chat/completions shim
+now returns a misleading "only 0.6 is allowed for this model" error
+for every request, regardless of temperature — a dead surface.
+"""
 
 import asyncio
 import json
@@ -15,8 +21,9 @@ logger = structlog.get_logger()
 BACKOFF_SECS = [1, 2, 4]
 MAX_RETRIES = 3
 
-KIMI_BASE_URL = "https://api.kimi.com/coding/v1"
-KIMI_MODEL = "kimi-k2.5"
+# Anthropic SDK appends /v1/messages; base_url stops before that.
+KIMI_BASE_URL = "https://api.kimi.com/coding"
+KIMI_MODEL = "kimi-for-coding"
 KIMI_USER_AGENT = "claude-code/0.1.0"
 DEFAULT_MAX_TOKENS = 4096
 
@@ -32,9 +39,9 @@ class KimiProvider:
 
     def _get_client(self):
         if self._client is None:
-            from openai import AsyncOpenAI
+            from anthropic import AsyncAnthropic
 
-            self._client = AsyncOpenAI(
+            self._client = AsyncAnthropic(
                 api_key=self._api_key,
                 base_url=KIMI_BASE_URL,
                 default_headers={"User-Agent": KIMI_USER_AGENT},
@@ -47,22 +54,27 @@ class KimiProvider:
         prompt: str,
         schema: type[BaseModel] | None = None,
         max_tokens: int | None = None,
+        temperature: float | None = None,
     ) -> str:
         client = self._get_client()
         token_budget = max_tokens or DEFAULT_MAX_TOKENS
+        kwargs: dict = {
+            "model": self._model,
+            "max_tokens": token_budget,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if temperature is not None:
+            kwargs["temperature"] = temperature
+
         for attempt in range(MAX_RETRIES):
             try:
-                response = await client.chat.completions.create(
-                    model=self._model,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=token_budget,
-                )
-                text = response.choices[0].message.content
+                response = await client.messages.create(**kwargs)
+                text = _extract_text(response)
 
                 if response.usage:
                     self.last_usage = {
-                        "input_tokens": response.usage.prompt_tokens,
-                        "output_tokens": response.usage.completion_tokens,
+                        "input_tokens": response.usage.input_tokens,
+                        "output_tokens": response.usage.output_tokens,
                     }
 
                 if schema:
@@ -72,9 +84,7 @@ class KimiProvider:
                     except json.JSONDecodeError as e:
                         if attempt < MAX_RETRIES - 1:
                             logger.warning(
-                                "kimi_invalid_json",
-                                attempt=attempt,
-                                error=str(e),
+                                "kimi_invalid_json", attempt=attempt, error=str(e)
                             )
                             continue
                         raise InvalidResponseError(
@@ -118,3 +128,17 @@ class KimiProvider:
     async def analyze_content(self, content: str, prompt: str) -> str:
         full_prompt = f"{prompt}\n\nContent to analyze:\n{content}"
         return await self.generate_text(full_prompt)
+
+
+def _extract_text(response) -> str:
+    """Flatten Anthropic Message.content blocks into a single string.
+
+    response.content is a list of content blocks; text blocks have a `text`
+    attribute. Tool-use blocks and other types are ignored for now.
+    """
+    parts: list[str] = []
+    for block in response.content:
+        text = getattr(block, "text", None)
+        if text:
+            parts.append(text)
+    return "".join(parts)

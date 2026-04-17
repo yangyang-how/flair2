@@ -35,9 +35,16 @@ class GeminiProvider:
         prompt: str,
         schema: type[BaseModel] | None = None,
         max_tokens: int | None = None,
+        temperature: float | None = None,
     ) -> str:
         client = self._get_client()
-        config = {"max_output_tokens": max_tokens} if max_tokens else None
+        config: dict | None = None
+        if max_tokens or temperature is not None:
+            config = {}
+            if max_tokens:
+                config["max_output_tokens"] = max_tokens
+            if temperature is not None:
+                config["temperature"] = temperature
         for attempt in range(MAX_RETRIES):
             try:
                 response = await asyncio.to_thread(
