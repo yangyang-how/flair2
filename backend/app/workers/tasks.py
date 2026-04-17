@@ -249,11 +249,16 @@ def s4_vote_task(self, run_id: str, persona_json: str):
             persona_data = json.loads(persona_json)
             persona_id = persona_data["persona_id"]
 
+            persona_name = persona_data.get("name") or persona_id
+            persona_location = persona_data.get("location")
+
             existing = await redis.get(f"result:s4:{run_id}:{persona_id}")
             if existing is not None:
                 vote = PersonaVote.model_validate_json(existing)
                 from app.pipeline.orchestrator import Orchestrator
-                await Orchestrator(redis).on_s4_complete(run_id, persona_id, vote.top_5_script_ids)
+                await Orchestrator(redis).on_s4_complete(
+                    run_id, persona_id, vote.top_5_script_ids, persona_name=persona_name
+                )
                 return
 
             config = await _load_config(redis, run_id)
@@ -261,12 +266,21 @@ def s4_vote_task(self, run_id: str, persona_json: str):
             scripts = [CandidateScript(**s) for s in json.loads(raw)]
             provider = _get_provider(config)
 
+            from app.pipeline.orchestrator import Orchestrator
+            orchestrator = Orchestrator(redis)
+            await orchestrator.emit_event(run_id, "s4_task_started", {
+                "persona_id": persona_id,
+                "name": persona_name,
+                "location": persona_location,
+            })
+
             async with _acquire_provider_slot(redis, config.reasoning_model):
                 vote = await s4_vote(scripts, persona_id, provider, persona_data=persona_data)
             await redis.set(f"result:s4:{run_id}:{persona_id}", vote.model_dump_json())
 
-            from app.pipeline.orchestrator import Orchestrator
-            await Orchestrator(redis).on_s4_complete(run_id, persona_id, vote.top_5_script_ids)
+            await orchestrator.on_s4_complete(
+                run_id, persona_id, vote.top_5_script_ids, persona_name=persona_name
+            )
         finally:
             await redis.aclose()
 

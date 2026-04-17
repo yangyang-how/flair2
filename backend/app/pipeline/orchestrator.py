@@ -94,11 +94,23 @@ class Orchestrator:
 
     async def on_s3_complete(self, run_id: str) -> None:
         config = await self._load_config(run_id)
-        await self._xadd_event(run_id, "s3_complete", {"script_count": config.num_scripts})
+        raw = await self._r.get(f"scripts:candidates:{run_id}")
+        script_ids: list[str] = []
+        if raw:
+            candidates = json.loads(raw)
+            script_ids = [c["script_id"] for c in candidates]
+        await self._xadd_event(run_id, "s3_complete", {
+            "script_count": config.num_scripts,
+            "script_ids": script_ids,
+        })
         await self._transition_s4(run_id, config)
 
     async def on_s4_complete(
-        self, run_id: str, persona_id: str, top_5: list[str] | None = None
+        self,
+        run_id: str,
+        persona_id: str,
+        top_5: list[str] | None = None,
+        persona_name: str | None = None,
     ) -> None:
         done = await self._r.incr(f"run:{run_id}:s4:done")
         config = await self._load_config(run_id)
@@ -108,6 +120,7 @@ class Orchestrator:
 
         await self._xadd_event(run_id, "vote_cast", {
             "persona_id": persona_id,
+            "persona_name": persona_name or persona_id,
             "top_5": top_5 or [],
             "completed": done,
             "total": config.num_personas,

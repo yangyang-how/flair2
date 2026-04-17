@@ -15,6 +15,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useSSE, type SSEEvent } from "../lib/sse-client";
 import { Badge, ProgressBar } from "./ui";
 import S1DiscoverGrid from "./S1DiscoverGrid";
+import S4VoteMatrix from "./S4VoteMatrix";
 import { getRunStatus } from "../lib/api-client";
 
 // ── Stage definitions ─────────────────────────────────────
@@ -31,7 +32,7 @@ const STAGES: StageInfo[] = [
   { id: "S1_MAP", label: "Discover", description: "Analyzing viral videos", color: "var(--disc-a)", colorDark: "var(--disc-b)" },
   { id: "S2_REDUCE", label: "Aggregate", description: "Extracting patterns", color: "var(--disc-a)", colorDark: "var(--disc-b)" },
   { id: "S3_SEQUENTIAL", label: "Generate", description: "Writing scripts", color: "var(--stud-a)", colorDark: "var(--stud-b)" },
-  { id: "S4_MAP", label: "Vote", description: "100 personas voting", color: "var(--eval-a)", colorDark: "var(--eval-b)" },
+  { id: "S4_MAP", label: "Vote", description: "Personas voting", color: "var(--eval-a)", colorDark: "var(--eval-b)" },
   { id: "S5_REDUCE", label: "Rank", description: "Tallying results", color: "var(--eval-a)", colorDark: "var(--eval-b)" },
   { id: "S6_PERSONALIZE", label: "Personalize", description: "Adapting to your voice", color: "var(--pers-a)", colorDark: "var(--pers-b)" },
 ];
@@ -206,7 +207,9 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
   );
 
   const s1Active = stages.S1_MAP.status === "running" || stages.S1_MAP.status === "completed";
+  const s4Active = stages.S4_MAP.status === "running" || stages.S4_MAP.status === "completed";
   const totalVideos = runConfig?.totalVideos || 0;
+  const totalPersonas = runConfig?.totalPersonas || 0;
 
   // Elapsed timer
   const [elapsed, setElapsed] = useState(0);
@@ -366,6 +369,19 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
         )}
       </AnimatePresence>
 
+      {/* S4 Vote Grid */}
+      <AnimatePresence>
+        {s4Active && totalPersonas > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <S4VoteMatrix events={events} totalPersonas={totalPersonas} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Stall warning */}
       <AnimatePresence>
         {stalled && !pipelineError && (
@@ -450,8 +466,10 @@ function formatEventLabel(evt: SSEEvent): { label: string; detail: string; color
       return { label: "S3 Generate", detail: `${d.completed}/${d.total} scripts`, color: "var(--stud-a)" };
     case "s3_complete":
       return { label: "S3 Generate complete", detail: `${d.script_count} scripts`, color: "var(--stud-a)" };
+    case "s4_task_started":
+      return { label: "S4 Vote", detail: `started ${d.name || d.persona_id}`, color: "var(--eval-a)" };
     case "vote_cast":
-      return { label: "S4 Vote", detail: `${d.persona_id} voted (${d.completed}/${d.total})`, color: "var(--eval-a)" };
+      return { label: "S4 Vote", detail: `${d.persona_name || d.persona_id} voted (${d.completed}/${d.total})`, color: "var(--eval-a)" };
     case "s5_complete":
       return { label: "S5 Rank complete", detail: `top ${d.top_n}`, color: "var(--eval-a)" };
     case "s6_progress":
