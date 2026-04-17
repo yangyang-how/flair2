@@ -12,6 +12,7 @@ class ReasoningProvider(Protocol):
         self,
         prompt: str,
         schema: type[BaseModel] | None = None,
+        max_tokens: int | None = None,
     ) -> str: ...
 
     async def analyze_content(

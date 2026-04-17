@@ -18,6 +18,7 @@ MAX_RETRIES = 3
 KIMI_BASE_URL = "https://api.kimi.com/coding/v1"
 KIMI_MODEL = "kimi-k2.5"
 KIMI_USER_AGENT = "claude-code/0.1.0"
+DEFAULT_MAX_TOKENS = 4096
 
 
 class KimiProvider:
@@ -31,9 +32,9 @@ class KimiProvider:
 
     def _get_client(self):
         if self._client is None:
-            from openai import OpenAI
+            from openai import AsyncOpenAI
 
-            self._client = OpenAI(
+            self._client = AsyncOpenAI(
                 api_key=self._api_key,
                 base_url=KIMI_BASE_URL,
                 default_headers={"User-Agent": KIMI_USER_AGENT},
@@ -45,15 +46,16 @@ class KimiProvider:
         self,
         prompt: str,
         schema: type[BaseModel] | None = None,
+        max_tokens: int | None = None,
     ) -> str:
         client = self._get_client()
+        token_budget = max_tokens or DEFAULT_MAX_TOKENS
         for attempt in range(MAX_RETRIES):
             try:
-                response = await asyncio.to_thread(
-                    client.chat.completions.create,
+                response = await client.chat.completions.create(
                     model=self._model,
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=32768,
+                    max_tokens=token_budget,
                 )
                 text = response.choices[0].message.content
 
@@ -87,24 +89,28 @@ class KimiProvider:
                 raise
             except Exception as e:
                 error_str = str(e)
+                body = getattr(e, "body", None) or getattr(e, "response", None)
+                status_code = getattr(e, "status_code", None)
                 if "429" in error_str or "rate" in error_str.lower():
+                    logger.warning(
+                        "kimi_rate_limit",
+                        attempt=attempt,
+                        status=status_code,
+                        body=str(body)[:500] if body else None,
+                        message=error_str[:500],
+                    )
                     if attempt < MAX_RETRIES - 1:
-                        logger.warning(
-                            "kimi_rate_limit",
-                            attempt=attempt,
-                            backoff=BACKOFF_SECS[attempt],
-                        )
                         await asyncio.sleep(BACKOFF_SECS[attempt])
                         continue
                     raise RateLimitError(
-                        f"Rate limited after {MAX_RETRIES} retries",
+                        f"Rate limited after {MAX_RETRIES} retries: {error_str[:200]}",
                         provider=self.name,
                         retry_after=BACKOFF_SECS[-1] * 2,
                     ) from e
                 raise ProviderError(
                     error_str,
                     provider=self.name,
-                    status_code=getattr(e, "status_code", None),
+                    status_code=status_code,
                 ) from e
 
         raise ProviderError("Unexpected retry exhaustion", provider=self.name)

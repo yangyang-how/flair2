@@ -23,11 +23,15 @@ class Settings(BaseSettings):
     kimi_api_key: str = ""
     openai_api_key: str = ""
 
-    # Rate Limits (requests per minute)
+    # Rate Limits (requests per minute — retained for the backpressure experiment)
     gemini_rpm: int = 60
     kimi_rpm: int = 60
     openai_rpm: int = 60
     enable_rate_limiter: bool = True
+
+    # Provider concurrency caps (in-flight requests). Kimi Code docs: 30. Leave
+    # one headroom slot to avoid racing with the ceiling.
+    kimi_max_concurrency: int = 29
 
     # Datasets (local paths — will be replaced by S3 in production)
     dataset_path: str = "data/sample_videos.json"
@@ -35,8 +39,8 @@ class Settings(BaseSettings):
 
     # Pipeline Defaults
     s1_video_count: int = 100
-    s3_script_count: int = 50
-    s4_persona_count: int = 100
+    s3_script_count: int = 20
+    s4_persona_count: int = 42
     s6_top_n: int = 10
 
     # Celery (db=1 — separate from state Redis)

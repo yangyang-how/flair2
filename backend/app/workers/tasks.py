@@ -13,11 +13,13 @@ Tasks are sync; async work runs inside asyncio.run().
 
 import asyncio
 import json
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import structlog
 
 from app.config import settings
-from app.infra.rate_limiter import TokenBucketRateLimiter
+from app.infra.rate_limiter import RedisSemaphore, TokenBucketRateLimiter
 from app.infra.redis_client import RedisClient
 from app.models.errors import ProviderError, StageError
 from app.models.pipeline import PipelineConfig
@@ -69,14 +71,39 @@ async def _report_failure(run_id: str, stage: str, error: str) -> None:
 async def _acquire_rate_limit_token(redis: RedisClient, provider_name: str) -> None:
     """Wait for a rate-limit token before making an LLM call.
 
-    No-op when settings.enable_rate_limiter is False (useful for experiments
-    that want to compare the two modes without redeploying).
+    Kept for the backpressure experiment which still measures token-bucket
+    behavior. Production stages use `_acquire_provider_slot` instead.
     """
     if not settings.enable_rate_limiter:
         return
     rpm = getattr(settings, f"{provider_name}_rpm", 60)
     limiter = TokenBucketRateLimiter(redis, provider_name, max_tokens=rpm, window_seconds=60)
     await limiter.wait_for_token()
+
+
+@asynccontextmanager
+async def _acquire_provider_slot(
+    redis: RedisClient, provider_name: str
+) -> AsyncIterator[None]:
+    """Acquire one in-flight slot for the provider, release on exit.
+
+    Models providers whose real constraint is max concurrent requests
+    (e.g. Kimi Code ≤ 30). No-op when no `{provider}_max_concurrency`
+    setting is configured.
+    """
+    if not settings.enable_rate_limiter:
+        yield
+        return
+    max_slots = getattr(settings, f"{provider_name}_max_concurrency", None)
+    if not max_slots:
+        yield
+        return
+    sem = RedisSemaphore(redis, provider_name, max_slots=max_slots)
+    await sem.acquire()
+    try:
+        yield
+    finally:
+        await sem.release()
 
 
 # ---------------------------------------------------------------------------
@@ -100,8 +127,8 @@ def s1_analyze_task(self, run_id: str, video_json: str):
                 "description": (video.description or "")[:80],
             })
 
-            await _acquire_rate_limit_token(redis, config.reasoning_model)
-            pattern = await s1_analyze(video, provider)
+            async with _acquire_provider_slot(redis, config.reasoning_model):
+                pattern = await s1_analyze(video, provider)
             await redis.set(f"result:s1:{run_id}:{video.video_id}", pattern.model_dump_json())
 
             await orchestrator.on_s1_complete(run_id, video.video_id, pattern_summary={
@@ -175,14 +202,14 @@ def s3_generate_task(self, run_id: str):
             library = S2PatternLibrary.model_validate_json(raw)
             provider = _get_provider(config)
 
-            async def _acquire() -> None:
-                await _acquire_rate_limit_token(redis, config.reasoning_model)
+            def _slot_factory():
+                return _acquire_provider_slot(redis, config.reasoning_model)
 
             scripts = await s3_generate(
                 library,
                 provider,
                 num_scripts=config.num_scripts,
-                acquire_token=_acquire,
+                slot_factory=_slot_factory,
             )
             await redis.set(
                 f"scripts:candidates:{run_id}",
@@ -234,8 +261,8 @@ def s4_vote_task(self, run_id: str, persona_json: str):
             scripts = [CandidateScript(**s) for s in json.loads(raw)]
             provider = _get_provider(config)
 
-            await _acquire_rate_limit_token(redis, config.reasoning_model)
-            vote = await s4_vote(scripts, persona_id, provider, persona_data=persona_data)
+            async with _acquire_provider_slot(redis, config.reasoning_model):
+                vote = await s4_vote(scripts, persona_id, provider, persona_data=persona_data)
             await redis.set(f"result:s4:{run_id}:{persona_id}", vote.model_dump_json())
 
             from app.pipeline.orchestrator import Orchestrator
@@ -318,8 +345,8 @@ def s6_personalize_task(self, run_id: str, script_id: str):
             ranked = next((r for r in rankings.top_10 if r.script_id == script_id), None)
 
             provider = _get_provider(config)
-            await _acquire_rate_limit_token(redis, config.reasoning_model)
-            result = await s6_personalize(script, config.creator_profile, provider)
+            async with _acquire_provider_slot(redis, config.reasoning_model):
+                result = await s6_personalize(script, config.creator_profile, provider)
 
             if ranked is not None:
                 result.rank = ranked.rank

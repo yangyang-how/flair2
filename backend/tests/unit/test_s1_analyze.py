@@ -31,7 +31,7 @@ def sample_video():
 
 @pytest.mark.asyncio
 async def test_s1_analyze_returns_s1_pattern(sample_video, mock_provider):
-    async def mock_gen(prompt, schema=None):
+    async def mock_gen(prompt, schema=None, max_tokens=None):
         return MOCK_S1_RESPONSE
 
     mock_provider.generate_text = mock_gen
@@ -43,7 +43,7 @@ async def test_s1_analyze_returns_s1_pattern(sample_video, mock_provider):
 
 @pytest.mark.asyncio
 async def test_s1_analyze_preserves_video_id(sample_video, mock_provider):
-    async def mock_gen(prompt, schema=None):
+    async def mock_gen(prompt, schema=None, max_tokens=None):
         # Return a response with wrong video_id — stage should override
         data = json.loads(MOCK_S1_RESPONSE)
         data["video_id"] = "wrong_id"
