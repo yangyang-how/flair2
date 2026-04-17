@@ -24,7 +24,7 @@ def sample_scripts():
 
 @pytest.mark.asyncio
 async def test_s4_vote_returns_persona_vote(sample_scripts, mock_provider):
-    async def mock_gen(prompt, schema=None, max_tokens=None):
+    async def mock_gen(prompt, schema=None, max_tokens=None, temperature=None):
         return json.dumps(
             {
                 "persona_id": "persona_0",
