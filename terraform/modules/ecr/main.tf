@@ -9,6 +9,11 @@ resource "aws_ecr_repository" "api" {
   name                 = "${local.prefix}-api"
   image_tag_mutability = "MUTABLE"
 
+  # Allow `terraform destroy` to delete this repo even when images
+  # are still inside. Lifecycle policy already caps at 10 images;
+  # this just removes the "repo not empty" guardrail on teardown.
+  force_delete = true
+
   image_scanning_configuration {
     scan_on_push = true
   }
@@ -22,6 +27,10 @@ resource "aws_ecr_repository" "api" {
 resource "aws_ecr_repository" "worker" {
   name                 = "${local.prefix}-worker"
   image_tag_mutability = "MUTABLE"
+
+  # Allow `terraform destroy` to delete this repo even when images
+  # are still inside.
+  force_delete = true
 
   image_scanning_configuration {
     scan_on_push = true

@@ -1,0 +1,95 @@
+name: Destroy Infra
+
+# Tears down the dev environment via `terraform destroy`. Manual-only
+# trigger with a typed-confirmation gate — this is not a button you
+# want to click accidentally.
+#
+# After a successful destroy, re-deploy by either:
+#   - running this same repo's Deploy workflow (workflow_dispatch), or
+#   - pushing any backend/frontend/terraform change to main
+# Both will re-run `terraform apply` which rebuilds the full stack.
+#
+# What this DOES destroy:
+#   ECS cluster + API/worker services + task definitions
+#   ALB + target groups + listeners
+#   ElastiCache Redis node (data is lost — it's a cache, not a DB)
+#   VPC + subnets + security groups
+#   ECR repositories (images included — force_delete=true)
+#   CloudWatch log groups
+#   IAM roles/policies that terraform owns
+#
+# What this DOES NOT destroy:
+#   The Kimi API key in Secrets Manager (imported, not terraform-owned)
+#   The frontend S3 bucket contents (terraform doesn't manage the bucket
+#     objects; bucket itself IS managed if terraform owns it — check
+#     terraform plan output first if you're unsure)
+#   The terraform state bucket (separate from the infra it tracks)
+#   Dynamo tables if they hold performance data you want to keep
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DESTROY (uppercase) to confirm teardown of the dev environment'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: us-west-2
+  TF_VERSION: "1.9.0"
+  TF_WORKING_DIR: terraform
+  TF_VAR_FILE: environments/dev.tfvars
+
+jobs:
+  destroy:
+    name: terraform destroy
+    runs-on: ubuntu-latest
+    # Guard 1: confirmation input must match exactly
+    if: ${{ github.event.inputs.confirm == 'DESTROY' }}
+    # Guard 2: only runnable from main branch
+    # (workflow_dispatch can be triggered from any ref; this pins it)
+
+    steps:
+      - name: Reject non-main triggers
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: |
+          echo "::error::Destroy must be triggered from main branch, not ${{ github.ref }}"
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform plan (destroy)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform plan -destroy \
+            -input=false \
+            -var-file=${{ env.TF_VAR_FILE }} \
+            -out=destroy.tfplan
+
+      - name: Terraform destroy
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        # Saved plan files carry their own approval — no -auto-approve needed
+        run: terraform apply -input=false destroy.tfplan
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Destroy complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Bring the stack back by running the Deploy workflow or pushing to main." >> $GITHUB_STEP_SUMMARY
