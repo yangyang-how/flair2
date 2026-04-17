@@ -14,10 +14,12 @@ Architecture and design rationale: see `design/architecture.md`. Read it before 
 - **CI:** GitHub Actions
 
 ## Commands
-- Backend run: `uvicorn app.main:app --host 0.0.0.0 --port 8000`
-- Backend test: `pytest`
-- Backend lint: `ruff check .`
-- Backend format: `ruff format .`
+- Backend deps: `cd backend && uv sync --extra dev` — installs from `uv.lock` into `.venv/`. First time: `brew install uv` (or `curl -LsSf https://astral.sh/uv/install.sh | sh`).
+- Backend run: `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000`
+- Backend test: `uv run pytest`
+- Backend lint: `uv run ruff check .`
+- Backend format: `uv run ruff format .`
+- Add a dep: edit `pyproject.toml`, then `uv lock` to refresh `uv.lock`, then commit both.
 - Frontend dev: `cd frontend && npm run dev`
 - Frontend build: `cd frontend && npm run build`
 
