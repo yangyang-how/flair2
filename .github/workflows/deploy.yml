@@ -6,6 +6,8 @@ on:
     paths:
       - "backend/**"
       - "frontend/**"
+      - "terraform/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 env:
@@ -17,11 +19,15 @@ env:
   ECS_API_SERVICE: flair2-dev-api
   ECS_WORKER_SERVICE: flair2-dev-worker
   FRONTEND_S3_BUCKET: flair2-dev-frontend
+  TF_VERSION: "1.9.0"
+  TF_WORKING_DIR: terraform
+  TF_VAR_FILE: environments/dev.tfvars
 
 jobs:
-  # ── Backend ────────────────────────────────────────────────────────────────
-  deploy-backend:
-    name: Backend — Docker → ECR → ECS
+  # ── Build Docker image + push to ECR ──────────────────────────────────────
+  # Runs in parallel with terraform. Deploy waits for both.
+  build-backend:
+    name: Build — Docker → ECR
     runs-on: ubuntu-latest
 
     steps:
@@ -53,18 +59,71 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_WORKER_REPO:${{ github.sha }}
           docker push $ECR_REGISTRY/$ECR_WORKER_REPO:latest
 
-      - name: Deploy to ECS
+  # ── Terraform apply ───────────────────────────────────────────────────────
+  # Creates new task definition revisions when the terraform source changes
+  # (e.g. Celery command, CPU/memory sizing, env vars). Idempotent — a no-op
+  # on pure code PRs, ~15-30s. Runs in parallel with build-backend.
+  terraform:
+    name: Infra — terraform apply
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -auto-approve -input=false -var-file=${{ env.TF_VAR_FILE }}
+
+  # ── Deploy to ECS ─────────────────────────────────────────────────────────
+  # Waits for BOTH the new image (from build) and the new task definition
+  # revision (from terraform) to exist before rolling the ECS services.
+  # Using --task-definition <family> (no :revision) tells ECS to use the
+  # latest ACTIVE revision — the one terraform just minted.
+  deploy-backend:
+    name: Deploy — roll ECS services
+    runs-on: ubuntu-latest
+    needs: [build-backend, terraform]
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update API service (latest task def + force new deployment)
         run: |
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_API_SERVICE \
+            --task-definition $ECS_API_SERVICE \
             --force-new-deployment \
             --region $AWS_REGION \
             --no-cli-pager
 
+      - name: Update worker service (latest task def + force new deployment)
+        run: |
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_WORKER_SERVICE \
+            --task-definition $ECS_WORKER_SERVICE \
             --force-new-deployment \
             --region $AWS_REGION \
             --no-cli-pager
@@ -85,7 +144,7 @@ jobs:
 
           echo "Backend deploy complete."
 
-  # ── Frontend ───────────────────────────────────────────────────────────────
+  # ── Frontend ──────────────────────────────────────────────────────────────
   deploy-frontend:
     name: Frontend — Build → S3
     runs-on: ubuntu-latest
