@@ -58,7 +58,7 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-ui);
-  font-weight: 300;
+  font-weight: 400;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -72,14 +72,13 @@ body {
 }
 
 .font-body {
-  font-family: var(--font-body);
-  font-style: italic;
-  font-weight: 300;
+  font-family: var(--font-ui);
+  font-weight: 400;
 }
 
 .font-ui {
   font-family: var(--font-ui);
-  font-weight: 300;
+  font-weight: 400;
 }
 
 /* ── Blob Animations ────────────────────────────────────────────── */
