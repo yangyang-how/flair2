@@ -94,7 +94,15 @@ class Orchestrator:
 
     async def on_s3_complete(self, run_id: str) -> None:
         config = await self._load_config(run_id)
-        await self._xadd_event(run_id, "s3_complete", {"script_count": config.num_scripts})
+        raw = await self._r.get(f"scripts:candidates:{run_id}")
+        script_ids: list[str] = []
+        if raw:
+            candidates = json.loads(raw)
+            script_ids = [c["script_id"] for c in candidates]
+        await self._xadd_event(run_id, "s3_complete", {
+            "script_count": config.num_scripts,
+            "script_ids": script_ids,
+        })
         await self._transition_s4(run_id, config)
 
     async def on_s4_complete(

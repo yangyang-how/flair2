@@ -15,7 +15,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useSSE, type SSEEvent } from "../lib/sse-client";
 import { Badge, ProgressBar } from "./ui";
 import S1DiscoverGrid from "./S1DiscoverGrid";
-import S4VoteGrid from "./S4VoteGrid";
+import S4VoteMatrix from "./S4VoteMatrix";
 import { getRunStatus } from "../lib/api-client";
 
 // ── Stage definitions ─────────────────────────────────────
@@ -377,7 +377,7 @@ export default function PipelineVisualizer({ runId }: PipelineVisualizerProps) {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <S4VoteGrid events={events} totalPersonas={totalPersonas} />
+            <S4VoteMatrix events={events} totalPersonas={totalPersonas} />
           </motion.div>
         )}
       </AnimatePresence>
