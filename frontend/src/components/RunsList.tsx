@@ -22,7 +22,10 @@ function statusColor(status: string): string {
 }
 
 function linkFor(run: RunStatus): string {
-  if (run.status === "completed") return `/results/${run.run_id}`;
+  // Query-string form, not path — S3 static hosting only pre-generates
+  // the bare /results/ and /pipeline/ routes; any path-style ID 404s
+  // and falls through to the index.html error document.
+  if (run.status === "completed") return `/results/?id=${run.run_id}`;
   return `/pipeline/?id=${run.run_id}`;
 }
 
