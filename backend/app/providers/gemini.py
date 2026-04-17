@@ -2,7 +2,7 @@ import asyncio
 import json
 
 import structlog
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from app.config import settings
 from app.models.errors import InvalidResponseError, ProviderError, RateLimitError
@@ -66,17 +66,20 @@ class GeminiProvider:
                 if schema:
                     json_str = extract_json(text)
                     try:
-                        json.loads(json_str)
-                    except json.JSONDecodeError as e:
+                        parsed = json.loads(json_str)
+                        schema.model_validate(parsed)
+                    except (json.JSONDecodeError, ValidationError) as e:
                         if attempt < MAX_RETRIES - 1:
                             logger.warning(
-                                "invalid_json_response",
+                                "gemini_invalid_schema",
                                 attempt=attempt,
-                                error=str(e),
+                                schema=schema.__name__,
+                                error=str(e)[:300],
                             )
                             continue
                         raise InvalidResponseError(
-                            f"Failed to parse JSON after {MAX_RETRIES} attempts",
+                            f"Failed to produce valid {schema.__name__} "
+                            f"after {MAX_RETRIES} attempts: {str(e)[:200]}",
                             provider=self.name,
                             raw_response=text,
                         ) from e
