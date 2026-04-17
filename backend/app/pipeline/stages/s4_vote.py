@@ -80,7 +80,7 @@ async def s4_vote(
     )
 
     try:
-        response = await provider.generate_text(prompt, schema=PersonaVote)
+        response = await provider.generate_text(prompt, schema=PersonaVote, max_tokens=1024)
         data = json.loads(response)
         data["persona_id"] = persona_id
         return PersonaVote(**data)

@@ -34,14 +34,17 @@ class GeminiProvider:
         self,
         prompt: str,
         schema: type[BaseModel] | None = None,
+        max_tokens: int | None = None,
     ) -> str:
         client = self._get_client()
+        config = {"max_output_tokens": max_tokens} if max_tokens else None
         for attempt in range(MAX_RETRIES):
             try:
                 response = await asyncio.to_thread(
                     client.models.generate_content,
                     model=self._model,
                     contents=prompt,
+                    config=config,
                 )
                 # Capture token usage
                 if hasattr(response, "usage_metadata") and response.usage_metadata:

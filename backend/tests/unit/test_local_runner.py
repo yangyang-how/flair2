@@ -41,7 +41,7 @@ def smart_mock_provider():
         name = "mock"
         _script_count = 0
 
-        async def generate_text(self, prompt, schema=None):
+        async def generate_text(self, prompt, schema=None, max_tokens=None):
             prompt_lower = prompt.lower()
             if "content analyst" in prompt_lower or "what to extract" in prompt_lower:
                 return json.dumps(

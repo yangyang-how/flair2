@@ -1,7 +1,8 @@
 import asyncio
 import json
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager, nullcontext
 
 import structlog
 
@@ -53,7 +54,7 @@ async def s3_generate(
     provider: ReasoningProvider,
     feedback: list[VideoPerformance] | None = None,
     num_scripts: int | None = None,
-    acquire_token: Callable[[], Awaitable[None]] | None = None,
+    slot_factory: Callable[[], AbstractAsyncContextManager[None]] | None = None,
 ) -> list[CandidateScript]:
     """Generate candidate scripts concurrently, one LLM call per script."""
     target = num_scripts or settings.s3_script_count
@@ -67,16 +68,18 @@ async def s3_generate(
             pattern_library_summary=library_summary,
             feedback_section=feedback_section,
         )
-        if acquire_token is not None:
-            await acquire_token()
-        try:
-            response = await provider.generate_text(prompt, schema=CandidateScript)
-            data = json.loads(response)
-            data["script_id"] = str(uuid.uuid4())[:8]
-            return CandidateScript(**data)
-        except Exception as e:
-            logger.warning("s3_script_failed", error=str(e), pattern=pattern.pattern_type)
-            return None
+        slot = slot_factory() if slot_factory is not None else nullcontext()
+        async with slot:
+            try:
+                response = await provider.generate_text(
+                    prompt, schema=CandidateScript, max_tokens=2048
+                )
+                data = json.loads(response)
+                data["script_id"] = str(uuid.uuid4())[:8]
+                return CandidateScript(**data)
+            except Exception as e:
+                logger.warning("s3_script_failed", error=str(e), pattern=pattern.pattern_type)
+                return None
 
     results = await asyncio.gather(*[_generate_one(p) for p in assignments])
     scripts = [r for r in results if r is not None]

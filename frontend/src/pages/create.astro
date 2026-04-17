@@ -200,11 +200,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </div>
           <div>
             <label class="mb-1.5 block text-sm font-medium" for="num_scripts">Scripts to Generate</label>
-            <input id="num_scripts" name="num_scripts" type="number" min="1" value="50" class="input-field" />
+            <input id="num_scripts" name="num_scripts" type="number" min="1" value="20" class="input-field" />
           </div>
           <div>
             <label class="mb-1.5 block text-sm font-medium" for="num_personas">Personas</label>
-            <input id="num_personas" name="num_personas" type="number" min="1" value="100" class="input-field" />
+            <input id="num_personas" name="num_personas" type="number" min="1" value="42" class="input-field" />
           </div>
           <div>
             <label class="mb-1.5 block text-sm font-medium" for="top_n">Top N</label>
@@ -369,8 +369,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         reasoning_model,
         video_model: video_model_raw || null,
         num_videos: parseInt((document.getElementById("num_videos") as HTMLInputElement).value) || 100,
-        num_scripts: parseInt((document.getElementById("num_scripts") as HTMLInputElement).value) || 50,
-        num_personas: parseInt((document.getElementById("num_personas") as HTMLInputElement).value) || 100,
+        num_scripts: parseInt((document.getElementById("num_scripts") as HTMLInputElement).value) || 20,
+        num_personas: parseInt((document.getElementById("num_personas") as HTMLInputElement).value) || 42,
         top_n: parseInt((document.getElementById("top_n") as HTMLInputElement).value) || 10,
       });
 

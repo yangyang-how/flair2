@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -40,7 +40,7 @@ class TestGenerateText:
         mock_resp = _mock_completion("Hello world")
         with patch.object(kimi_provider, "_get_client") as mock_client_fn:
             mock_client = MagicMock()
-            mock_client.chat.completions.create = MagicMock(return_value=mock_resp)
+            mock_client.chat.completions.create = AsyncMock(return_value=mock_resp)
             mock_client_fn.return_value = mock_client
             result = await kimi_provider.generate_text("Say hello")
             assert result == "Hello world"
@@ -52,7 +52,7 @@ class TestGenerateText:
         mock_resp = _mock_completion(wrapped)
         with patch.object(kimi_provider, "_get_client") as mock_client_fn:
             mock_client = MagicMock()
-            mock_client.chat.completions.create = MagicMock(return_value=mock_resp)
+            mock_client.chat.completions.create = AsyncMock(return_value=mock_resp)
             mock_client_fn.return_value = mock_client
             result = await kimi_provider.generate_text("Give JSON", schema=dict)
             parsed = json.loads(result)
@@ -63,7 +63,7 @@ class TestGenerateText:
         mock_resp = _mock_completion("text", input_tokens=50, output_tokens=100)
         with patch.object(kimi_provider, "_get_client") as mock_client_fn:
             mock_client = MagicMock()
-            mock_client.chat.completions.create = MagicMock(return_value=mock_resp)
+            mock_client.chat.completions.create = AsyncMock(return_value=mock_resp)
             mock_client_fn.return_value = mock_client
             await kimi_provider.generate_text("test")
             assert kimi_provider.last_usage == {"input_tokens": 50, "output_tokens": 100}
@@ -76,7 +76,7 @@ class TestRetryBehavior:
         good_resp = _mock_completion('{"valid": true}')
         with patch.object(kimi_provider, "_get_client") as mock_client_fn:
             mock_client = MagicMock()
-            mock_client.chat.completions.create = MagicMock(side_effect=[bad_resp, good_resp])
+            mock_client.chat.completions.create = AsyncMock(side_effect=[bad_resp, good_resp])
             mock_client_fn.return_value = mock_client
             result = await kimi_provider.generate_text("Give JSON", schema=dict)
             assert json.loads(result) == {"valid": True}
@@ -89,7 +89,7 @@ class TestAnalyzeContent:
         mock_resp = _mock_completion("analysis result")
         with patch.object(kimi_provider, "_get_client") as mock_client_fn:
             mock_client = MagicMock()
-            mock_client.chat.completions.create = MagicMock(return_value=mock_resp)
+            mock_client.chat.completions.create = AsyncMock(return_value=mock_resp)
             mock_client_fn.return_value = mock_client
             result = await kimi_provider.analyze_content("video data", "analyze this")
             assert result == "analysis result"

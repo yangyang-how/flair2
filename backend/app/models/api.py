@@ -15,8 +15,8 @@ class StartPipelineRequest(BaseModel):
     reasoning_model: str  # "kimi" | "gemini" | "openai"
     video_model: str | None = None  # "seedance" | "veo" | None
     num_videos: int = 100  # S1 video count
-    num_scripts: int = 50  # S3 script count
-    num_personas: int = 100  # S4 persona count
+    num_scripts: int = 20  # S3 script count
+    num_personas: int = 42  # S4 persona count
     top_n: int = 10  # S5/S6 top N scripts
 
 

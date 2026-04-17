@@ -24,8 +24,8 @@ class PipelineConfig(BaseModel):
     video_model: str | None = None
     creator_profile: CreatorProfile
     num_videos: int = 100
-    num_scripts: int = 50
-    num_personas: int = 100
+    num_scripts: int = 20
+    num_personas: int = 42
     top_n: int = 10
 
 
