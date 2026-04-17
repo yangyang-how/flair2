@@ -21,8 +21,21 @@ S1_ANALYZE_PROMPT = """You are a short-form video content analyst. Analyze this 
 - Do NOT mention specific sounds, dances, memes, challenges, hashtags, or trends
 - Focus on the STRUCTURE that makes this video work, not the specific CONTENT
 
+## When Information Is Sparse
+Videos sometimes arrive with no transcript, or just a few hashtags in
+the description. DO NOT refuse, DO NOT return a partial object, DO NOT
+omit fields. Instead:
+- Infer the most likely hook_type, pacing, and emotional_arc from
+  whatever signal you have (hashtags, emojis, engagement numbers,
+  description tone). A confident guess is fine.
+- For list fields with no evidence, return an empty list `[]`.
+- For `structure_notes`, say so explicitly — "sparse signal; inferring
+  from hashtags" — rather than returning nothing.
+The schema is not negotiable: every field below must appear in your
+response, every time.
+
 ## Output Format
-Respond with ONLY a JSON object:
+Respond with ONLY a JSON object containing EVERY field below:
 {{
     "video_id": "{video_id}",
     "hook_type": "...",
