@@ -6,7 +6,7 @@ S3_GENERATE_PROMPT = """You are a viral short-form video scriptwriter. Generate 
 ## Pattern Library Context
 These are the most common structural patterns found in high-engagement videos:
 {pattern_library_summary}
-
+{creator_context}
 {feedback_section}
 
 ## Requirements
@@ -15,7 +15,7 @@ These are the most common structural patterns found in high-engagement videos:
 - The script must have three parts: hook, body, payoff
 - Focus on STRUCTURAL effectiveness, not trend-chasing
 - The hook must capture attention in the first 3 seconds
-- Include at least one pattern interrupt to maintain retention
+- Include at least one pattern interrupt to maintain retention{niche_instruction}
 
 ## Output Format
 Respond with ONLY a JSON object:
