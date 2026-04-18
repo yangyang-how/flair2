@@ -2,8 +2,18 @@
  * SSE client — React hook for pipeline event streaming.
  *
  * Opens an EventSource to /api/pipeline/status/{runId}.
- * Relies on the browser's native EventSource auto-reconnect which
- * preserves Last-Event-ID across retries.
+ *
+ * Resume semantics:
+ *   - Native EventSource auto-reconnects on transient network errors
+ *     and re-sends its own Last-Event-ID header. No extra work needed
+ *     for that path.
+ *   - For COMPONENT REMOUNT (SPA navigation back to the same runId,
+ *     or deliberate tab refocus on an in-flight run), the browser
+ *     drops its internal Last-Event-ID. We persist the last-seen ID
+ *     per-runId in a module-level Map and pass it as `?cursor=<id>`
+ *     on fresh EventSource connections. Backend prefers this over the
+ *     header.
+ *
  * Multi-tab safe (backend uses Redis Streams, not BLPOP).
  *
  * Contract: https://github.com/yangyang-how/flair2/issues/71 Section 2.
@@ -12,6 +22,11 @@
 import { useEffect, useRef, useState } from "react";
 
 const API_BASE = import.meta.env.PUBLIC_API_URL || "";
+
+// Cross-mount memory of last-seen event IDs. Lives for the lifetime of
+// the module (≈ the tab's JS runtime), which is the right scope for
+// "user navigated away and came back".
+const lastSeenByRunId: Map<string, string> = new Map();
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -50,11 +65,21 @@ export function useSSE(runId: string | null): SSEState {
   useEffect(() => {
     if (!runId) return;
 
-    const url = `${API_BASE}/api/pipeline/status/${runId}`;
+    // If we've seen events for this runId in this session already,
+    // resume from the last one we got instead of replaying from "0-0".
+    const cursor = lastSeenByRunId.get(runId);
+    const url = cursor
+      ? `${API_BASE}/api/pipeline/status/${runId}?cursor=${encodeURIComponent(cursor)}`
+      : `${API_BASE}/api/pipeline/status/${runId}`;
     const es = new EventSource(url);
     eventSourceRef.current = es;
 
+    const recordId = (id: string) => {
+      if (id) lastSeenByRunId.set(runId, id);
+    };
+
     const pushEvent = (sseEvent: SSEEvent) => {
+      recordId(sseEvent.id);
       setState((prev) => ({
         ...prev,
         event: sseEvent,
