@@ -244,6 +244,7 @@ def s3_generate_task(self, run_id: str):
                 provider,
                 num_scripts=config.num_scripts,
                 slot_factory=_slot_factory,
+                creator_profile=config.creator_profile,
             )
             await redis.set(
                 f"scripts:candidates:{run_id}",
