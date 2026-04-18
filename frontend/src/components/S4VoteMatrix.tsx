@@ -34,6 +34,7 @@ interface VoterRow {
   location?: string;
   age?: number;
   occupation?: string;
+  description?: string;
   state: "pending" | "voting" | "voted";
   /** map from script_id → rank (0-indexed, 0 = voter's #1 pick) */
   ranks: Record<string, number>;
@@ -76,6 +77,7 @@ function deriveMatrix(
         location: (d.location as string) || undefined,
         age: (d.age as number) || undefined,
         occupation: (d.occupation as string) || undefined,
+        description: (d.description as string) || undefined,
         state: "voting",
         ranks: {},
       });
@@ -99,6 +101,8 @@ function deriveMatrix(
         location: existing?.location,
         age: existing?.age,
         occupation: existing?.occupation,
+        description:
+          (d.persona_description as string | undefined) ?? existing?.description,
         state: "voted",
         ranks,
       });
@@ -158,7 +162,8 @@ export default function S4VoteMatrix({ events, totalPersonas }: S4VoteMatrixProp
   const votingRows = rows.filter((r) => r.state === "voting").length;
 
   const CELL = 22;
-  const NAME_W = 180;
+  const ROW_H = 36;  // taller than CELL so bio line fits comfortably
+  const NAME_W = 260;
 
   return (
     <div className="space-y-3">
@@ -223,17 +228,22 @@ export default function S4VoteMatrix({ events, totalPersonas }: S4VoteMatrixProp
               row.occupation || null,
               country(row.location) || null,
             ].filter(Boolean);
+            const tooltipParts = [
+              row.displayName,
+              row.location,
+              row.description,
+            ].filter(Boolean);
             return (
-              <div key={row.personaId} className="flex">
-                {/* Name sidebar — two lines */}
+              <div key={row.personaId} className="flex items-center">
+                {/* Name sidebar — name, subtitle, bio preview */}
                 <div
-                  className="flex flex-col justify-center pr-2 truncate"
+                  className="flex flex-col justify-center pr-3 overflow-hidden"
                   style={{
                     width: NAME_W,
-                    height: CELL,
+                    height: ROW_H,
                     opacity: row.state === "pending" ? 0.35 : 1,
                   }}
-                  title={row.location ? `${row.displayName} — ${row.location}` : row.displayName}
+                  title={tooltipParts.join(" — ")}
                 >
                   <span
                     className="font-mono text-[11px] leading-none truncate"
@@ -249,6 +259,14 @@ export default function S4VoteMatrix({ events, totalPersonas }: S4VoteMatrixProp
                   {subtitleParts.length > 0 && (
                     <span className="font-ui text-[9px] leading-none text-[var(--color-text-muted)] truncate mt-0.5">
                       {subtitleParts.join(" · ")}
+                    </span>
+                  )}
+                  {row.description && (
+                    <span
+                      className="font-ui text-[9px] leading-tight text-[var(--color-text-muted)] truncate mt-0.5 italic"
+                      style={{ opacity: 0.75 }}
+                    >
+                      {row.description}
                     </span>
                   )}
                 </div>
