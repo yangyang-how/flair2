@@ -14,14 +14,19 @@ class VideoInput(BaseModel):
 
 
 class S1Pattern(BaseModel):
+    # Core identifiers + classifications — required. S2 aggregation keys
+    # off hook_type + pacing, so these must be present.
     video_id: str
     hook_type: str
     pacing: str
-    emotional_arc: str
-    pattern_interrupts: list[str]
-    retention_mechanics: list[str]
-    engagement_triggers: list[str]
-    structure_notes: str
+    emotional_arc: str = ""
+    # Descriptive lists — default to [] so the LLM can omit them on
+    # sparse-content videos without failing validation. Prompt still asks
+    # for them; this is a safety net.
+    pattern_interrupts: list[str] = []
+    retention_mechanics: list[str] = []
+    engagement_triggers: list[str] = []
+    structure_notes: str = ""
 
 
 class PatternEntry(BaseModel):
