@@ -157,14 +157,21 @@ The orchestrator publishes these events to the stream (via `XADD`):
 |-------|------|------|
 | `pipeline_started` | Run begins | `run_id`, `total_videos`, `total_personas`, `top_n` |
 | `stage_started` | Each stage begins | `stage` name, `total_items` |
-| `s1_progress` | Each video analyzed | `video_id`, `completed`, `total` |
+| `s1_task_started` | A worker picks up an S1 task (before LLM call) | `video_id`, `description` (snippet) |
+| `s1_progress` | Each video analyzed | `video_id`, `completed`, `total`, `hook_type`, `pacing`, `trigger_count` |
+| `s1_video_skipped` | One video un-analyzable after retries exhausted | `video_id`, `reason`, `completed`, `total` |
 | `s2_complete` | Aggregation done | `pattern_count` |
-| `s3_complete` | Generation done | `script_count` |
-| `vote_cast` | Each persona votes | `persona_id`, `top_5`, `completed`, `total` |
+| `s3_progress` | Each script generated (sequential) | `script_id`, `completed`, `total` |
+| `s3_complete` | Generation done | `script_count`, `script_ids` |
+| `s4_task_started` | A worker picks up a vote task | `persona_id`, `name`, `age`, `location`, `occupation`, `description` |
+| `vote_cast` | Each persona votes | `persona_id`, `persona_name`, `persona_description`, `top_5`, `completed`, `total` |
 | `s5_complete` | Ranking done | `top_ids`, `top_n` |
 | `s6_progress` | Each script personalized | `script_id`, `completed`, `total` |
 | `pipeline_completed` | Run finished | `run_id`, `result_count` |
 | `pipeline_error` | Run failed | `stage`, `error`, `recoverable` |
+| `pipeline_recovered` | Crash recovery replayed from S4 checkpoint | `run_id`, `s4_checkpoint`, `remaining_personas` |
+
+**The `*_task_started` pattern:** events fire the moment a worker picks up a task, *before* the LLM call. This is what drives the concurrency meters on the frontend — the S1 grid can show "8 cards pulsing" because it sees 8 `s1_task_started` events that haven't yet been followed by `s1_progress`. Without these events, the UI would jump cards straight from `pending` to `completed` and lose the "work in progress" state entirely.
 
 **Notice the pattern:** progress events for fan-out stages (S1, S4, S6) include `completed` and `total` counts. This lets the frontend show a progress bar: "Analyzing video 37 of 100" or "42 of 100 personas have voted." The frontend doesn't need to track state — each event carries enough context to render the current state.
 

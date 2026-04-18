@@ -116,11 +116,13 @@ Each of the 2-4 Celery workers pulls `s1_analyze_task` messages from Redis db=1.
 done = await self._r.incr(f"run:{run_id}:s1:done")  # atomic increment
 ```
 
-This is the coordination mechanism. 100 workers might be completing S1 tasks concurrently. `INCR` is atomic in Redis — exactly one of them will see `done == 100` and trigger the transition to S2.
+This is the coordination mechanism. 100 workers might be completing S1 tasks concurrently. `INCR` is atomic in Redis — each caller gets a unique sequence number.
 
 The orchestrator publishes `s1_progress` events to the stream. The SSE manager picks them up. The browser shows: "Analyzed 1/100... 2/100... 42/100..."
 
-When `done >= config.num_videos`, the orchestrator calls `_transition_s2()`.
+**Completion threshold — 95%, not 100%.** Since a rate-limited task can retry for up to ~10 minutes (see [Article 16](16-rate-limiting.md)), waiting for every single task to finish would let one straggler gate the whole pipeline. The orchestrator's `_try_transition` helper fires when `done >= ceil(num_videos * 0.95)` — 95 of 100 for a full run. Late completers still `INCR` the counter; a SETNX guard on `run:{id}:s2:triggered` ensures the transition only fires once, even if multiple completions cross the threshold in the same millisecond. Skipped videos (from the [skip-and-continue path](09-worker-lifecycle-and-failure.md)) also count toward the threshold — one un-analyzable video doesn't block S2.
+
+For small runs (fewer than ~20 videos) the `ceil` rounds the threshold up to "all tasks," so the behavior matches the old all-or-nothing wait. The threshold only changes behavior at scale, which is exactly where stragglers bite.
 
 ## Phase 5: S2 — Reduce (aggregate patterns) (sub-second)
 

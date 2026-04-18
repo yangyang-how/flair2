@@ -151,17 +151,17 @@ class KimiProvider:
 
     def _get_client(self):
         if self._client is None:
-            from openai import OpenAI
-            self._client = OpenAI(
+            from anthropic import AsyncAnthropic
+            self._client = AsyncAnthropic(
                 api_key=self._api_key,
-                base_url=KIMI_BASE_URL,
+                base_url=KIMI_BASE_URL,                        # "https://api.kimi.com/coding"
                 default_headers={"User-Agent": KIMI_USER_AGENT},
                 timeout=120.0,
             )
         return self._client
 ```
 
-Kimi uses the OpenAI Python SDK with a custom `base_url`. This is the **OpenAI-compatible API pattern** — covered in detail in [Article 15](15-kimi-and-openai-compatibility.md).
+Kimi speaks the **Anthropic Messages API** on its coding endpoint. We use the `AsyncAnthropic` client with a custom `base_url`. (An earlier version of Kimi spoke OpenAI's chat/completions schema instead — that surface went dead and the client had to migrate. [Article 15](15-kimi-and-openai-compatibility.md) covers the migration history and why the abstraction let us do it with a ~30-line change.)
 
 ### GeminiProvider (`providers/gemini.py`)
 
