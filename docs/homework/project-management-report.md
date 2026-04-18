@@ -52,7 +52,7 @@ We started from a V1 hackathon prototype (`gemini-social-asset`) and rewrote it 
 
 - **Interface contract (issue #71) upfront** — documented every Redis key, every SSE event, every API endpoint. Let Sam and Jess work independently for weeks and integrate cleanly.
 - **One PR, one fix** — 112 PRs averaged 4 files each. Every PR title used conventional prefixes (`feat:`, `fix:`, `chore:`, `docs:`) for grep-friendly history.
-- **Branch protection + mandatory review** — never pushed to main; every PR reviewed by the other team member before merge.
+- **Hard branch protection on `main`** — Sam and Jess set a GitHub ruleset that *physically blocks* direct pushes and requires ≥1 approving review from the other team member before merge (admin override disabled). This turned "we should review each other's work" from a norm into an enforced gate. Effect: every one of the 112 merged PRs has at least one reviewer's signature; neither of us can ship without the other reading the diff. On multiple occasions Jess's review caught issues Sam missed (and vice-versa) before they hit production.
 - **Tests before features** — 105 unit tests existed before the first real pipeline run. Grew to 111 by the end. Caught the `RateLimitError` retry countdown bug pre-deploy.
 - **Test the failure paths explicitly** — M5-2 (failure recovery) validated the checkpoint-and-resume code before we ever needed it. Saved ~50% of LLM calls on the first real crash.
 
