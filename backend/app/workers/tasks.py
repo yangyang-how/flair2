@@ -305,13 +305,16 @@ def s4_vote_task(self, run_id: str, persona_json: str):
             persona_location = persona_data.get("location")
             persona_age = persona_data.get("age")
             persona_occupation = persona_data.get("occupation")
+            persona_description = persona_data.get("description")
 
             existing = await redis.get(f"result:s4:{run_id}:{persona_id}")
             if existing is not None:
                 vote = PersonaVote.model_validate_json(existing)
                 from app.pipeline.orchestrator import Orchestrator
                 await Orchestrator(redis).on_s4_complete(
-                    run_id, persona_id, vote.top_5_script_ids, persona_name=persona_name
+                    run_id, persona_id, vote.top_5_script_ids,
+                    persona_name=persona_name,
+                    persona_description=persona_description,
                 )
                 return
 
@@ -328,6 +331,7 @@ def s4_vote_task(self, run_id: str, persona_json: str):
                 "location": persona_location,
                 "age": persona_age,
                 "occupation": persona_occupation,
+                "description": persona_description,
             })
 
             async with _acquire_provider_slot(redis, config.reasoning_model):
@@ -335,7 +339,9 @@ def s4_vote_task(self, run_id: str, persona_json: str):
             await redis.set(f"result:s4:{run_id}:{persona_id}", vote.model_dump_json())
 
             await orchestrator.on_s4_complete(
-                run_id, persona_id, vote.top_5_script_ids, persona_name=persona_name
+                run_id, persona_id, vote.top_5_script_ids,
+                persona_name=persona_name,
+                persona_description=persona_description,
             )
         finally:
             await redis.aclose()

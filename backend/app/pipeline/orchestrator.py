@@ -195,6 +195,7 @@ class Orchestrator:
         persona_id: str,
         top_5: list[str] | None = None,
         persona_name: str | None = None,
+        persona_description: str | None = None,
     ) -> None:
         done = await self._r.incr(f"run:{run_id}:s4:done")
         config = await self._load_config(run_id)
@@ -202,13 +203,17 @@ class Orchestrator:
         # Checkpoint: persist progress so crash recovery can resume from here
         await self._r.write_checkpoint(run_id, "s4", done)
 
-        await self._xadd_event(run_id, "vote_cast", {
+        event_data: dict = {
             "persona_id": persona_id,
             "persona_name": persona_name or persona_id,
             "top_5": top_5 or [],
             "completed": done,
             "total": config.num_personas,
-        })
+        }
+        if persona_description:
+            event_data["persona_description"] = persona_description
+
+        await self._xadd_event(run_id, "vote_cast", event_data)
 
         from app.config import settings as _settings
         await self._try_transition(
