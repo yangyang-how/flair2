@@ -184,6 +184,44 @@ async def test_on_s1_skipped_emits_event(redis, config, videos):
     assert skipped[0]["data"]["total"] == 3
 
 
+async def test_s1_threshold_transitions_early_on_large_fanout(redis, config):
+    """With 100 videos and 0.95 threshold, S2 fires at 95 — stragglers don't block."""
+    from app.models.pipeline import CreatorProfile, PipelineConfig
+
+    big_config = PipelineConfig(
+        run_id="big", session_id="s", reasoning_model="kimi", video_model=None,
+        creator_profile=CreatorProfile(
+            tone="casual", vocabulary=[], catchphrases=[], topics_to_avoid=[],
+        ),
+        num_videos=100, num_scripts=5, num_personas=2, top_n=2,
+    )
+    big_videos = [
+        VideoInput(video_id=f"v{i}", transcript=None, description=None,
+                   duration=30.0, engagement={})
+        for i in range(100)
+    ]
+    with patch("app.workers.tasks.s1_analyze_task") as mock_task:
+        mock_task.delay = MagicMock()
+        await Orchestrator(redis).start("big-run", big_config, big_videos)
+
+    with patch("app.workers.tasks.s2_aggregate_task") as mock_s2:
+        mock_s2.delay = MagicMock()
+        orch = Orchestrator(redis)
+        # First 94 completions don't transition
+        for i in range(94):
+            await orch.on_s1_complete("big-run", f"v{i}")
+        mock_s2.delay.assert_not_called()
+
+        # 95th crosses ceil(100 * 0.95) = 95 threshold → S2 fires once
+        await orch.on_s1_complete("big-run", "v94")
+        mock_s2.delay.assert_called_once_with("big-run")
+
+        # Remaining 5 completions don't re-trigger (SETNX guard)
+        for i in range(95, 100):
+            await orch.on_s1_complete("big-run", f"v{i}")
+        mock_s2.delay.assert_called_once()
+
+
 async def test_s1_complete_transitions_stage(redis, config, videos):
     with patch("app.workers.tasks.s1_analyze_task") as mock_task:
         mock_task.delay = MagicMock()

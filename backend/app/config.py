@@ -43,6 +43,14 @@ class Settings(BaseSettings):
     s4_persona_count: int = 42
     s6_top_n: int = 10
 
+    # Completion thresholds — transition to next stage when this fraction
+    # of fan-out tasks finished (completed or skipped). Prevents one
+    # rate-limited straggler (~10min retry budget) from blocking the
+    # whole run behind itself. Late completers still INCR counters; the
+    # SETNX guard in the orchestrator ensures the transition fires once.
+    s1_completion_threshold: float = 0.95
+    s4_completion_threshold: float = 0.95
+
     # Celery (db=1 — separate from state Redis)
     celery_broker_url: str = "redis://localhost:6379/1"
 

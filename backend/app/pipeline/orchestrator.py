@@ -13,6 +13,7 @@ Follows interface contract #71 v3 exactly:
 """
 
 import json
+import math
 from datetime import UTC, datetime
 
 import structlog
@@ -69,9 +70,57 @@ class Orchestrator:
     async def emit_event(self, run_id: str, event: str, data: dict) -> None:
         await self._xadd_event(run_id, event, data)
 
+    async def _try_transition(
+        self,
+        run_id: str,
+        stage_key: str,
+        done: int,
+        total: int,
+        threshold: float,
+        transition: "callable",
+    ) -> None:
+        """Trigger the next-stage transition at most once, when enough tasks
+        have finished.
+
+        Uses SETNX on a per-stage flag to guarantee exactly-once dispatch
+        even when multiple concurrent completions all cross the threshold
+        line within the same millisecond window.
+
+        threshold is a fraction of `total`. 1.0 means "wait for everyone",
+        0.95 means "good enough at 95 of 100 — late ones keep running but
+        we move on".
+        """
+        from app.config import settings as _settings  # local: avoid cycle
+
+        # ceil so that threshold=0.95 × 10 items requires 10 completions
+        # (not 9 — int() would truncate). Threshold only kicks in for
+        # large fan-outs where saving the last 5% actually matters.
+        needed = max(1, math.ceil(total * threshold))
+        if done < needed and done < total:
+            return
+
+        triggered = await self._r.setnx(
+            f"run:{run_id}:{stage_key}:triggered", "1", ttl=TTL_SECONDS,
+        )
+        if not triggered:
+            return  # another completion already fired the transition
+        logger.info(
+            "orchestrator_transition_triggered",
+            run_id=run_id,
+            stage=stage_key,
+            done=done,
+            total=total,
+            threshold=threshold,
+            early=(done < total),
+        )
+        _ = _settings  # silence unused if not needed; helper imports for future use
+        await transition()
+
     async def on_s1_complete(
         self, run_id: str, video_id: str, pattern_summary: dict | None = None,
     ) -> None:
+        from app.config import settings as _settings
+
         done = await self._r.incr(f"run:{run_id}:s1:done")
         config = await self._load_config(run_id)
 
@@ -85,8 +134,11 @@ class Orchestrator:
 
         await self._xadd_event(run_id, "s1_progress", event_data)
 
-        if done >= config.num_videos:
-            await self._transition_s2(run_id)
+        await self._try_transition(
+            run_id, "s2", done, config.num_videos,
+            _settings.s1_completion_threshold,
+            lambda: self._transition_s2(run_id),
+        )
 
     async def on_s1_skipped(
         self, run_id: str, video_id: str, reason: str,
@@ -113,8 +165,12 @@ class Orchestrator:
             reason=reason[:200],
         )
 
-        if done >= config.num_videos:
-            await self._transition_s2(run_id)
+        from app.config import settings as _settings
+        await self._try_transition(
+            run_id, "s2", done, config.num_videos,
+            _settings.s1_completion_threshold,
+            lambda: self._transition_s2(run_id),
+        )
 
     async def on_s2_complete(self, run_id: str, pattern_count: int = 0) -> None:
         await self._xadd_event(run_id, "s2_complete", {"pattern_count": pattern_count})
@@ -154,8 +210,12 @@ class Orchestrator:
             "total": config.num_personas,
         })
 
-        if done >= config.num_personas:
-            await self._transition_s5(run_id)
+        from app.config import settings as _settings
+        await self._try_transition(
+            run_id, "s5", done, config.num_personas,
+            _settings.s4_completion_threshold,
+            lambda: self._transition_s5(run_id),
+        )
 
     async def recover(self, run_id: str) -> None:
         """Resume a crashed run from the last S4 checkpoint.
