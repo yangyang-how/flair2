@@ -8,6 +8,7 @@ for every request, regardless of temperature — a dead surface.
 
 import asyncio
 import json
+import random
 
 import structlog
 from pydantic import BaseModel, ValidationError
@@ -18,8 +19,22 @@ from app.providers.utils import extract_json
 
 logger = structlog.get_logger()
 
+# Short backoff for transient parse/schema errors — retry quickly.
 BACKOFF_SECS = [1, 2, 4]
 MAX_RETRIES = 3
+
+# Long backoff for 429 rate limits — Kimi's "too many concurrent requests"
+# typically clears in 10-30s. With 100 concurrent tasks hitting the same
+# limit, jitter is critical to prevent thundering-herd re-failures.
+RATE_LIMIT_BACKOFF = [8, 20, 45, 90]
+RATE_LIMIT_JITTER_FRAC = 0.3  # ±30% jitter on each backoff
+RATE_LIMIT_MAX_RETRIES = len(RATE_LIMIT_BACKOFF)
+
+
+def _rate_limit_delay(attempt: int) -> float:
+    base = RATE_LIMIT_BACKOFF[min(attempt, len(RATE_LIMIT_BACKOFF) - 1)]
+    jitter = base * RATE_LIMIT_JITTER_FRAC * (2 * random.random() - 1)
+    return max(1.0, base + jitter)
 
 # Anthropic SDK appends /v1/messages; base_url stops before that.
 KIMI_BASE_URL = "https://api.kimi.com/coding"
@@ -66,7 +81,9 @@ class KimiProvider:
         if temperature is not None:
             kwargs["temperature"] = temperature
 
-        for attempt in range(MAX_RETRIES):
+        rate_limit_attempts = 0
+        attempt = 0
+        while attempt < MAX_RETRIES:
             try:
                 response = await client.messages.create(**kwargs)
                 text = _extract_text(response)
@@ -95,6 +112,7 @@ class KimiProvider:
                                 schema=schema.__name__,
                                 error=str(e)[:300],
                             )
+                            attempt += 1
                             continue
                         raise InvalidResponseError(
                             f"Failed to produce valid {schema.__name__} "
@@ -112,20 +130,31 @@ class KimiProvider:
                 body = getattr(e, "body", None) or getattr(e, "response", None)
                 status_code = getattr(e, "status_code", None)
                 if "429" in error_str or "rate" in error_str.lower():
+                    # Rate limits get their own retry budget — separate from
+                    # the main loop — because they need much longer backoffs
+                    # to actually let the limit clear.
+                    delay = _rate_limit_delay(rate_limit_attempts)
                     logger.warning(
                         "kimi_rate_limit",
-                        attempt=attempt,
+                        rate_limit_attempt=rate_limit_attempts,
                         status=status_code,
+                        sleep_for_s=round(delay, 1),
                         body=str(body)[:500] if body else None,
                         message=error_str[:500],
                     )
-                    if attempt < MAX_RETRIES - 1:
-                        await asyncio.sleep(BACKOFF_SECS[attempt])
+                    if rate_limit_attempts < RATE_LIMIT_MAX_RETRIES - 1:
+                        await asyncio.sleep(delay)
+                        rate_limit_attempts += 1
+                        # Rate-limit retries don't count against the main
+                        # attempt budget — we want to give them real time
+                        # to clear, not burn through 3 attempts in 7s.
                         continue
+                    # Exhausted the generous rate-limit budget. Surface it
+                    # with a hint so the Celery task can wait even longer.
                     raise RateLimitError(
-                        f"Rate limited after {MAX_RETRIES} retries: {error_str[:200]}",
+                        f"Rate limited after {RATE_LIMIT_MAX_RETRIES} retries: {error_str[:200]}",
                         provider=self.name,
-                        retry_after=BACKOFF_SECS[-1] * 2,
+                        retry_after=RATE_LIMIT_BACKOFF[-1],
                     ) from e
                 raise ProviderError(
                     error_str,

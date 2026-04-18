@@ -69,6 +69,23 @@ async def _report_failure(run_id: str, stage: str, error: str) -> None:
         await redis.aclose()
 
 
+def _retry_countdown(exc: ProviderError) -> int:
+    """Pick a task-level retry delay based on the exception type.
+
+    Rate limits need real time to clear — use the provider's retry_after hint
+    with jitter to prevent N concurrent tasks from retrying in lockstep.
+    Other provider errors use the default short delay.
+    """
+    from app.models.errors import RateLimitError
+    if isinstance(exc, RateLimitError) and exc.retry_after:
+        # Jitter ±25% so concurrent tasks don't all retry at the same instant.
+        import random as _random
+        base = float(exc.retry_after)
+        jitter = base * 0.25 * (2 * _random.random() - 1)
+        return max(5, int(base + jitter))
+    return 4  # default_retry_delay
+
+
 async def _skip_s1_video(run_id: str, video_id: str, reason: str) -> None:
     """Mark one S1 video as un-analyzable without killing the whole run."""
     redis = RedisClient(settings.redis_url)
@@ -121,7 +138,7 @@ async def _acquire_provider_slot(
 # S1 — analyze one video
 # ---------------------------------------------------------------------------
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
+@celery_app.task(bind=True, max_retries=5, default_retry_delay=4)
 def s1_analyze_task(self, run_id: str, video_json: str):
     # Parse video_id up-front so the exception handlers can reference it
     # when skipping — video_json might still be malformed, fall through.
@@ -160,7 +177,7 @@ def s1_analyze_task(self, run_id: str, video_json: str):
         asyncio.run(_run())
     except ProviderError as exc:
         try:
-            raise self.retry(exc=exc) from exc
+            raise self.retry(exc=exc, countdown=_retry_countdown(exc)) from exc
         except self.MaxRetriesExceededError:
             # One un-analyzable video (sparse description, LLM schema drift,
             # etc.) should not kill the other 99. Mark it skipped and let S2
@@ -193,7 +210,7 @@ def s1_analyze_task(self, run_id: str, video_json: str):
 # S2 — aggregate all S1 patterns (single task, reads all results)
 # ---------------------------------------------------------------------------
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
+@celery_app.task(bind=True, max_retries=5, default_retry_delay=4)
 def s2_aggregate_task(self, run_id: str):
     async def _run():
         redis = RedisClient(settings.redis_url)
@@ -226,7 +243,7 @@ def s2_aggregate_task(self, run_id: str):
 # S3 — generate candidate scripts concurrently
 # ---------------------------------------------------------------------------
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
+@celery_app.task(bind=True, max_retries=5, default_retry_delay=4)
 def s3_generate_task(self, run_id: str):
     async def _run():
         redis = RedisClient(settings.redis_url)
@@ -260,7 +277,7 @@ def s3_generate_task(self, run_id: str):
         asyncio.run(_run())
     except ProviderError as exc:
         try:
-            raise self.retry(exc=exc) from exc
+            raise self.retry(exc=exc, countdown=_retry_countdown(exc)) from exc
         except self.MaxRetriesExceededError:
             logger.error("s3_retries_exhausted", run_id=run_id, error=str(exc))
             asyncio.run(_report_failure(run_id, "S3", f"Provider error after retries: {exc}"))
@@ -276,7 +293,7 @@ def s3_generate_task(self, run_id: str):
 # S4 — one persona votes
 # ---------------------------------------------------------------------------
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
+@celery_app.task(bind=True, max_retries=5, default_retry_delay=4)
 def s4_vote_task(self, run_id: str, persona_json: str):
     async def _run():
         redis = RedisClient(settings.redis_url)
@@ -327,7 +344,7 @@ def s4_vote_task(self, run_id: str, persona_json: str):
         asyncio.run(_run())
     except ProviderError as exc:
         try:
-            raise self.retry(exc=exc) from exc
+            raise self.retry(exc=exc, countdown=_retry_countdown(exc)) from exc
         except self.MaxRetriesExceededError:
             logger.error("s4_retries_exhausted", run_id=run_id, error=str(exc))
             asyncio.run(_report_failure(run_id, "S4", f"Provider error after retries: {exc}"))
@@ -343,7 +360,7 @@ def s4_vote_task(self, run_id: str, persona_json: str):
 # S5 — rank all votes (single task)
 # ---------------------------------------------------------------------------
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
+@celery_app.task(bind=True, max_retries=5, default_retry_delay=4)
 def s5_rank_task(self, run_id: str):
     async def _run():
         redis = RedisClient(settings.redis_url)
@@ -377,7 +394,7 @@ def s5_rank_task(self, run_id: str):
 # S6 — personalize one top script
 # ---------------------------------------------------------------------------
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=4)
+@celery_app.task(bind=True, max_retries=5, default_retry_delay=4)
 def s6_personalize_task(self, run_id: str, script_id: str):
     async def _run():
         redis = RedisClient(settings.redis_url)
@@ -416,7 +433,7 @@ def s6_personalize_task(self, run_id: str, script_id: str):
         asyncio.run(_run())
     except ProviderError as exc:
         try:
-            raise self.retry(exc=exc) from exc
+            raise self.retry(exc=exc, countdown=_retry_countdown(exc)) from exc
         except self.MaxRetriesExceededError:
             logger.error("s6_retries_exhausted", run_id=run_id, error=str(exc))
             asyncio.run(_report_failure(run_id, "S6", f"Provider error after retries: {exc}"))
