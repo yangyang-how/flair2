@@ -2,6 +2,8 @@
 
 > When multiple workers share one API key with a per-minute rate limit, you need centralized coordination. This article teaches the token bucket algorithm, its Redis implementation, and a documented race condition you should know about.
 
+> **Note (April 2026):** production has since moved from the token-bucket to a **Redis semaphore** because Kimi's real constraint turned out to be concurrent in-flight requests (≤30), not requests per minute. The token bucket lives on in the M5-1 backpressure experiment. Both mechanisms and the migration rationale are covered together below.
+
 ## The problem
 
 Kimi (and most LLM providers) enforce a per-minute rate limit — say, 60 requests per minute per API key. Flair2 has multiple workers, all using the same API key. If each worker independently tracks "how many calls have I made this minute," the total would exceed the limit because they can't see each other's counts.
@@ -182,6 +184,56 @@ The backpressure experiment (in `tests/experiments/test_backpressure.py`) tested
 Flair2 uses **fixed window** (counter + TTL), which has a known edge case: at the boundary between two windows, you could make `max_tokens` calls in the last second of window 1 and `max_tokens` calls in the first second of window 2 — double the intended rate in a 2-second burst. **Sliding window** fixes this by counting calls in a rolling time period, but it's more complex to implement in Redis.
 
 For Flair2's LLM calls (which take 2-5 seconds each), the boundary burst is impossible in practice — you can't make 60 calls in one second. The fixed window approximation is fine.
+
+## Production swap: semaphore replaces token bucket
+
+As Flair2 ran against real Kimi traffic, a pattern emerged: most 429s came not from exceeding a per-minute count but from exceeding **concurrent in-flight requests** (Kimi Code's cap is ~30). Rate/minute wasn't the right mental model.
+
+The fix, in `backend/app/infra/rate_limiter.py`, is a `RedisSemaphore` — a classic counting semaphore backed by an atomic Redis counter. Before each LLM call, the worker acquires a slot; after the call (or on exception), it releases. The semaphore size is set from `settings.kimi_max_concurrency = 29` (one headroom slot under Kimi's ceiling).
+
+```python
+@asynccontextmanager
+async def _acquire_provider_slot(redis, provider_name):
+    if not settings.enable_rate_limiter:
+        yield; return
+    max_slots = getattr(settings, f"{provider_name}_max_concurrency", None)
+    if not max_slots:
+        yield; return
+    sem = RedisSemaphore(redis, provider_name, max_slots=max_slots)
+    await sem.acquire()
+    try:
+        yield
+    finally:
+        await sem.release()
+```
+
+Each S1/S3/S4/S6 task wraps its LLM call in this context manager. The semaphore exposes actual concurrency, not a per-minute rate — which is what Kimi's endpoint actually cares about.
+
+**Why both still exist:** the token bucket is kept around because M5-1 (backpressure experiment) measures its fairness properties across K concurrent users. Production traffic goes through the semaphore. Two primitives, two purposes.
+
+## Retry budget per error class
+
+A second rate-limit improvement: when a 429 does get through (transient spikes happen), the provider retries it — but on a much longer schedule than regular errors.
+
+In `providers/kimi.py`:
+
+```python
+# Short backoff for transient parse/schema errors
+BACKOFF_SECS = [1, 2, 4]
+MAX_RETRIES = 3
+
+# Long backoff for 429s — Kimi's "too many concurrent" clears in 10-30s,
+# and jitter is critical when 100 tasks all hit the limit together.
+RATE_LIMIT_BACKOFF = [8, 20, 45, 90]
+RATE_LIMIT_JITTER_FRAC = 0.3
+RATE_LIMIT_MAX_RETRIES = len(RATE_LIMIT_BACKOFF)
+```
+
+Parse/schema errors and rate-limit errors have **separate retry budgets**. A task hitting repeated 429s doesn't burn its 3-attempt budget in 7 seconds — it gets 4 patient attempts totaling ~165 seconds plus jitter. If it still fails, `RateLimitError` is raised with `retry_after` set, and the Celery task wrapper uses that as its own retry countdown (with another ±25% jitter layer on top).
+
+**Total patience for a persistent 429:** ~165s at the provider, then up to 5 Celery retries at ~90s each. Roughly 10 minutes before giving up — enough time for almost any real concurrency throttling to clear.
+
+**The pattern:** don't mix fast and slow retries in the same budget. Transient noise deserves aggressive quick retries. Upstream throttling deserves patience. One budget can't satisfy both.
 
 ## What you should take from this
 

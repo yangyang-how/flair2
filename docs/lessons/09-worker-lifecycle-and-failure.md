@@ -33,9 +33,14 @@ The task function throws an error. Maybe Kimi returned unparseable JSON, or the 
 3. The task IS acknowledged (removed from the queue) — even with `acks_late=True`
 4. The exception is logged
 
-**In Flair2:** the task's error handler catches `ProviderError` and `StageError` and calls `orchestrator.on_failure()`, which marks the entire run as failed and publishes a `pipeline_error` event to the SSE stream. The user sees "Pipeline failed at S1: rate limit exceeded" in real time.
+**In Flair2:** the task's error handler catches `ProviderError` and `StageError`. What happens next depends on which stage failed:
 
-**Design choice:** Flair2 does NOT retry on exception by default. An LLM error that produced unparseable output is likely to produce unparseable output again. Instead, the run fails and the user can start a new one. This is a deliberate choice — automatic retry is appropriate for transient errors (network blip), not for semantic errors (bad LLM output).
+- **S1 (fan-out over videos):** the task calls `orchestrator.on_s1_skipped()` — mark this ONE video as un-analyzable, increment the same counter as a successful analysis, publish `s1_video_skipped` to the SSE stream. The other 99 videos keep going. This is the **skip-and-continue** pattern: one bad input should never kill the whole run.
+- **S2, S3, S5, S6:** these are single-task (S2/S3/S5) or small fan-outs (S6) where there's no useful notion of "continue without this one." The task calls `orchestrator.on_failure()`, which marks the run as failed and publishes `pipeline_error`.
+
+The difference is surface area. With 100 S1 tasks, the probability of at least one hitting a weird LLM response approaches 1 as N grows. Killing the run every time would make the system unusable at scale. With 1 S3 task, there's nothing to fall back to — if S3 fails, there are no scripts to vote on.
+
+**Design choice:** Flair2 retries transient errors at the provider level (3 attempts with backoff, 4 more for rate limits — see [Article 16](16-rate-limiting.md)) and the Celery task level (5 attempts with jitter) before giving up. Only after all retries exhaust does the stage decide whether to skip (S1) or fail the run (everything else).
 
 If you wanted automatic retry, Celery supports it:
 

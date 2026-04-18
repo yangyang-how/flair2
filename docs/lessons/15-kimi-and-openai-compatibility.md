@@ -1,40 +1,42 @@
-# 15. Kimi and the OpenAI Compatibility Layer
+# 15. Kimi and the Anthropic Messages Migration
 
-> Most new LLM providers ship an OpenAI-compatible API endpoint. Understanding why this pattern exists and how it works gives you a practical skill: swap LLM providers without rewriting client code.
+> Industry-standard APIs come and go. Between the hackathon prototype and today, Flair2 migrated its LLM client twice — first to OpenAI's chat/completions schema, then to Anthropic's Messages API. This article explains why both moves happened, what the current wiring looks like, and the transferable lesson about coding against an interface.
 
-## The industry pattern
+## Two migrations in one project
 
-OpenAI's Chat Completions API has become a de facto standard. The key endpoint:
+When the Kimi provider was first added, Kimi's coding endpoint exposed an OpenAI-compatible `chat/completions` route. That made integration cheap: use the OpenAI Python SDK, swap `base_url`, done. Many Chinese LLM providers did this to attract developers already using OpenAI's SDK.
 
+Then Kimi's endpoint quietly changed. The OpenAI-shaped route started returning a misleading error — `"only 0.6 is allowed for this model"` — for every request regardless of temperature. The real surface moved to an Anthropic Messages API shape at `/coding/v1/messages`. So we migrated again, this time to the Anthropic Python SDK.
+
+This sequence is now permanently documented in the provider file's docstring:
+
+```python
+"""Kimi (Moonshot AI) reasoning provider via the Anthropic Messages API.
+
+Kimi's coding endpoint migrated to an Anthropic-compatible schema
+(see /coding/v1/messages). The legacy OpenAI /chat/completions shim
+now returns a misleading "only 0.6 is allowed for this model" error
+for every request, regardless of temperature — a dead surface.
+"""
 ```
-POST /v1/chat/completions
-{
-  "model": "gpt-4",
-  "messages": [{"role": "user", "content": "Hello"}],
-  "max_tokens": 1000
-}
-```
 
-Many LLM providers — including Kimi (Moonshot AI), Together AI, Groq, Anyscale, Fireworks, and dozens of others — implement this exact API shape at their own endpoint. You can use the official OpenAI Python SDK, point it at a different `base_url`, and it works.
+**The transferable lesson:** LLM provider APIs are not stable contracts. Public pricing pages and "OpenAI compatible" claims can change month to month. Design your provider abstraction so migrations are one file's worth of work.
 
-**Why providers do this:** the OpenAI SDK is the most widely used LLM client library. By matching its API, providers get instant compatibility with every tool, framework, and tutorial that uses the OpenAI SDK. It's free adoption.
-
-**Why this matters for you:** if you build your LLM integration around the OpenAI SDK, switching providers is a configuration change (new base URL + API key), not a code rewrite.
-
-## How Kimi uses it
+## The current wiring
 
 **File:** `backend/app/providers/kimi.py`
 
 ```python
-KIMI_BASE_URL = "https://api.kimi.com/coding/v1"
-KIMI_MODEL = "kimi-for-coding/k2p5"
+KIMI_BASE_URL = "https://api.kimi.com/coding"  # no /v1 — SDK appends /v1/messages
+KIMI_MODEL = "kimi-for-coding"                 # or "kimi-k2.5"
 KIMI_USER_AGENT = "claude-code/0.1.0"
 
 class KimiProvider:
     def _get_client(self):
         if self._client is None:
-            from openai import OpenAI
-            self._client = OpenAI(
+            from anthropic import AsyncAnthropic
+
+            self._client = AsyncAnthropic(
                 api_key=self._api_key,
                 base_url=KIMI_BASE_URL,
                 default_headers={"User-Agent": KIMI_USER_AGENT},
@@ -43,160 +45,76 @@ class KimiProvider:
         return self._client
 ```
 
-Three things are swapped from the default OpenAI configuration:
+Three things changed from the OpenAI era:
 
-### 1. `base_url`
+### 1. Different SDK
 
-Instead of `https://api.openai.com/v1`, requests go to `https://api.kimi.com/coding/v1`. The SDK appends the endpoint path (`/chat/completions`) to this base URL. All request/response formatting stays the same.
+`AsyncAnthropic` instead of `OpenAI`. Same pattern (base_url + default_headers), different package. The rest of the provider code — retry logic, rate-limit handling, JSON parsing — didn't change because it doesn't depend on the SDK.
 
-### 2. `api_key`
+### 2. Different endpoint shape
 
-Kimi has its own API keys, separate from OpenAI. The key is passed to the same `api_key` parameter. The SDK includes it as a `Bearer` token in the `Authorization` header, which is the standard OAuth2 pattern.
+`base_url` stops at `/coding`, not `/coding/v1`, because the Anthropic SDK appends `/v1/messages` automatically. Getting this wrong silently breaks everything with a 404.
 
-### 3. `default_headers`
+### 3. Different request/response shape
 
-```python
-default_headers={"User-Agent": KIMI_USER_AGENT}
-```
+Requests use `client.messages.create(...)` with `messages=[...]` and `max_tokens` (required in Anthropic's API, optional in OpenAI's). Responses are `Message` objects with a `content` list of content blocks — each block has a `type` ("text", "tool_use", etc.) and a `text` attribute for text blocks.
 
-This is the interesting one. Kimi requires (or at least expects) a specific User-Agent header. The OpenAI SDK's default User-Agent is something like `openai-python/1.x.x`. Kimi might reject or rate-limit requests with that UA.
-
-The `default_headers` parameter on the OpenAI client adds these headers to every request. This is the workaround for provider-specific quirks that the standard API shape doesn't account for.
-
-**PR history:** this was fixed in PR #67 ("fix: use OpenAI default_headers for Kimi User-Agent"). Before that, the UA was being set some other way that didn't work reliably.
-
-## The API call
+Flair2 only cares about text, so it flattens the content blocks:
 
 ```python
-response = await asyncio.to_thread(
-    client.chat.completions.create,
-    model=self._model,
-    messages=[{"role": "user", "content": prompt}],
-    max_tokens=32768,
-)
-text = response.choices[0].message.content
+def _extract_text(response) -> str:
+    parts: list[str] = []
+    for block in response.content:
+        text = getattr(block, "text", None)
+        if text:
+            parts.append(text)
+    return "".join(parts)
 ```
 
-**`asyncio.to_thread`:** the OpenAI Python SDK's synchronous client (`OpenAI`, not `AsyncOpenAI`) is used here, wrapped in `asyncio.to_thread` to avoid blocking the event loop. This runs the synchronous HTTP call in a thread pool.
+## The User-Agent whitelist (still required)
 
-**Why not `AsyncOpenAI`?** It would work too. The choice of sync-in-thread vs async is a pragmatic one — both work, sync is simpler to debug (stack traces are clearer), and the threading overhead is negligible for 2-5 second LLM calls.
+Kimi's coding endpoint is gated on User-Agent. Only approved coding agents (Kimi CLI, Claude Code, Roo Code, etc.) can use it. Unrecognized clients get 403: *"Kimi For Coding is currently only available for Coding Agents."*
 
-**Response parsing:** `response.choices[0].message.content` — the standard OpenAI response structure. Kimi returns responses in the same format: a list of `choices`, each with a `message` containing `role` and `content`.
+The `default_headers={"User-Agent": "claude-code/0.1.0"}` line is the whitelist workaround. Same fragility it had during the OpenAI era — if Kimi tightens validation, the spoof breaks. Nothing about migrating to Anthropic's SDK fixed this; it's an endpoint policy, not an SDK behavior.
 
-**Token usage:**
-```python
-if response.usage:
-    self.last_usage = {
-        "input_tokens": response.usage.prompt_tokens,
-        "output_tokens": response.usage.completion_tokens,
-    }
-```
+## The registry abstraction paid off twice
 
-The `usage` field is part of the OpenAI response spec. Kimi populates it. This lets Flair2 track token consumption across calls — useful for cost monitoring.
+Because every stage calls `provider.generate_text(...)` through the `ReasoningProvider` Protocol ([Article 14](14-the-provider-abstraction.md)), **two SDK migrations didn't touch any stage code.** S1, S3, S4, S6 have no idea which SDK sits behind the provider. The only files that changed across migrations:
 
-## Comparing with GeminiProvider
+- `providers/kimi.py` — the SDK wrapper
+- `pyproject.toml` — the dependency (anthropic instead of openai)
+- Tests that specifically asserted OpenAI SDK behavior
 
-Gemini does NOT use the OpenAI-compatible pattern. It has its own SDK:
+Every other part of the codebase — orchestrator, workers, stages, frontend — was unaffected. This is the dividend of programming to an interface. When the interface is stable and the implementation changes, only the implementation file changes.
 
-```python
-# Gemini — different SDK, different API:
-from google import genai
-client = genai.Client(api_key=self._api_key)
-response = await asyncio.to_thread(
-    client.models.generate_content,
-    model=self._model,
-    contents=prompt,
-)
-text = response.text
-```
+## Model IDs
 
-Different import, different client class, different method name, different response structure. This is why the `ReasoningProvider` abstraction exists — it hides these differences behind a common `generate_text()` method.
+The coding endpoint accepts multiple model aliases:
 
-If Gemini offered an OpenAI-compatible endpoint (some Google models do through Vertex AI), both providers could use the same OpenAI SDK with different base URLs. The abstraction would still be useful (different rate limit detection, different error shapes), but the client code would be nearly identical.
+| Model ID | What it is |
+|----------|-----------|
+| `kimi-for-coding` | Default; routes to the current coding-optimized model |
+| `kimi-for-coding/k2p5` | Coding-specific variant of K2.5 |
+| `kimi-k2.5` | General-purpose K2.5 (accepted on coding endpoint since Kimi unified their credit pool in April 2026) |
 
-## The `extract_json` utility
+The code uses `kimi-for-coding` as the default. All three currently work because Kimi unified billing across Kimi Code, Kimi Chat, Agent, and PPT — the coding endpoint will accept general models too.
 
-**File:** `backend/app/providers/utils.py`
+## Retry & rate-limit behavior
 
-Both providers use a shared utility to extract JSON from LLM responses. LLMs often wrap JSON in markdown code fences:
-
-````
-Here is the analysis:
-
-```json
-{"hook_type": "question", "pacing": "fast", ...}
-```
-
-I hope this helps!
-````
-
-`extract_json()` strips the wrapping and returns just the JSON string. This is a shared concern — all LLM providers have this problem, regardless of which API they use.
-
-## Retry and error handling
-
-Both KimiProvider and GeminiProvider implement the same retry pattern:
-
-```python
-BACKOFF_SECS = [1, 2, 4]
-MAX_RETRIES = 3
-
-for attempt in range(MAX_RETRIES):
-    try:
-        response = ...  # API call
-        # parse response...
-        return result
-    except Exception as e:
-        if is_rate_limit(e):
-            await asyncio.sleep(BACKOFF_SECS[attempt])
-            continue
-        raise ProviderError(str(e), provider=self.name)
-```
-
-**Exponential backoff:** 1s, 2s, 4s. Each retry waits longer. This is the standard pattern for handling rate limits — give the provider time to reset its counter.
-
-**Rate limit detection is provider-specific:**
-- Kimi: `"429" in str(e) or "rate" in str(e).lower()`
-- Gemini: `"429" in str(e) or "RESOURCE_EXHAUSTED" in str(e)`
-
-The error string matching is fragile (it depends on the exact error message format), but it works for known providers. A more robust approach would check `e.status_code == 429` directly.
-
-## Adding a new provider
-
-To add a hypothetical Claude provider:
-
-1. Create `backend/app/providers/claude.py`:
-```python
-class ClaudeProvider:
-    name = "claude"
-    async def generate_text(self, prompt, schema=None):
-        # Use Anthropic SDK
-        ...
-```
-
-2. Register it in `backend/app/providers/registry.py`:
-```python
-from app.providers.claude import ClaudeProvider
-_reasoning_providers["claude"] = ClaudeProvider
-```
-
-3. Add `claude_api_key` and `claude_rpm` to `backend/app/config.py`
-
-4. Add `"claude": settings.claude_api_key` to `_get_provider`'s `key_map` in `tasks.py`
-
-That's it. No stage functions change. No orchestrator changes. No SSE changes. No tests change (except adding provider-specific tests).
+Provider-level retries are covered in [Article 16](16-rate-limiting.md). Key detail: the provider separates retry budgets by error class. Transient parse/schema errors get a short 3-attempt budget (1s/2s/4s). Concurrency rate limits (429s) get their own patient 4-attempt budget (8s/20s/45s/90s with ±30% jitter). The two don't share a budget, so a rate-limited task doesn't exhaust its retries on fast backoffs before the limit clears.
 
 ## What you should take from this
 
-1. **OpenAI-compatible APIs are the industry standard.** If you're integrating with an LLM provider, check if they have an OpenAI-compatible endpoint. If they do, you can reuse the OpenAI SDK.
+1. **"X-compatible API" claims are promises with an expiration date.** OpenAI compatibility worked for Kimi until it didn't. Don't hardcode to the shape; hide it behind an interface.
 
-2. **`base_url` + `api_key` + `default_headers` are the three knobs.** That's all you need to point the OpenAI SDK at a different provider.
+2. **`base_url` + `default_headers` is a pattern, not an SDK feature.** Both OpenAI's and Anthropic's Python SDKs expose it. If you're using one, you can use the other. The migration was ~30 lines.
 
-3. **`asyncio.to_thread` is the bridge between sync and async.** When you have a synchronous SDK and an async application, wrap the call in `to_thread` to avoid blocking the event loop.
+3. **Endpoint policies (UA whitelist) survive SDK migrations.** When you switch clients, carry forward the policy workarounds or you'll be debugging a 403 for an hour.
 
-4. **Shared utilities (`extract_json`) reduce code duplication across providers.** Provider-specific code handles auth and error detection; shared code handles response parsing.
+4. **Provider code is churn-heavy; stage code shouldn't be.** Two migrations, zero changes to S1-S6. The interface pays for itself in rewrite-avoidance.
 
-5. **Every provider will need custom error detection.** HTTP 429 is standard, but the error message format varies. Encapsulate provider-specific error handling inside the provider class, not in the caller.
+5. **Document the history in the docstring.** The "legacy OpenAI shim returns a misleading error" comment in `kimi.py` is load-bearing. Six months from now, somebody will try the OpenAI route again and be confused — the comment tells them why not to.
 
 ---
 
-***Next: [Rate Limiting a Shared Upstream](16-rate-limiting.md) — the token bucket algorithm, centralized vs distributed rate limiting, and a documented race condition.***
+***Next: [Rate Limiting a Shared Upstream](16-rate-limiting.md) — the retry-budget-per-error-class pattern that keeps Flair2 alive under Kimi's concurrency throttling.***
