@@ -1,0 +1,65 @@
+name: Terraform Import (one-time)
+
+# Imports existing AWS resources into Terraform state when state has drifted
+# from reality. Run this when `terraform apply` is trying to create things
+# that already exist.
+#
+# Safe to run repeatedly — resources already in state are skipped.
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Environment to import (dev only for now)"
+        type: choice
+        options: [dev]
+        default: dev
+
+jobs:
+  import:
+    name: Import existing AWS resources into state
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-west-2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PROJECT: flair2
+      ENV: ${{ inputs.env }}
+      REGION: us-west-2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init -input=false
+
+      - name: Show existing state
+        working-directory: terraform
+        run: |
+          echo "Resources currently in state:"
+          terraform state list || echo "(state is empty)"
+          echo ""
+
+      - name: Import existing resources
+        working-directory: terraform
+        run: ../scripts/tf-import-existing.sh
+
+      - name: Show final state
+        working-directory: terraform
+        run: |
+          echo ""
+          echo "Resources in state after import:"
+          terraform state list | sort
