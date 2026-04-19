@@ -189,14 +189,14 @@
 
   /* ── M5-4 bar chart (latency) ─────────────────────────── */
   .lat-chart { margin: 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
-  .lat-row { display: grid; grid-template-columns: 70px 1fr 80px 80px 80px; gap: 10px; align-items: center; padding: 6px 0; font-family: var(--mono); font-size: 12px; }
+  .lat-row { display: grid; grid-template-columns: 130px 1fr 90px 110px 90px; gap: 10px; align-items: center; padding: 6px 0; font-family: var(--mono); font-size: 12px; }
   .lat-hd { color: var(--ink-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 4px; }
   .lat-bar { height: 14px; background: var(--border); border-radius: 2px; position: relative; overflow: hidden; }
   .lat-fill { height: 100%; background: var(--eval); }
   .lat-fill.warn { background: var(--warning); }
   .lat-fill.err { background: var(--error); }
-  .lat-k { font-weight: 700; }
-  .lat-cell { text-align: right; color: var(--ink-muted); }
+  .lat-k { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lat-cell { text-align: right; color: var(--ink-muted); white-space: nowrap; }
   .lat-cell.bad { color: var(--error); font-weight: 700; }
 
   /* ── Incident list (sec 7) ────────────────────────────── */
