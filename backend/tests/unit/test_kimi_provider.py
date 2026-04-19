@@ -180,9 +180,11 @@ class TestRateLimitRetryBudget:
             mock_client = MagicMock()
             mock_client.messages.create = fake_create
             mock_client_fn.return_value = mock_client
-            with patch("asyncio.sleep", return_value=None):
-                with pytest.raises(RateLimitError) as exc_info:
-                    await kimi_provider.generate_text("test")
+            with (
+                patch("asyncio.sleep", return_value=None),
+                pytest.raises(RateLimitError) as exc_info,
+            ):
+                await kimi_provider.generate_text("test")
 
         assert exc_info.value.retry_after == RATE_LIMIT_BACKOFF[-1]
 
