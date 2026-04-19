@@ -254,12 +254,8 @@
     <div class="tabs">
       <button class="tab active" data-section="1"><span class="tab-num">1</span>Problem</button>
       <button class="tab" data-section="2"><span class="tab-num">2</span>Architecture</button>
-      <button class="tab" data-section="3"><span class="tab-num">3</span>Pipeline</button>
-      <button class="tab" data-section="4"><span class="tab-num">4</span>Redis</button>
-      <button class="tab" data-section="5"><span class="tab-num">5</span>Kimi</button>
-      <button class="tab" data-section="6"><span class="tab-num">6</span>Experiments</button>
-      <button class="tab" data-section="7"><span class="tab-num">7</span>Lessons</button>
-      <button class="tab" data-section="8"><span class="tab-num">8</span>Why It Works</button>
+      <button class="tab" data-section="3"><span class="tab-num">3</span>Redis</button>
+      <button class="tab" data-section="4"><span class="tab-num">4</span>Experiments</button>
     </div>
   </div>
 </nav>
@@ -293,23 +289,20 @@
     <div class="hm"><div class="val">20×</div><div class="lbl">Concurrent LLM workers</div></div>
   </div>
 
-  <h2>Three design forces</h2>
-  <div class="icon-row">
-    <div class="icard disc">
-      <div class="icon">Force 1</div>
-      <h3>Work is slow.</h3>
-      <p>260 LLM calls × 2–5s each. Can't hold an HTTP request open for minutes.</p>
-    </div>
-    <div class="icard stud">
-      <div class="icon">Force 2</div>
-      <h3>Progress is live.</h3>
-      <p>A 15-second spinner is unacceptable. Push every event to the browser in real time.</p>
-    </div>
-    <div class="icard eval">
-      <div class="icon">Force 3</div>
-      <h3>Work fans out.</h3>
-      <p>S1 analyzes N videos concurrently. S4 has M personas voting concurrently. MapReduce inside one request.</p>
-    </div>
+  <h2>Six stages. Two MapReduce cycles.</h2>
+  <p class="tagline">S1 and S4 fan out. S2 and S5 reduce. S3 generates, S6 personalizes.</p>
+
+  <div class="pipeline">
+    <div class="stage s1"><div class="num">S1</div><div class="name">Discover</div><div class="tag">Map</div><div class="count">100<span class="sub">calls</span></div></div>
+    <div class="stage s2"><div class="num">S2</div><div class="name">Aggregate</div><div class="tag">Reduce · Python</div><div class="count">0<span class="sub">calls</span></div></div>
+    <div class="stage s3"><div class="num">S3</div><div class="name">Generate</div><div class="tag">Sequential</div><div class="count">20<span class="sub">calls</span></div></div>
+    <div class="stage s4"><div class="num">S4</div><div class="name">Vote</div><div class="tag">Map · 100 concurrent</div><div class="count">42<span class="sub">calls</span></div></div>
+    <div class="stage s5"><div class="num">S5</div><div class="name">Rank</div><div class="tag">Reduce · Python</div><div class="count">0<span class="sub">calls</span></div></div>
+    <div class="stage s6"><div class="num">S6</div><div class="name">Personalize</div><div class="tag">Map</div><div class="count">10<span class="sub">calls</span></div></div>
+  </div>
+
+  <div class="oneline" style="margin-top:40px;">
+    Resilience baked in: <span class="acc eval">skip-and-continue</span>, <span class="acc eval">95% completion threshold</span>, <span class="acc eval">S4 checkpointing</span>, <span class="acc eval">30s stall detection with API probe</span>.
   </div>
 </section>
 
@@ -367,32 +360,10 @@
 </section>
 
 <!-- ═════════════════════════════════════════════════════════
-     3 · PIPELINE
+     3 · REDIS + COORDINATION
 ═══════════════════════════════════════════════════════════ -->
 <section class="section" id="s3">
-  <div class="kicker">03 · Pipeline</div>
-  <h1>Six stages.<br/>Two MapReduce cycles.</h1>
-  <p class="tagline">S1 and S4 fan out. S2 and S5 reduce. S3 generates, S6 personalizes.</p>
-
-  <div class="pipeline">
-    <div class="stage s1"><div class="num">S1</div><div class="name">Discover</div><div class="tag">Map</div><div class="count">100<span class="sub">calls</span></div></div>
-    <div class="stage s2"><div class="num">S2</div><div class="name">Aggregate</div><div class="tag">Reduce · Python</div><div class="count">0<span class="sub">calls</span></div></div>
-    <div class="stage s3"><div class="num">S3</div><div class="name">Generate</div><div class="tag">Sequential</div><div class="count">20<span class="sub">calls</span></div></div>
-    <div class="stage s4"><div class="num">S4</div><div class="name">Vote</div><div class="tag">Map · 100 concurrent</div><div class="count">42<span class="sub">calls</span></div></div>
-    <div class="stage s5"><div class="num">S5</div><div class="name">Rank</div><div class="tag">Reduce · Python</div><div class="count">0<span class="sub">calls</span></div></div>
-    <div class="stage s6"><div class="num">S6</div><div class="name">Personalize</div><div class="tag">Map</div><div class="count">10<span class="sub">calls</span></div></div>
-  </div>
-
-  <div class="oneline" style="margin-top:40px;">
-    Resilience baked in: <span class="acc eval">skip-and-continue</span>, <span class="acc eval">95% completion threshold</span>, <span class="acc eval">S4 checkpointing</span>, <span class="acc eval">30s stall detection with API probe</span>.
-  </div>
-</section>
-
-<!-- ═════════════════════════════════════════════════════════
-     4 · REDIS + COORDINATION
-═══════════════════════════════════════════════════════════ -->
-<section class="section" id="s4">
-  <div class="kicker">04 · Coordination</div>
+  <div class="kicker">03 · Coordination</div>
   <h1>Redis is the nervous system.</h1>
   <p class="tagline">Five roles. One server. Single-writer orchestrator. No locks.</p>
 
@@ -423,63 +394,10 @@
 </section>
 
 <!-- ═════════════════════════════════════════════════════════
-     5 · KIMI
+     4 · EXPERIMENTS
 ═══════════════════════════════════════════════════════════ -->
-<section class="section" id="s5">
-  <div class="kicker">05 · Kimi Integration</div>
-  <h1>Two SDK migrations.<br/>Zero stage code touched.</h1>
-  <p class="tagline">The provider abstraction paid for itself twice.</p>
-
-  <div class="timeline">
-    <div class="tl-line"></div>
-    <div class="tl-stops">
-      <div class="tl-stop">
-        <div class="tl-dot"></div>
-        <div class="t">Day 1</div>
-        <div class="l">Gemini</div>
-        <div class="s">google-genai SDK</div>
-      </div>
-      <div class="tl-stop">
-        <div class="tl-dot stud"></div>
-        <div class="t">PR #95</div>
-        <div class="l">Kimi · OpenAI SDK</div>
-        <div class="s">Gemini 500s + rate limits → switch</div>
-      </div>
-      <div class="tl-stop">
-        <div class="tl-dot eval"></div>
-        <div class="t">PR ~#130</div>
-        <div class="l">Kimi · Anthropic SDK</div>
-        <div class="s">OpenAI shim deprecated → migrate</div>
-      </div>
-    </div>
-  </div>
-
-  <h2>Retry budget per error class</h2>
-  <div class="budget-wrap">
-    <div class="budget-row">
-      <div class="budget-label">Parse / schema<span class="t">transient noise</span></div>
-      <div class="budget-bar"><div class="budget-fill" style="width: 7%"></div></div>
-      <div class="budget-num">~7s</div>
-    </div>
-    <div class="budget-row">
-      <div class="budget-label">Rate limit (429)<span class="t">real throttling</span></div>
-      <div class="budget-bar"><div class="budget-fill warn" style="width: 100%"></div></div>
-      <div class="budget-num">~165s</div>
-    </div>
-  </div>
-
-  <div class="oneline" style="margin-top: 20px;">
-    Transient noise deserves fast retries.<br/>
-    Upstream throttling deserves patience.<br/>
-    <span class="acc">One budget can't satisfy both.</span>
-  </div>
-</section>
-
-<!-- ═════════════════════════════════════════════════════════
-     6 · EXPERIMENTS
-═══════════════════════════════════════════════════════════ -->
-<section class="section" id="s6">
-  <div class="kicker">06 · Experiments</div>
+<section class="section" id="s4">
+  <div class="kicker">04 · Experiments</div>
   <h1>Measured, not assumed.</h1>
   <p class="tagline">7 experiments · <strong>61 tests · 59 pass · 2 boundary failures documented</strong>. Three headline results featured. Full write-ups in the repo.</p>
 
@@ -660,91 +578,8 @@
   </div>
 </section>
 
-<!-- ═════════════════════════════════════════════════════════
-     7 · LESSONS
-═══════════════════════════════════════════════════════════ -->
-<section class="section" id="s7">
-  <div class="kicker">07 · Lessons</div>
-  <h1>What broke.<br/>What it taught.</h1>
-  <p class="tagline">Ten production incidents, condensed. Process over talent.</p>
-
-  <h2>Ten incidents</h2>
-  <div class="incidents">
-    <div class="inc"><span class="inum">01</span><span class="isym">Gemini 500s + rate limits</span><span class="ires">→ switch to Kimi (registry paid off)</span></div>
-    <div class="inc"><span class="inum">02</span><span class="isym">S1 always 500s in prod</span><span class="ires">→ .dockerignore excluded data/ (4 PRs)</span></div>
-    <div class="inc"><span class="inum">03</span><span class="isym">Kimi all requests fail with weird error</span><span class="ires">→ migrate OpenAI SDK → Anthropic Messages</span></div>
-    <div class="inc"><span class="inum">04</span><span class="isym">Workers deployed, pipeline silently hangs</span><span class="ires">→ Celery never imported tasks module</span></div>
-    <div class="inc"><span class="inum">05</span><span class="isym">Frontend faked progress when stuck</span><span class="ires">→ stall detector + API probe diagnosis</span></div>
-    <div class="inc"><span class="inum">06</span><span class="isym">"ELB already exists" on every deploy</span><span class="ires">→ Terraform state drift → idempotent import</span></div>
-    <div class="inc"><span class="inum">07</span><span class="isym">S4 fails at persona ~40 with 429</span><span class="ires">→ semaphore + retry budget per error class</span></div>
-    <div class="inc"><span class="inum">08</span><span class="isym">One bad video kills whole S1 run</span><span class="ires">→ skip-and-continue + 95% threshold</span></div>
-    <div class="inc"><span class="inum">09</span><span class="isym">Pipeline hangs at 99/100</span><span class="ires">→ ceil(N × 0.95) transition with SETNX</span></div>
-    <div class="inc"><span class="inum">10</span><span class="isym">"Start Pipeline" bounces to home</span><span class="ires">→ S3 routing: path → query param</span></div>
-  </div>
-
-  <h2>Process discipline that held</h2>
-  <div class="lessons">
-    <div class="lesson"><h4>Hard branch protection</h4><p>GitHub ruleset physically blocked direct pushes. 112 merged PRs, all cross-reviewed.</p></div>
-    <div class="lesson"><h4>Interface contract up front</h4><p>Every Redis key, every SSE event specified before writing the code. Let two devs ship in parallel for weeks.</p></div>
-    <div class="lesson"><h4>Test failure paths explicitly</h4><p>M5-2 validated checkpoint recovery before any real crash. First crash saved 50% of calls.</p></div>
-    <div class="lesson"><h4>Single-writer discipline</h4><p>Orchestrator is the only code path that mutates run state. No races, no locks.</p></div>
-  </div>
-</section>
-
-<!-- ═════════════════════════════════════════════════════════
-     8 · WHY IT WORKS
-═══════════════════════════════════════════════════════════ -->
-<section class="section" id="s8">
-  <div class="kicker">08 · Business case</div>
-  <h1>We don't guess.</h1>
-  <p class="tagline">Three pillars, each grounded in real data. Base-rate improvement, not a guarantee.</p>
-
-  <div class="pillar-grid">
-    <div class="pillar disc">
-      <div class="pn">Pillar 1</div>
-      <h3>Learn from winners.</h3>
-      <p>S1 extracts structural patterns from 100 real viral TikToks. Every generated script is shaped by what already went viral.</p>
-    </div>
-    <div class="pillar eval">
-      <div class="pn">Pillar 2</div>
-      <h3>Test with the right crowd.</h3>
-      <p>300 personas matching Canadian demographics + adoption. At run-time, pick the 100 most relevant to the creator's niche.</p>
-    </div>
-    <div class="pillar pers">
-      <div class="pn">Pillar 3</div>
-      <h3>Close the loop.</h3>
-      <p>Posted videos report real outcomes. Next run's prompts calibrate toward what actually worked. Reality is the final judge.</p>
-    </div>
-  </div>
-
-  <h2>The navigation analogy</h2>
-  <div class="icon-row">
-    <div class="icard disc">
-      <div class="icon">Chart</div>
-      <h3>The routes that worked.</h3>
-      <p>You're not drawing a line across open water. You're following lanes with recorded crossings.</p>
-    </div>
-    <div class="icard eval">
-      <div class="icon">Crew</div>
-      <h3>The passengers aboard.</h3>
-      <p>A representative sample of who you'll actually carry. Their preferences predict real reactions.</p>
-    </div>
-    <div class="icard pers">
-      <div class="icon">Compass</div>
-      <h3>The reading from the voyage.</h3>
-      <p>Every posted video is a new fix. The next voyage uses the updated bearing.</p>
-    </div>
-  </div>
-
-  <div class="oneline" style="margin-top: 36px; font-size: 22px;">
-    Most tools give you a chart.<br/>
-    Some add a crew.<br/>
-    <span class="acc pers">Flair2 gives you all three — and a compass that updates every time you sail.</span>
-  </div>
-</section>
-
 <div class="kbd-hint">
-  <kbd>1</kbd>–<kbd>8</kbd> jump · <kbd>←</kbd> <kbd>→</kbd> prev/next
+  <kbd>1</kbd>–<kbd>4</kbd> jump · <kbd>←</kbd> <kbd>→</kbd> prev/next
 </div>
 
 <script>
@@ -765,13 +600,13 @@
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     const current = Array.from(sections).findIndex(s => s.classList.contains('active')) + 1;
-    if (e.key >= '1' && e.key <= '8') { show(e.key); }
-    else if (e.key === 'ArrowRight' && current < 8) { show(current + 1); }
+    if (e.key >= '1' && e.key <= '4') { show(e.key); }
+    else if (e.key === 'ArrowRight' && current < 4) { show(current + 1); }
     else if (e.key === 'ArrowLeft' && current > 1) { show(current - 1); }
   });
 
   const hash = window.location.hash;
-  if (hash.match(/^#s[1-8]$/)) { show(hash.slice(2)); }
+  if (hash.match(/^#s[1-4]$/)) { show(hash.slice(2)); }
 </script>
 
 </body>
