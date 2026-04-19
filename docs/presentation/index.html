@@ -189,14 +189,14 @@
 
   /* ── M5-4 bar chart (latency) ─────────────────────────── */
   .lat-chart { margin: 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
-  .lat-row { display: grid; grid-template-columns: 70px 1fr 80px 80px 80px; gap: 10px; align-items: center; padding: 6px 0; font-family: var(--mono); font-size: 12px; }
+  .lat-row { display: grid; grid-template-columns: 44px 1fr 90px 100px 90px; gap: 10px; align-items: center; padding: 6px 0; font-family: var(--mono); font-size: 12px; }
   .lat-hd { color: var(--ink-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 4px; }
   .lat-bar { height: 14px; background: var(--border); border-radius: 2px; position: relative; overflow: hidden; }
   .lat-fill { height: 100%; background: var(--eval); }
   .lat-fill.warn { background: var(--warning); }
   .lat-fill.err { background: var(--error); }
-  .lat-k { font-weight: 700; }
-  .lat-cell { text-align: right; color: var(--ink-muted); }
+  .lat-k { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+  .lat-cell { text-align: right; color: var(--ink-muted); white-space: nowrap; }
   .lat-cell.bad { color: var(--error); font-weight: 700; }
 
   /* ── Incident list (sec 7) ────────────────────────────── */
@@ -481,63 +481,182 @@
 <section class="section" id="s6">
   <div class="kicker">06 · Experiments</div>
   <h1>Measured, not assumed.</h1>
-  <p class="tagline">Seven experiments. Four findings. One honest bottleneck.</p>
+  <p class="tagline">7 experiments · <strong>61 tests · 59 pass · 2 boundary failures documented</strong>. Three headline results featured. Full write-ups in the repo.</p>
 
-  <h2>M5 · Pipeline resilience</h2>
-  <div class="xp-grid">
-    <div class="xp disc">
-      <div class="xp-tag">M5-1 · Backpressure</div>
-      <div class="xp-q">Does the rate limiter prevent API storms at K=10?</div>
-      <div class="xp-a">90% → 0%</div>
-      <div class="xp-note">errors, without → with limiter</div>
+  <!-- ── Experiment 1 — Fan-out parallelism ─────────────── -->
+  <div style="margin: 28px 0 10px;">
+    <div class="kicker" style="color: var(--disc); letter-spacing: 0.18em;">★ Experiment 1</div>
+    <h2 style="font-size: 26px; font-weight: 800; text-transform: none; letter-spacing: -0.01em; color: var(--ink); margin: 4px 0 8px;">Fan-out Parallelism</h2>
+    <p style="font-size: 15px; color: var(--ink-muted); margin: 0 0 14px; max-width: 780px;">N=42 LLM tasks with concurrency cap modeling Kimi's 29 slots. Does fan-out actually give near-linear speedup? Where does Amdahl kick in?</p>
+  </div>
+
+  <div class="lat-chart">
+    <div style="font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted); margin-bottom: 10px; font-weight: 600;">Completion time by concurrency cap (N=42 · 100ms/call)</div>
+    <div class="lat-row lat-hd">
+      <span>Cap</span><span></span><span>Time</span><span>Speedup</span><span>Efficiency</span>
     </div>
-    <div class="xp stud">
-      <div class="xp-tag">M5-2 · Failure recovery</div>
-      <div class="xp-q">How much work does S4 checkpoint save on crash?</div>
-      <div class="xp-a">30–73%</div>
-      <div class="xp-note">LLM calls saved depending on crash timing</div>
+    <div class="lat-row">
+      <span class="lat-k">1</span>
+      <div class="lat-bar"><div class="lat-fill err" style="width: 100%"></div></div>
+      <span class="lat-cell bad">4,200 ms</span><span class="lat-cell">1.0×</span><span class="lat-cell">100%</span>
     </div>
-    <div class="xp eval">
-      <div class="xp-tag">M5-3 · Cache concurrency</div>
-      <div class="xp-q">SETNX dedup — how well does it scale?</div>
-      <div class="xp-a">99%</div>
-      <div class="xp-note">LLM calls saved at K=100 concurrent users</div>
+    <div class="lat-row">
+      <span class="lat-k">5</span>
+      <div class="lat-bar"><div class="lat-fill warn" style="width: 21.4%"></div></div>
+      <span class="lat-cell">~900 ms</span><span class="lat-cell">4.7×</span><span class="lat-cell">93%</span>
+    </div>
+    <div class="lat-row">
+      <span class="lat-k">10</span>
+      <div class="lat-bar"><div class="lat-fill warn" style="width: 10.7%"></div></div>
+      <span class="lat-cell">~450 ms</span><span class="lat-cell">9.3×</span><span class="lat-cell">93%</span>
+    </div>
+    <div class="lat-row" style="background: var(--bg);">
+      <span class="lat-k" style="color: var(--disc); font-weight: 800;">29</span>
+      <div class="lat-bar"><div class="lat-fill" style="width: 3.8%; background: var(--disc);"></div></div>
+      <span class="lat-cell" style="color: var(--disc); font-weight: 700;">~160 ms</span><span class="lat-cell" style="color: var(--disc); font-weight: 700;">26.3×</span><span class="lat-cell" style="color: var(--disc); font-weight: 700;">90.7%</span>
+    </div>
+    <div class="lat-row">
+      <span class="lat-k">∞</span>
+      <div class="lat-bar"><div class="lat-fill" style="width: 2.5%"></div></div>
+      <span class="lat-cell">~105 ms</span><span class="lat-cell">40.0×</span><span class="lat-cell">95%</span>
     </div>
   </div>
 
-  <h2>M5-4 · API load test (AWS Locust)</h2>
+  <div class="lessons" style="margin-top: 16px;">
+    <div class="lesson" style="border-left-color: var(--disc);"><h4>Near-linear speedup</h4><p>42 IO-bound tasks complete in one latency unit instead of 42. Sequential S4 would add 4+ seconds per run.</p></div>
+    <div class="lesson" style="border-left-color: var(--disc);"><h4>Amdahl ceiling at cap = N</h4><p>Beyond 29 concurrent slots, more workers buy nothing. The right optimization is Kimi's cap, not more ECS tasks.</p></div>
+  </div>
+
+  <!-- ── Experiment 2 — Straggler mitigation ────────────── -->
+  <div style="margin: 40px 0 10px;">
+    <div class="kicker" style="color: var(--eval); letter-spacing: 0.18em;">★ Experiment 2</div>
+    <h2 style="font-size: 26px; font-weight: 800; text-transform: none; letter-spacing: -0.01em; color: var(--ink); margin: 4px 0 8px;">Straggler Mitigation — 95% Threshold</h2>
+    <p style="font-size: 15px; color: var(--ink-muted); margin: 0 0 14px; max-width: 780px;">N=100 tasks, 5% slow down by 3×/10×/20×. Does <code>ceil(N × 0.95)</code> SETNX-guarded transition save real time? What does it cost when stragglers don't happen?</p>
+  </div>
+
   <div class="lat-chart">
+    <div style="font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted); margin-bottom: 10px; font-weight: 600;">Pipeline time saved by 95% threshold vs waiting for 100%</div>
+    <div class="lat-row lat-hd">
+      <span>Scenario</span><span></span><span>100%</span><span>95%</span><span>Saved</span>
+    </div>
+    <div class="lat-row">
+      <span class="lat-k">3×</span>
+      <div class="lat-bar"><div class="lat-fill warn" style="width: 65.4%"></div></div>
+      <span class="lat-cell">151 ms</span><span class="lat-cell">52 ms</span><span class="lat-cell" style="font-weight:700;">65.4%</span>
+    </div>
+    <div class="lat-row" style="background: var(--bg);">
+      <span class="lat-k" style="color: var(--eval); font-weight: 800;">10×</span>
+      <div class="lat-bar"><div class="lat-fill" style="width: 89.6%; background: var(--eval);"></div></div>
+      <span class="lat-cell">501 ms</span><span class="lat-cell" style="color: var(--eval); font-weight: 700;">52 ms</span><span class="lat-cell" style="color: var(--eval); font-weight: 700;">89.6%</span>
+    </div>
+    <div class="lat-row">
+      <span class="lat-k">20×</span>
+      <div class="lat-bar"><div class="lat-fill err" style="width: 94.8%"></div></div>
+      <span class="lat-cell bad">1,002 ms</span><span class="lat-cell">52 ms</span><span class="lat-cell" style="font-weight:700;">94.8%</span>
+    </div>
+    <div class="lat-row">
+      <span class="lat-k">1×</span>
+      <div class="lat-bar"><div class="lat-fill" style="width: 1.9%"></div></div>
+      <span class="lat-cell">52 ms</span><span class="lat-cell">51 ms</span><span class="lat-cell">&lt; 2% overhead</span>
+    </div>
+  </div>
+
+  <div class="lessons" style="margin-top: 16px;">
+    <div class="lesson" style="border-left-color: var(--eval);"><h4>Free in the common case, huge in the worst</h4><p>Under uniform latency, &lt;2ms overhead. Under severe stragglers (realistic rate-limit backoff), 89.6% of wait time recovered.</p></div>
+    <div class="lesson" style="border-left-color: var(--eval);"><h4>No data loss — same pattern as MapReduce speculative execution</h4><p>Straggler tasks still complete and store results. The pipeline just doesn't wait. SETNX guards exactly-once dispatch.</p></div>
+  </div>
+
+  <!-- ── Experiment 3 — API load test ────────────────────── -->
+  <div style="margin: 40px 0 10px;">
+    <div class="kicker" style="color: var(--pers); letter-spacing: 0.18em;">★ Experiment 3</div>
+    <h2 style="font-size: 26px; font-weight: 800; text-transform: none; letter-spacing: -0.01em; color: var(--ink); margin: 4px 0 8px;">API Concurrent Load Test (Locust on AWS)</h2>
+    <p style="font-size: 15px; color: var(--ink-muted); margin: 0 0 14px; max-width: 780px;">K simulated users against the real ECS+ALB+ElastiCache stack. Where does it break? What's the true bottleneck — API, Worker, or shared state?</p>
+  </div>
+
+  <div class="lat-chart">
+    <div style="font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted); margin-bottom: 10px; font-weight: 600;">POST /api/pipeline/start — p95 latency by K</div>
     <div class="lat-row lat-hd">
       <span>K users</span><span></span><span>p50</span><span>p95</span><span>p99</span>
     </div>
     <div class="lat-row">
       <span class="lat-k">10</span>
-      <div class="lat-bar"><div class="lat-fill" style="width: 2%"></div></div>
+      <div class="lat-bar"><div class="lat-fill" style="width: 1.8%"></div></div>
       <span class="lat-cell">35 ms</span><span class="lat-cell">51 ms</span><span class="lat-cell">190 ms</span>
     </div>
     <div class="lat-row">
       <span class="lat-k">50</span>
-      <div class="lat-bar"><div class="lat-fill" style="width: 3%"></div></div>
+      <div class="lat-bar"><div class="lat-fill" style="width: 2%"></div></div>
       <span class="lat-cell">35 ms</span><span class="lat-cell">59 ms</span><span class="lat-cell">100 ms</span>
     </div>
     <div class="lat-row">
       <span class="lat-k">100</span>
-      <div class="lat-bar"><div class="lat-fill" style="width: 3.5%"></div></div>
+      <div class="lat-bar"><div class="lat-fill" style="width: 2.1%"></div></div>
       <span class="lat-cell">34 ms</span><span class="lat-cell">61 ms</span><span class="lat-cell">140 ms</span>
     </div>
-    <div class="lat-row">
-      <span class="lat-k">500</span>
+    <div class="lat-row" style="background: var(--bg);">
+      <span class="lat-k" style="color: var(--error); font-weight: 800;">500</span>
       <div class="lat-bar"><div class="lat-fill err" style="width: 100%"></div></div>
-      <span class="lat-cell">77 ms</span><span class="lat-cell bad">12 s</span><span class="lat-cell bad">18 s</span>
+      <span class="lat-cell">69 ms</span><span class="lat-cell bad">2,900 ms ↑47×</span><span class="lat-cell bad">4,200 ms</span>
     </div>
   </div>
 
-  <h2>The four findings</h2>
-  <div class="lessons">
-    <div class="lesson"><h4>1. Redis connection pool is the system bottleneck</h4><p>Both M5-4 (p99=18s at K=500) and M6-2 (SETNX fails at K=5000) trace to the same root. Fix is pool sizing.</p></div>
-    <div class="lesson"><h4>2. CPU is the wrong metric for IO-bound workers</h4><p>Worker CPU peaked at 7.14% under max load. Workers wait on Kimi. Correct signal: Celery queue depth.</p></div>
-    <div class="lesson"><h4>3. fakeredis hides real failure modes</h4><p>M5-3 passed at K=100,000 locally. M6-2 failed at K=5,000 on real Redis. Pools are invisible in simulators.</p></div>
-    <div class="lesson"><h4>4. Auto-scaling works — wrong metric wastes it</h4><p>ECS correctly added tasks on CPU overload. But CPU wasn't the bottleneck. Right reflex, wrong signal.</p></div>
+  <div class="hero-metrics" style="margin-top: 16px;">
+    <div class="hm" style="border-left: 4px solid var(--eval);"><div class="val">7.14%</div><div class="lbl">Peak Worker CPU at K=500</div></div>
+    <div class="hm" style="border-left: 4px solid var(--eval);"><div class="val">0–1</div><div class="lbl">Celery queue depth during load</div></div>
+    <div class="hm" style="border-left: 4px solid var(--error);"><div class="val">20 s</div><div class="lbl">/api/runs p99 at K=500 sustained</div></div>
+    <div class="hm" style="border-left: 4px solid var(--success);"><div class="val">0.03%</div><div class="lbl">Failure rate — degrades gracefully</div></div>
+  </div>
+
+  <div class="lessons" style="margin-top: 16px;">
+    <div class="lesson" style="border-left-color: var(--pers);"><h4>True bottleneck: Redis connection pool</h4><p>Worker CPU stayed at 7%. Queue depth stayed at 0–1. /api/runs p99 spiked to 20s at K=500. The API's Redis pool is the choke point, not Worker capacity.</p></div>
+    <div class="lesson" style="border-left-color: var(--pers);"><h4>CPU is the wrong Worker autoscaling metric</h4><p>Workers wait on LLM responses — CPU never exceeds 8%. Queue depth (<code>LLEN celery</code>) is the correct signal.</p></div>
+  </div>
+
+  <!-- ── M5 + M6 summary strip ───────────────────────────── -->
+  <h2 style="margin-top: 40px;">M5 + M6 — Supporting experiments</h2>
+  <div class="xp-grid">
+    <div class="xp disc">
+      <div class="xp-tag">M5-1 · Backpressure</div>
+      <div class="xp-q">Rate limiter vs no limiter at K=10</div>
+      <div class="xp-a">90% → 0%</div>
+      <div class="xp-note">error rate · CV 1.36 → 0.40 (fairer at scale)</div>
+    </div>
+    <div class="xp stud">
+      <div class="xp-tag">M5-2 · Checkpoint recovery</div>
+      <div class="xp-q">Crash at 25% / 50% / 75% into S4</div>
+      <div class="xp-a">47–73%</div>
+      <div class="xp-note">LLM calls saved · sibling runs unaffected</div>
+    </div>
+    <div class="xp eval">
+      <div class="xp-tag">M5-3 · SETNX dedup</div>
+      <div class="xp-q">K users analyze the same 20 videos</div>
+      <div class="xp-a">99.999%</div>
+      <div class="xp-note">saved at K=100k · always exactly 20 calls</div>
+    </div>
+    <div class="xp pers">
+      <div class="xp-tag">M6-1 · Real Redis latency</div>
+      <div class="xp-q">SETNX/XADD/INCR on ElastiCache</div>
+      <div class="xp-a">0.8 ms</div>
+      <div class="xp-note">p50 · p99 &lt; 2ms · 10× slower than fakeredis</div>
+    </div>
+    <div class="xp pers">
+      <div class="xp-tag">M6-2 · SETNX atomicity</div>
+      <div class="xp-q">Exactly-one winner under real concurrency</div>
+      <div class="xp-a">K ≤ 1k</div>
+      <div class="xp-note">clean · K=5k fails on client pool, not Redis</div>
+    </div>
+    <div class="xp pers">
+      <div class="xp-tag">M6-3 · Memory scaling</div>
+      <div class="xp-q">Redis memory per concurrent run</div>
+      <div class="xp-a">~1 KB/key</div>
+      <div class="xp-note">linear · safe to ~300 runs on t3.micro</div>
+    </div>
+  </div>
+
+  <div class="oneline" style="margin-top: 28px;">
+    Fan-out creates the straggler problem.<br/>
+    The threshold solves it.<br/>
+    <span class="acc pers">The load test reveals the infrastructure cost of fan-out at scale — Redis connection pool, not LLM calls.</span>
   </div>
 </section>
 
