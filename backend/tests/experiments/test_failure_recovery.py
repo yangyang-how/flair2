@@ -21,15 +21,25 @@ API-call accounting
 -------------------
 Each stage has a fixed LLM-call cost:
   S1  : num_videos calls (one per video analysis)
-  S3  : 1 call (script generation is sequential)
+  S3  : num_scripts calls (concurrent generation, one LLM call per script)
   S4  : num_personas calls (one per persona vote)
   S6  : top_n calls (one per personalized script)
   S2, S5 : pure-Python aggregation / ranking — no LLM calls
 
+Note: S3 changed from sequential to concurrent (asyncio.gather) in commit a4646c3.
+The call *count* is unchanged (still num_scripts LLM calls); only the wall-clock
+time improves. The experiment simplifies S3 to 1 task in its call-count model
+because S3 is a single Celery task and its results are fully checkpointed before
+S4 begins — a crash mid-S4 never requires re-running S3.
+
 A "crash at 50 % of S4" means:
-  full_restart  = num_videos + 1 + num_personas + top_n = 15
+  full_restart  = num_videos + 1 (S3 task) + num_personas + top_n = 15
   recovery      = (num_personas − checkpoint_s4) + top_n = 6
   saved         = 9 / 15 = 60 %  ✓
+
+Note on 95 % completion threshold (commit a15876b): with NUM_PERSONAS=8,
+ceil(8 × 0.95) = 8, so the threshold has no effect at this experiment scale.
+Results remain valid.
 
 Run:
     pytest tests/experiments/test_failure_recovery.py -v -s
