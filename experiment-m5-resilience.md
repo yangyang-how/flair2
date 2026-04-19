@@ -68,7 +68,7 @@ The CV (coefficient of variation across run completion times) drops from 1.36 �
 
 A pipeline run has 15 total LLM calls distributed across stages:
 - S1 (analysis): 4 calls
-- S3 (script generation): 1 call
+- S3 (script generation): 1 task (internally generates `num_scripts` calls concurrently via `asyncio.gather`, but counted as 1 unit here because it is a single Celery task fully checkpointed before S4 begins)
 - S4 (persona voting): 8 calls
 - S6 (personalization): 2 calls
 
@@ -99,6 +99,20 @@ All scenarios exceed the 40% savings threshold from issue #42.
 Redis-based checkpointing saves 47–73% of LLM API calls on recovery, depending on how far the crashed stage had progressed. The savings compound with longer stages — crashing later wastes less than crashing early.
 
 Run isolation is complete: a crashed run cannot corrupt or delay sibling runs. Each run has its own Redis key namespace (`run:{run_id}:*`), so state is fully partitioned.
+
+### Rerun: 2026-04-18 (post code changes)
+
+Three significant changes merged between the original run (2026-04-12) and this rerun:
+
+| Commit | Change | Impact on M5-2 |
+|--------|--------|----------------|
+| `a4646c3` | S3: sequential → concurrent (`asyncio.gather`) | None — S3 is 1 Celery task fully checkpointed before S4; call-count model unchanged |
+| `a15876b` | 95% completion threshold for S1 and S4 fan-out | None — at `NUM_PERSONAS=8`, `ceil(8 × 0.95) = 8`; threshold has no effect at this scale |
+| `197d937` | Predefined personas (`data/personas.json`, 42 entries) | None — experiment mocks S4 votes directly without real LLM calls |
+
+**Result: all 5 tests pass, savings metrics identical to original run.**
+
+The experiment's call-count model (`full_restart = 15`, recovery varies) remains valid because the checkpoint/recovery semantics of the orchestrator were not changed by any of these commits.
 
 ---
 
