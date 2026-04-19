@@ -1,9 +1,10 @@
 # M5 Experiments Report: Distributed Pipeline Resilience
 
-**Date:** 2026-04-12  
+**Date:** 2026-04-12 (rerun: 2026-04-18)  
 **Environment:** Local (fakeredis — no AWS required)  
 **Tests:** 17 passed, 0 failed  
-**Total runtime:** 43.6 s
+**Total runtime:** 43.6 s  
+**Production defaults (current):** 100 videos · 20 scripts · 42 personas · cap=29 (Kimi)
 
 ---
 
