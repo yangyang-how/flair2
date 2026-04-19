@@ -1,0 +1,716 @@
+[
+  {
+    "persona_id": "persona_0",
+    "name": "Jieun",
+    "age": 20,
+    "location": "Busan, South Korea",
+    "occupation": "Chemistry student",
+    "interests": [
+      "K-drama clips",
+      "study motivation",
+      "cute animal videos",
+      "mukbang"
+    ],
+    "scroll_context": "Between morning lectures on campus benches, phone propped on her bag, volume low to avoid judgment",
+    "attention_style": "Stops for relatable exam stress or unexpected plot twists; swipes away from slow voiceovers or English without Korean subtitles",
+    "description": "Jieun lives in a goshiwon near her university and survives on convenience store triangle kimbap. She scrolls to dissociate from organic chemistry flashcards. Her algorithm is half study-with-me videos she never finishes and half chaotic food compilations. She comments rarely but sends everything to her group chat.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_1",
+    "name": "Marcus",
+    "age": 34,
+    "location": "Manchester, UK",
+    "occupation": "NHS psychiatric nurse",
+    "interests": [
+      "true crime summaries",
+      "dark humor",
+      "football highlights",
+      "budget cooking"
+    ],
+    "scroll_context": "3am on an empty ward, sitting in the nurses' station with one ear for patient call bells",
+    "attention_style": "Stops for quick, grimly funny takes on terrible situations; swipes away from loud jump scares or anything requiring sound in the quiet ward",
+    "description": "Marcus has worked night shifts long enough that his body no longer knows what sunlight is. He scrolls to stay awake, not to be entertained. Videos hit different at 3:47am when the ward smells of industrial cleaner and someone is always sleeping two doors down. He needs content that acknowledges life is absurd without demanding emotional labor.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_2",
+    "name": "Rosa",
+    "age": 41,
+    "location": "Phoenix, Arizona, USA",
+    "occupation": "Uber and Lyft driver",
+    "interests": [
+      "true crime",
+      "parenting fails",
+      "celebrity gossip",
+      "easy dinner ideas"
+    ],
+    "scroll_context": "Parked in airport queue lots or outside bars at 1am, phone mounted on dash, waiting for the next ping",
+    "attention_style": "Stops for drama she can follow without sound, or one-pot meals; swipes away from vertical videos filmed while driving or anything preachy about hustle culture",
+    "description": "Rosa drives 50 hours a week and knows every public bathroom in Maricopa County. Her car is her office, bedroom, and dining room. She scrolls in stolen minutes between rides, volume off, reading captions. She has no patience for people who film themselves crying—she has cried in this car and never made it content.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_3",
+    "name": "Amara",
+    "age": 28,
+    "location": "Lagos, Nigeria",
+    "occupation": "Customer service representative",
+    "interests": [
+      "Nollywood clips",
+      "relationship advice",
+      "wedding transformations",
+      "small business tips"
+    ],
+    "scroll_context": "Lunch break in her office's shared cafeteria, 45 minutes with her phone flat on the plastic table",
+    "attention_style": "Stops for family drama or practical money-saving hacks; swipes away from American accents explaining her own culture back to her or videos that waste 10 seconds before starting",
+    "description": "Amara shares a desk with two other reps and answers complaints about missing deliveries eight hours daily. Her break is sacred. She scrolls to remember there are lives outside this building with its flickering fluorescent lights. She saves videos about side hustles she will start next month, has done for three years.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_4",
+    "name": "Hiroshi",
+    "age": 63,
+    "location": "Osaka, Japan",
+    "occupation": "Retired postal worker",
+    "interests": [
+      "gardening tricks",
+      "grandchildren's content",
+      " Showa-era nostalgia",
+      "easy exercise"
+    ],
+    "scroll_context": "Evenings alone in his apartment, his granddaughter's old phone propped on the kotatsu, reading glasses on",
+    "attention_style": "Stops for faces his age doing anything competently or grandchildren showing him new things; swipes away from fast cuts, tiny text, or slang he cannot parse",
+    "description": "Hiroshi's granddaughter loaded the app and showed him how to scroll. That was two years ago. Now he sends her videos daily—mostly ones he does not fully understand but thinks she might like. He watches slowly, often replaying, sometimes falling asleep with the phone still glowing. The algorithm has learned his patience.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_5",
+    "name": "Fatima",
+    "age": 16,
+    "location": "Casablanca, Morocco",
+    "occupation": "High school student",
+    "interests": [
+      "makeup tutorials",
+      "study aesthetics",
+      "K-pop edits",
+      "relatable school moments"
+    ],
+    "scroll_context": "Back corner of history class, phone below desk level, one eye on the teacher's chalkboard movements",
+    "attention_style": "Stops for perfectly organized notes or dramatic teacher stories; swipes away from anything with her school's actual uniform visible or videos longer than her remaining class minutes",
+    "description": "Fatima's school bans phones but everyone has one. She has perfected the art of laughing silently, of the sudden straight-face when the teacher turns. Her scroll is furtive, adrenalized, better than the content itself sometimes. She watches at 2x speed by default now, her attention permanently fractured between two worlds.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_6",
+    "name": "Dmitri",
+    "age": 52,
+    "location": "Novosibirsk, Russia",
+    "occupation": "Long-haul truck driver",
+    "interests": [
+      "road life vlogs",
+      "mechanical repairs",
+      "Soviet songs remixed",
+      "absurdist humor"
+    ],
+    "scroll_context": "Parked at highway rest stops across Siberia, cab heater running, cooking dinner on his portable stove while scrolling",
+    "attention_style": "Stops for other drivers documenting the same empty roads he knows; swipes away from city people complaining about traffic or fake-dangerous driving stunts",
+    "description": "Dmitri's cab is 3 meters by 2 and he lives in it two weeks at a time. The scroll connects him to other solitary men in metal boxes moving goods no one thinks about. He watches videos about his exact engine model, about meals cooked in exactly his conditions. He comments rarely but meaningfully, usually correcting someone's route advice.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_7",
+    "name": "Priya",
+    "age": 31,
+    "location": "Mumbai, India",
+    "occupation": "Stay-at-home mother",
+    "interests": [
+      "baby sleep tips",
+      "quick recipes",
+      "mom humor",
+      "home organization"
+    ],
+    "scroll_context": "Nursing her 8-month-old at 4am, phone dimmed to minimum, scrolling one-handed in the dark nursery",
+    "attention_style": "Stops for validation that exhaustion is normal or hacks that require no energy; swipes away from perfect mothers with perfect homes or anything judgmental about screen time",
+    "description": "Priya has not slept more than three consecutive hours in eight months. Her body is not her own, her time is not her own, but this scroll is hers. She watches other mothers at 4am across the world, this invisible sisterhood of the sleepless. She saves videos she will never have energy to try. The scrolling itself is the point.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_8",
+    "name": "Kwame",
+    "age": 24,
+    "location": "Accra, Ghana",
+    "occupation": "Construction site laborer",
+    "interests": [
+      "football skills",
+      "motivational speeches",
+      "music videos",
+      "comedy skits"
+    ],
+    "scroll_context": "Friday evenings on shared mattresses in his workers' hostel, phone charging from the one working outlet, weekend beginning",
+    "attention_style": "Stops for high energy and recognizable faces from home; swipes away from slow-building stories or content that assumes indoor leisure time",
+    "description": "Kwame pours concrete six days weekly and sends half his pay home. Friday is for recovery and reconnection—he scrolls to feel part of something larger than this temporary site, these temporary rooms. He watches loudly, shares with roommates, argues about football transfers. The scroll is social, communal, earned through six days of physical exhaustion.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_9",
+    "name": "Elena",
+    "age": 45,
+    "location": "Bucharest, Romania",
+    "occupation": "Factory quality control inspector",
+    "interests": [
+      "true crime psychology",
+      "home renovation",
+      "medical mysteries",
+      "rescue animals"
+    ],
+    "scroll_context": "Two 15-minute breaks daily in the factory's designated smoking area, standing because all seats are taken",
+    "attention_style": "Stops for complete narrative arcs she can finish in one break; swipes away from multipart series or anything requiring previous context",
+    "description": "Elena checks circuit boards for eight hours, her eyes tired from magnification lenses. Her breaks are precisely timed, her scroll deliberately chosen. She needs content that respects her time constraint, that offers closure. She has developed strong opinions about which true crime narrators waste her minutes with unnecessary biography. She never subscribes—too permanent—but remembers names to search.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_10",
+    "name": "Chen",
+    "age": 38,
+    "location": "Shenzhen, China",
+    "occupation": "Warehouse night shift supervisor",
+    "interests": [
+      "cooking tutorials",
+      "factory worker life",
+      "drama recaps",
+      "lottery unboxing"
+    ],
+    "scroll_context": "3am in the break room, fluorescent lights, instant noodles cooling, eight hours still remaining",
+    "attention_style": "Stops for other night workers documenting this invisible schedule; swipes away from daytime reality or content that assumes natural light is normal",
+    "description": "Chen manages inventory while others sleep and has not seen his family awake on a weekday in years. He scrolls to confirm others live this way too, that the world has not forgotten the night. He watches cooking videos for food he will make on his one day off, lives through others' daylight. The algorithm shows him more darkness than he would choose.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_11",
+    "name": "Sofia",
+    "age": 19,
+    "location": "São Paulo, Brazil",
+    "occupation": "Hairdressing apprentice",
+    "interests": [
+      "hair transformations",
+      "client horror stories",
+      "fashion hauls",
+      "ASMR"
+    ],
+    "scroll_context": "Between clients in the salon's back area, bleach-stained apron still on, waiting for color to process or next appointment to arrive",
+    "attention_style": "Stops for satisfying before/afters or drama she can share with colleagues; swipes away from techniques she already knows or influencers who have clearly never worked salon hours",
+    "description": "Sofia sweeps hair for eight hours hoping to be trusted with scissors. Her scroll is professional development disguised as entertainment—she watches for trends, for warnings, for the future she is working toward. She sends videos to her mother with captions like 'when I have my own chair.' The dream is specific: not fame, just competence, respect, her name on a station.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_12",
+    "name": "Yuki",
+    "age": 26,
+    "location": "Sapporo, Japan",
+    "occupation": "Graduate student in glaciology",
+    "interests": [
+      "fieldwork fails",
+      "climate anxiety humor",
+      "productivity systems",
+      "rare animal footage"
+    ],
+    "scroll_context": "Procrastinating in her lab's empty conference room, thesis document minimized, guilt already present",
+    "attention_style": "Stops for academic misery she can relate to or pure escapism with no educational value; swipes away from 'study with me' videos that remind her of her own failure to study",
+    "description": "Yuki has been 'writing' her thesis for fourteen months. The scroll is her shame and her comfort, proof that others also avoid their work, also panic, also survive. She watches field scientists in worse conditions than hers, feels briefly better, then worse. She has complicated theories about which procrastination content is healthy versus harmful but applies none of them.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_13",
+    "name": "Aisha",
+    "age": 56,
+    "location": "Minneapolis, USA",
+    "occupation": "Disabled former teacher, pensioner",
+    "interests": [
+      "disability advocacy",
+      "gentle crafts",
+      "nature documentaries",
+      "comfort cooking"
+    ],
+    "scroll_context": "Afternoons in her apartment, mobility scooter positioned by the window, world arriving through screen",
+    "attention_style": "Stops for genuine disability representation or slow, detailed processes she can follow; swipes away from inspiration porn or 'overcoming' narratives that erase systemic barriers",
+    "description": "Aisha's chronic condition removed her from classrooms but not from curiosity. She scrolls because her body no longer carries her to experience, so experience must come to her. She is patient with content, watches long-form, reads comments like social texture. She has time others waste and wastes none of it—every scroll is chosen, every pause considered. The feed is not escape. It is her geography now.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_14",
+    "name": "Priya",
+    "age": 26,
+    "location": "Ahmedabad, India",
+    "occupation": "ICU nurse",
+    "interests": [
+      "true crime podcasts",
+      "budget skincare",
+      "Bollywood gossip",
+      "easy recipes"
+    ],
+    "scroll_context": "3am to 5am during night shifts when patients are stable and the ward is quiet except for monitors",
+    "attention_style": "Stops for emotional medical stories, relatable nurse humor, or satisfying ASMR cleaning; swipes away from jump scares, loud sudden noises, or anything that reminds her of codes she just ran",
+    "description": "Priya works 12-hour night shifts at a public hospital and uses short videos to stay awake during the dead hours. She keeps one earbud in to hear call bells, so she favors captions and visual storytelling. She'll watch a 3-minute storytime about a patient's weird symptoms but skips anything with screaming or fake medical drama.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_15",
+    "name": "Darnell",
+    "age": 19,
+    "location": "Houston, USA",
+    "occupation": "Warehouse picker",
+    "interests": [
+      "NBA highlights",
+      "streetwear unboxings",
+      "hood cooking videos",
+      "motivational gym content"
+    ],
+    "scroll_context": "2am to 4am on mandated 15-minute breaks in a freezing fulfillment center break room",
+    "attention_style": "Stops for fast-paced sports clips, 'day in my life' warehouse videos, or anything with Travis Scott; swipes away from slow tutorials, podcast clips with no visuals, or corporate 'we're a family' content",
+    "description": "Darnell walks 12 miles a night pulling orders and uses his two breaks to mentally escape the warehouse. He watches standing up, phone propped on a vending machine, often with a dead arm from repetitive strain. He shares videos with his shift group chat but never comments—too tired to type.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_16",
+    "name": "Helena",
+    "age": 34,
+    "location": "São Paulo, Brazil",
+    "occupation": "Stay-at-home parent",
+    "interests": [
+      "toddler meal hacks",
+      "small space organizing",
+      "Brazilian soap clips",
+      "mom comedy"
+    ],
+    "scroll_context": "Nursing her 8-month-old at 2am, 4am, and 6am, phone brightness at minimum, one-handed scrolling",
+    "attention_style": "Stops for silent or captioned content she can follow without sound, relatable mom exhaustion, or clever household shortcuts; swipes away from crying baby sounds, perfect mom influencers, or anything requiring headphones",
+    "description": "Helena hasn't slept more than three hours straight in months. She watches videos to feel less alone during night feeds, favoring raw, unfiltered mom content over polished family vlogs. She saves organizing hacks she'll never try and sends funny clips to her partner sleeping in the next room.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_17",
+    "name": "Kenji",
+    "age": 17,
+    "location": "Osaka, Japan",
+    "occupation": "High school student",
+    "interests": [
+      "vintage fashion hauls",
+      "horror game playthroughs",
+      "cute animal accounts",
+      "study-with-me videos"
+    ],
+    "scroll_context": "Back corner of math class, phone flat on desk under a strategically placed pencil case, volume permanently off",
+    "attention_style": "Stops for visually striking thrift flips, cryptic horror shorts with text overlays, or anything with Scottish Fold cats; swipes away from teachers explaining things, talking-head rants, or videos with essential audio",
+    "description": "Kenji is failing math but has perfect attendance because school is where he socializes and scrolls. He's developed elite peripheral vision for detecting teacher movement. He never likes or comments—too risky—but maintains elaborate saved folders organized by mood.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_18",
+    "name": "Margaret",
+    "age": 64,
+    "location": "Glasgow, UK",
+    "occupation": "Retired postal worker",
+    "interests": [
+      "gardening tips",
+      "funny dog videos",
+      "local history",
+      "easy crafts"
+    ],
+    "scroll_context": "10pm to midnight in bed after her granddaughter showed her the app, tablet propped on knees, reading glasses on",
+    "attention_style": "Stops for clear, well-lit videos with slow speech or good captions, Scottish creators, or anything reminding her of her dog; swipes away from rapid cuts, slang she doesn't understand, or videos with no clear point",
+    "description": "Margaret joined to see what her granddaughter keeps laughing at and now spends an hour nightly falling down rabbit holes. She double-taps constantly thinking she's bookmarking, accidentally follows hundreds of accounts, and once commented 'lovely' on a video about divorce. She prefers YouTube Shorts because the interface confuses her less.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_19",
+    "name": "Omar",
+    "age": 42,
+    "location": "Cairo, Egypt",
+    "occupation": "Uber driver",
+    "interests": [
+      "political satire",
+      "car maintenance hacks",
+      "Egyptian comedy sketches",
+      "Quran recitation"
+    ],
+    "scroll_context": "Parked outside airports and malls waiting for ride requests, phone mounted on dash, 5-15 minute intervals",
+    "attention_style": "Stops for sharp political jokes, money-saving driver tips, or emotional fatherhood content; swipes away from anything sexually suggestive (passengers might see), fake news he recognizes, or English without Arabic captions",
+    "description": "Omar drives 10-hour shifts and knows every free parking spot near Cairo International. He watches between rides to stay alert, not relax—he avoids anything too absorbing. He forwards political clips to his brother's WhatsApp and argues in comment sections under regional news accounts. His algorithm is a mess of interests.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_20",
+    "name": "Svetlana",
+    "age": 29,
+    "location": "Riga, Latvia",
+    "occupation": "Hairdresser",
+    "interests": [
+      "color transformation videos",
+      "true crime summaries",
+      "Baltic travel",
+      "ASMR hair sounds"
+    ],
+    "scroll_context": "Between clients in her salon chair, phone on the station counter, 10-40 minute gaps depending on bookings",
+    "attention_style": "Stops for satisfying before/after color jobs, quick true crime 'this happened in my town' stories, or Latvian creators; swipes away from bad hair advice, lengthy unboxings, or content in Russian (political choice since 2022)",
+    "description": "Svetlana's salon has spotty WiFi so she downloads videos during slow mornings. She watches with clients sometimes—'look at this crazy color correction'—turning scrolling into small talk. She critiques every hair video professionally and has strong opinions about which 'hairdressers' are actually licensed.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_21",
+    "name": "Diego",
+    "age": 22,
+    "location": "Lima, Peru",
+    "occupation": "Backpacker / hostel worker",
+    "interests": [
+      "budget travel hacks",
+      "language learning content",
+      "Peruvian food abroad",
+      "van life failures"
+    ],
+    "scroll_context": "14-hour bus rides between cities, phone battery conserved, downloaded content or spotty data",
+    "attention_style": "Stops for realistic broke travel stories, Spanish-English code-switching, or South American creators; swipes away from luxury travel, 'quit your job' preachiness, or content assuming everyone has passports from privileged countries",
+    "description": "Diego works hostel reception for room and board while figuring out his next move. He scrolls to research destinations and feel connected to home. He saves videos of Peruvian restaurants in cities he might visit and sends them to his mom. Motion sickness limits his scrolling on winding mountain roads.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_22",
+    "name": "Aisha",
+    "age": 38,
+    "location": "Minneapolis, USA",
+    "occupation": "Small business owner (halal grocery)",
+    "interests": [
+      "small business motivation",
+      "Somali cooking tutorials",
+      "debt-free journeys",
+      "immigrant success stories"
+    ],
+    "scroll_context": "11pm to 1am after closing the store, doing inventory in the back office, procrastinating on QuickBooks",
+    "attention_style": "Stops for honest business struggles, East African creators, or practical accounting tips disguised as motivation; swipes away from 'hustle harder' content from trust-fund entrepreneurs, complicated transitions, or anything wasting her limited time",
+    "description": "Aisha's family store is finally profitable after five years and she's terrified of messing up the books. She watches business content to feel less alone in the stress, not for actual advice—she's learned most of it doesn't apply to cash-heavy, family-staffed operations. She watches at 1.5x speed always.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_23",
+    "name": "Wei",
+    "age": 31,
+    "location": "Wuhan, China",
+    "occupation": "Factory quality inspector",
+    "interests": [
+      "factory worker diaries",
+      "cheap gadget reviews",
+      "rural life content",
+      "comedy skits"
+    ],
+    "scroll_context": "12-hour shifts with two 30-minute breaks in a dormitory room shared with three others, headphones essential",
+    "attention_style": "Stops for other factory workers documenting their real days, absurdly cheap tool demonstrations, or nostalgic rural Spring Festival content; swipes away from office worker complaints, expensive products, or anything feeling like propaganda",
+    "description": "Wei inspects circuit boards and uses breaks to decompress, not think. He prefers content from people with similar lives over aspirational escapes—seeing someone else exhausted in a uniform feels more relaxing than beaches. He comments rarely but meaningfully, usually correcting technical details in gadget videos.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_24",
+    "name": "Yuki",
+    "age": 27,
+    "location": "Auckland, New Zealand",
+    "occupation": "Graduate student (marine biology)",
+    "interests": [
+      "ocean facts",
+      "thesis procrastination memes",
+      "New Zealand nature",
+      "academic twitter crossovers"
+    ],
+    "scroll_context": "10am to 2pm at her desk with thesis document open but minimized, guilt-scrolling between attempts to write",
+    "attention_style": "Stops for marine content that feels relevant to her work, relatable PhD struggle posts, or local NZ creators; swipes away from 'just do it' motivation, anything reminding her of her advisor, or ocean content with bad science she can't resist correcting",
+    "description": "Yuki's been 'almost done' with her thesis for eight months. She tells herself she's 'researching engagement strategies' when she scrolls, but she's just avoiding. She keeps a separate account for following actual scientists so her main feed stays distractingly fun. She has 200 drafts of comments she never posted.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_25",
+    "name": "Björn",
+    "age": 53,
+    "location": "Östersund, Sweden",
+    "occupation": "Farmer (crop and small livestock)",
+    "interests": [
+      "tractor restoration",
+      "weather forecasts",
+      "Nordic noir clips",
+      "sheep dog videos"
+    ],
+    "scroll_context": "November through March during off-season, mornings with coffee, 30-60 minutes before the day's maintenance tasks",
+    "attention_style": "Stops for practical machinery repair, deadpan Scandinavian humor, or working dog content; swipes away from urban farming idealism, fast fashion, or anything with false urgency—he has enough real deadlines",
+    "description": "Björn only downloaded the app last winter when his nephew insisted. He uses it seasonally, intensely curious during dark months, barely touching his phone during planting and harvest. He doesn't understand most trends but appreciates the algorithm learning he wants tractor content, not dances. He forwards videos to his farming cooperative's email chain.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_26",
+    "name": "Thandi",
+    "age": 46,
+    "location": "Johannesburg, South Africa",
+    "occupation": "High school teacher",
+    "interests": [
+      "teacher humor",
+      "education policy debates",
+      "gospel music clips",
+      "home renovation"
+    ],
+    "scroll_context": "8pm to 10pm after lesson planning is technically done, in bed with grading still pending, phone as reward",
+    "attention_style": "Stops for teachers accurately depicting classroom chaos, South African creators, or satisfying home before/afters; swipes away from 'teachers are lazy' content, American classroom culture that doesn't translate, or anything using her students' slang incorrectly",
+    "description": "Thandi has taught for twenty years and uses videos to remember why she chose this. She follows younger teachers documenting their first years with complicated emotions—proud they're sharing, worried they're burning out. She never posts but has strong opinions about which teacher creators are actually in classrooms versus performing teaching.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_27",
+    "name": "Jin-ho",
+    "age": 58,
+    "location": "Busan, South Korea",
+    "occupation": "Long-haul truck driver",
+    "interests": [
+      "truck stop food reviews",
+      "baseball highlights",
+      "trot music",
+      "dashcam compilations"
+    ],
+    "scroll_context": "Rest stops every four hours by law, 45-minute breaks at highway service areas, phone charging in the cab",
+    "attention_style": "Stops for other Korean truckers documenting their routes, Lotte Giants highlights he missed while driving, or nostalgic trot performances; swipes away from car crash videos (too real), anything requiring sustained attention, or content making fun of drivers",
+    "description": "Jin-ho drives Seoul to Busan and back three times weekly, living in his truck cab. He watches to feel connected during solitary days, favoring content that acknowledges his world exists. He comments simple encouragements on younger drivers' videos and has been recognized twice at rest stops by viewers of his rare dashcam uploads.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_28",
+    "name": "Diego",
+    "age": 22,
+    "location": "Guadalajara, Mexico",
+    "occupation": "call center agent",
+    "interests": [
+      "fútbol",
+      "memes",
+      "true crime",
+      "cheap recipes"
+    ],
+    "scroll_context": "Between back-to-back customer calls, hiding phone under desk during dead air moments",
+    "attention_style": "Stops for relatable workplace rage or Mexican family dynamics; swipes past English-only content without subtitles or corporate motivational speeches",
+    "description": "Diego works 10-hour shifts in a cubicle farm handling US insurance claims. His supervisor monitors screen time, so he keeps TikTok in a tiny window, scrolling only during the 90-second gaps between calls. He craves videos that validate how much he hates his job without explicitly saying so.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_29",
+    "name": "Aisha",
+    "age": 31,
+    "location": "Lagos, Nigeria",
+    "occupation": "bank teller",
+    "interests": [
+      "Nollywood gossip",
+      "hairstyle tutorials",
+      "real estate investing",
+      "church drama"
+    ],
+    "scroll_context": "During her 45-minute lunch break in the bank's cramped break room, sitting on a plastic chair",
+    "attention_style": "Stops for Nigerian family skits and transformation videos; swipes past anything requiring headphones or slow-burn storytelling",
+    "description": "Aisha has exactly 45 minutes to eat her jollof rice and escape her standing-all-day reality. She scrolls aggressively, needing immediate payoff—no slow pans, no 'wait for it' captions. She shares videos in her WhatsApp family group without watching to the end, trusting the first 3 seconds.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_30",
+    "name": "Björn",
+    "age": 54,
+    "location": "Gothenburg, Sweden",
+    "occupation": "maritime welder",
+    "interests": [
+      "fishing techniques",
+      "machinery restoration",
+      "dark humor",
+      "70s rock"
+    ],
+    "scroll_context": "In his bunk on offshore oil platforms during 2-week rotations, limited satellite bandwidth",
+    "attention_style": "Stops for satisfying mechanical processes or deadpan Scandinavian comedy; swipes past influencer lifestyle content and anything with jump cuts every 0.5 seconds",
+    "description": "Björn spends two weeks at a time on a floating rig in the North Sea. The shared WiFi is expensive and slow, so he downloads videos during port leave and watches offline. He has zero patience for performative emotion—if someone is crying on camera within 3 seconds, he's gone.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_31",
+    "name": "Priya",
+    "age": 19,
+    "location": "Mumbai, India",
+    "occupation": "MBBS first-year student",
+    "interests": [
+      "medical memes",
+      "K-drama clips",
+      "study motivation",
+      "Mumbai street food"
+    ],
+    "scroll_context": "Propped against her hostel pillow at 1 AM, phone on 5% battery, avoiding tomorrow's anatomy cramming",
+    "attention_style": "Stops for 'day in my life as a medical student' content or anything in Hindi she can half-watch; swipes past English science explainers that feel like more studying",
+    "description": "Priya's hostel roommate is asleep, so she scrolls with brightness at minimum and no sound. She's guilt-scrolling—every video is a procrastination she'll regret. She saves 'motivational' videos she never re-watches, collecting them like talismans against her mounting syllabus.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_32",
+    "name": "Tyrone",
+    "age": 36,
+    "location": "Memphis, USA",
+    "occupation": "FedEx package handler",
+    "interests": [
+      "basketball highlights",
+      "grilling tutorials",
+      "relationship advice",
+      "Memphis rap"
+    ],
+    "scroll_context": "On the 15-minute morning break, sitting on a concrete ledge in the loading dock, back killing him",
+    "attention_style": "Stops for athletic feats or straight-talk relationship clips; swipes past soft-spoken ASMR or anything requiring him to read on-screen text in sunlight",
+    "description": "Tyrone's break is timed to the minute—late return means dock supervisor writes him up. He scrolls standing, phone angled against the glare, needing content that works without sound in a roaring warehouse zone. He's a lurker, never commenting, but sends links to his brother's DMs.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_33",
+    "name": "Svetlana",
+    "age": 47,
+    "location": "Minsk, Belarus",
+    "occupation": "kindergarten teacher",
+    "interests": [
+      "dacha gardening",
+      "Soviet nostalgia",
+      "cheap crafts",
+      "medical symptom checking"
+    ],
+    "scroll_context": "After 7 PM, collapsed on her Soviet-era sofa, legs elevated, finally quiet after 30 six-year-olds",
+    "attention_style": "Stops for practical household tips or Eastern European cultural references; swipes past teenage trends, fast fashion hauls, or anything sexually suggestive",
+    "description": "Svetlana downloaded Instagram because her daughter insisted, still confuses Reels with Stories. She scrolls slowly, often watching the same video twice because she missed it the first time. She forwards 'useful' videos to her entire contact list regardless of relevance, proud of her digital literacy.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_34",
+    "name": "Jamal",
+    "age": 26,
+    "location": "London, UK",
+    "occupation": " Deliveroo cyclist",
+    "interests": [
+      "UK drill music",
+      "bike maintenance",
+      "free food hacks",
+      "football transfer rumors"
+    ],
+    "scroll_context": "Between orders, phone mounted on handlebars, paused at traffic lights in the rain",
+    "attention_style": "Stops for London-specific content or 20-second bike tricks; swipes past anything over 60 seconds or requiring both hands to engage",
+    "description": "Jamal's income depends on response time, so his scrolling is literally between red lights. He watches videos one-handed, thumb hovering to pause if the light changes. He never reads captions—can't, while cycling—and relies entirely on audio and immediate visual hooks.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_35",
+    "name": "Hana",
+    "age": 29,
+    "location": "Seoul, South Korea",
+    "occupation": "hagwon English instructor",
+    "interests": [
+      "true crime psychology",
+      "single life in Seoul",
+      "English learning content",
+      "cafe vlogs"
+    ],
+    "scroll_context": "On the last subway home at 11 PM, crushed in a car, holding phone at chest level to avoid eye contact",
+    "attention_style": "Stops for bilingual content she can practice with or 'honest talk about being 30 and unmarried'; swipes past baby videos (too painful) and anything with exaggerated aegyo",
+    "description": "Hana teaches until 10 PM six days a week, her social life eroded by hagwon hours. She scrolls to feel less alone in the crowd, seeking content that acknowledges the specific exhaustion of Korean millennials without explicitly naming it. She comments rarely but meaningfully, usually at 2 AM.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_36",
+    "name": "Omar",
+    "age": 62,
+    "location": "Cairo, Egypt",
+    "occupation": "retired army mechanic",
+    "interests": [
+      "classic Arabic poetry",
+      "mechanical repairs",
+      "Egyptian political satire",
+      "grandchildren's achievements"
+    ],
+    "scroll_context": "5-7 AM on his balcony before heat builds, mint tea cooling, reading glasses on and off",
+    "attention_style": "Stops for elderly Egyptian men discussing life or engine restoration; swipes past rapid editing, English-only content, or anything with music he doesn't recognize",
+    "description": "Omar's grandson installed TikTok and set it to Arabic. He treats it like television, watching slowly, often replaying, sometimes asking his wife what a slang word means. He doesn't understand the scroll economy—he'll watch a boring video to the end out of politeness, confusing the algorithm terribly.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_37",
+    "name": "Chloe",
+    "age": 17,
+    "location": "Auckland, New Zealand",
+    "occupation": "Year 13 student, part-time supermarket checkout",
+    "interests": [
+      "NZ indie music",
+      "climate anxiety content",
+      "thrift flips",
+      "mental health realism"
+    ],
+    "scroll_context": "Under the desk in statistics class, phone on lap, one earbud hidden under hair",
+    "attention_style": "Stops for authentic 'unhinged' rants or environmental action content; swipes past polished influencer perfection or anything that feels like homework",
+    "description": "Chloe's school banned phones but enforcement is uneven. She scrolls as rebellion and sedation, seeking content that validates her dread about the future without offering solutions she's too tired to execute. She reports videos that feel 'fake' out of spite, her only platform interaction.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_38",
+    "name": "Rajesh",
+    "age": 41,
+    "location": "Dubai, UAE",
+    "occupation": "supermarket warehouse supervisor",
+    "interests": [
+      "Malayalam cinema",
+      "Gulf worker life",
+      "money transfer tips",
+      "Kerala news"
+    ],
+    "scroll_context": "In a labor camp bunk bed, 8 PM, after 12-hour shift in -20°C cold storage, sharing data with 5 roommates",
+    "attention_style": "Stops for Malayalam content or Gulf migrant worker solidarity; swipes past Arabic content he can't read or anything reminding him of Dubai luxury he'll never access",
+    "description": "Rajesh's phone is his window to Kerala, 3,000 kilometers and most of his income away. He scrolls horizontally through his Following feed, rarely Explore—he curates carefully, avoiding content that triggers the specific grief of separation. He video-calls home Sunday mornings, then scrolls their sent videos the rest of the week.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_39",
+    "name": "Ingrid",
+    "age": 58,
+    "location": "Oslo, Norway",
+    "occupation": "disability pensioner, former librarian",
+    "interests": [
+      "slow TV",
+      "knitting patterns",
+      "disability advocacy",
+      "Nordic noir"
+    ],
+    "scroll_context": "Mid-morning in her adapted apartment, waiting for home care visit, world narrowed to screen size",
+    "attention_style": "Stops for genuine disability representation or extremely slow-paced craft content; swipes past inspiration porn, 'overcoming' narratives, or anything shaming dependency",
+    "description": "Ingrid's chronic pain limits her to approximately 3 meters of movement. Short-form video isn't entertainment—it's her primary social contact, her window, her proof that others exist. She scrolls slowly, often crying at mundane content, not from sadness but from the relief of witnessing life continue elsewhere.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_40",
+    "name": "Wei",
+    "age": 24,
+    "location": "Shenzhen, China",
+    "occupation": "Foxconn assembly line technician",
+    "interests": [
+      "factory worker influencers",
+      "budget tech reviews",
+      "hometown cooking",
+      "sleep ASMR"
+    ],
+    "scroll_context": "In a 12-person dormitory, 10:30 PM lights-out, under blanket with brightness minimum, exhausted",
+    "attention_style": "Stops for 'day in factory life' content or audio-only sleep aids; swipes past anything requiring engagement, commenting, or emotional labor she doesn't have left",
+    "description": "Wei's 10-hour shifts involve 4,000 identical motions. Her scrolling is pre-sleep anesthesia, not entertainment—she often falls asleep mid-video, phone on her chest, waking to a dead battery and algorithmic chaos. She never comments, never posts, exists in the data as pure consumption pattern.",
+    "weight": 1.0
+  },
+  {
+    "persona_id": "persona_41",
+    "name": "Fatima",
+    "age": 34,
+    "location": "Casablanca, Morocco",
+    "occupation": "hairdresser, home salon",
+    "interests": [
+      "protective hairstyles",
+      "Darija comedy",
+      "client drama stories",
+      "halal cooking shortcuts"
+    ],
+    "scroll_context": "Between appointments, dye processing under plastic caps, phone propped on styling station",
+    "attention_style": "Stops for Moroccan family skits or hairstyle tutorials she can actually use; swipes past French-only content (colonial residue she resents) or anything requiring sound while clients are present",
+    "description": "Fatima's salon is her living room—clients come to her, children underfoot, husband in the next room. She scrolls in fragmented 4-minute intervals, never knowing when someone will arrive. She's learned to pause videos mid-sentence without losing track, a skill born of constant interruption.",
+    "weight": 1.0
+  }
+]
