@@ -189,7 +189,7 @@
 
   /* ── M5-4 bar chart (latency) ─────────────────────────── */
   .lat-chart { margin: 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
-  .lat-row { display: grid; grid-template-columns: 130px 1fr 90px 110px 90px; gap: 10px; align-items: center; padding: 6px 0; font-family: var(--mono); font-size: 12px; }
+  .lat-row { display: grid; grid-template-columns: 60px 1fr 90px 100px 90px; gap: 10px; align-items: center; padding: 6px 0; font-family: var(--mono); font-size: 12px; }
   .lat-hd { color: var(--ink-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 4px; }
   .lat-bar { height: 14px; background: var(--border); border-radius: 2px; position: relative; overflow: hidden; }
   .lat-fill { height: 100%; background: var(--eval); }
@@ -496,7 +496,7 @@
       <span>Cap</span><span></span><span>Time</span><span>Speedup</span><span>Efficiency</span>
     </div>
     <div class="lat-row">
-      <span class="lat-k">1 · serial</span>
+      <span class="lat-k">1</span>
       <div class="lat-bar"><div class="lat-fill err" style="width: 100%"></div></div>
       <span class="lat-cell bad">4,200 ms</span><span class="lat-cell">1.0×</span><span class="lat-cell">100%</span>
     </div>
@@ -511,7 +511,7 @@
       <span class="lat-cell">~450 ms</span><span class="lat-cell">9.3×</span><span class="lat-cell">93%</span>
     </div>
     <div class="lat-row" style="background: var(--bg);">
-      <span class="lat-k" style="color: var(--disc); font-weight: 800;">29 · prod ★</span>
+      <span class="lat-k" style="color: var(--disc); font-weight: 800;">29</span>
       <div class="lat-bar"><div class="lat-fill" style="width: 3.8%; background: var(--disc);"></div></div>
       <span class="lat-cell" style="color: var(--disc); font-weight: 700;">~160 ms</span><span class="lat-cell" style="color: var(--disc); font-weight: 700;">26.3×</span><span class="lat-cell" style="color: var(--disc); font-weight: 700;">90.7%</span>
     </div>
@@ -540,22 +540,22 @@
       <span>Scenario</span><span></span><span>100%</span><span>95%</span><span>Saved</span>
     </div>
     <div class="lat-row">
-      <span class="lat-k">Mild 3×</span>
+      <span class="lat-k">3×</span>
       <div class="lat-bar"><div class="lat-fill warn" style="width: 65.4%"></div></div>
       <span class="lat-cell">151 ms</span><span class="lat-cell">52 ms</span><span class="lat-cell" style="font-weight:700;">65.4%</span>
     </div>
     <div class="lat-row" style="background: var(--bg);">
-      <span class="lat-k" style="color: var(--eval); font-weight: 800;">Severe 10× ★</span>
+      <span class="lat-k" style="color: var(--eval); font-weight: 800;">10×</span>
       <div class="lat-bar"><div class="lat-fill" style="width: 89.6%; background: var(--eval);"></div></div>
       <span class="lat-cell">501 ms</span><span class="lat-cell" style="color: var(--eval); font-weight: 700;">52 ms</span><span class="lat-cell" style="color: var(--eval); font-weight: 700;">89.6%</span>
     </div>
     <div class="lat-row">
-      <span class="lat-k">Worst 20×</span>
+      <span class="lat-k">20×</span>
       <div class="lat-bar"><div class="lat-fill err" style="width: 94.8%"></div></div>
       <span class="lat-cell bad">1,002 ms</span><span class="lat-cell">52 ms</span><span class="lat-cell" style="font-weight:700;">94.8%</span>
     </div>
     <div class="lat-row">
-      <span class="lat-k">No stragglers</span>
+      <span class="lat-k">1×</span>
       <div class="lat-bar"><div class="lat-fill" style="width: 1.9%"></div></div>
       <span class="lat-cell">52 ms</span><span class="lat-cell">51 ms</span><span class="lat-cell">&lt; 2% overhead</span>
     </div>
@@ -589,12 +589,12 @@
       <span class="lat-cell">35 ms</span><span class="lat-cell">59 ms</span><span class="lat-cell">100 ms</span>
     </div>
     <div class="lat-row">
-      <span class="lat-k">100 · safe zone</span>
+      <span class="lat-k">100</span>
       <div class="lat-bar"><div class="lat-fill" style="width: 2.1%"></div></div>
       <span class="lat-cell">34 ms</span><span class="lat-cell">61 ms</span><span class="lat-cell">140 ms</span>
     </div>
     <div class="lat-row" style="background: var(--bg);">
-      <span class="lat-k" style="color: var(--error); font-weight: 800;">500 · inflection</span>
+      <span class="lat-k" style="color: var(--error); font-weight: 800;">500</span>
       <div class="lat-bar"><div class="lat-fill err" style="width: 100%"></div></div>
       <span class="lat-cell">69 ms</span><span class="lat-cell bad">2,900 ms ↑47×</span><span class="lat-cell bad">4,200 ms</span>
     </div>
