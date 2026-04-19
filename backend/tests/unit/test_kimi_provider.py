@@ -141,6 +141,75 @@ class TestRetryBehavior:
             assert mock_client.messages.create.call_count == 3
 
 
+class TestRateLimitRetryBudget:
+    """429 errors get a separate retry budget, independent of the main attempt counter."""
+
+    @pytest.mark.asyncio
+    async def test_retries_on_429_and_succeeds(self, kimi_provider):
+        """First 3 calls raise 429 — each triggers a rate-limit retry, 4th succeeds."""
+        good_resp = _mock_message("success")
+        call_count = 0
+
+        async def fake_create(**kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 3:
+                raise Exception("429 Too Many Requests: rate limit exceeded")
+            return good_resp
+
+        with patch.object(kimi_provider, "_get_client") as mock_client_fn:
+            mock_client = MagicMock()
+            mock_client.messages.create = fake_create
+            mock_client_fn.return_value = mock_client
+            with patch("asyncio.sleep", return_value=None):
+                result = await kimi_provider.generate_text("test")
+
+        assert result == "success"
+        assert call_count == 4  # 3 rate-limited retries + 1 success
+
+    @pytest.mark.asyncio
+    async def test_raises_rate_limit_error_after_budget_exhausted(self, kimi_provider):
+        """After RATE_LIMIT_MAX_RETRIES 429s, RateLimitError raised with retry_after hint."""
+        from app.models.errors import RateLimitError
+        from app.providers.kimi import RATE_LIMIT_BACKOFF
+
+        async def fake_create(**kwargs):
+            raise Exception("429 rate limit hit")
+
+        with patch.object(kimi_provider, "_get_client") as mock_client_fn:
+            mock_client = MagicMock()
+            mock_client.messages.create = fake_create
+            mock_client_fn.return_value = mock_client
+            with patch("asyncio.sleep", return_value=None):
+                with pytest.raises(RateLimitError) as exc_info:
+                    await kimi_provider.generate_text("test")
+
+        assert exc_info.value.retry_after == RATE_LIMIT_BACKOFF[-1]
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_retry_does_not_burn_main_budget(self, kimi_provider):
+        """One 429 followed by success: main attempt counter stays at 1."""
+        good_resp = _mock_message("ok")
+        call_count = 0
+
+        async def fake_create(**kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise Exception("429 rate limit")
+            return good_resp
+
+        with patch.object(kimi_provider, "_get_client") as mock_client_fn:
+            mock_client = MagicMock()
+            mock_client.messages.create = fake_create
+            mock_client_fn.return_value = mock_client
+            with patch("asyncio.sleep", return_value=None):
+                result = await kimi_provider.generate_text("test")
+
+        assert result == "ok"
+        assert call_count == 2  # 1 rate-limited + 1 success (main budget never decremented)
+
+
 class TestAnalyzeContent:
     @pytest.mark.asyncio
     async def test_combines_content_and_prompt(self, kimi_provider):
