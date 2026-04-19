@@ -8,10 +8,10 @@
   :root {
     --bg: #f7f5ef;
     --surface: #ffffff;
-    --ink: #1a1a1a;
+    --ink: #0a0a0a;
     --ink-muted: #6b6b6b;
-    --ink-light: #9b9b9b;
-    --border: #e3dfd4;
+    --ink-light: #b5b5b5;
+    --border: #e6e2d4;
     --disc: #3b82f6;
     --stud: #f59e0b;
     --eval: #14b8a6;
@@ -23,195 +23,231 @@
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; font-size: 14px; line-height: 1.55; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
 
-  /* ── Top navigation bar ────────────────────────────────── */
-  .topnav {
-    position: sticky; top: 0; z-index: 100;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 20px;
-  }
-  .topnav-row {
-    display: flex; align-items: center; gap: 16px;
-    max-width: 1400px; margin: 0 auto;
-  }
-  .logo {
-    font-family: var(--mono); font-size: 13px; font-weight: 700;
-    letter-spacing: 0.04em; color: var(--ink);
-    border: 1.5px solid var(--ink); padding: 3px 8px; border-radius: 3px;
-  }
+  /* ── Top navigation ───────────────────────────────────── */
+  .topnav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; }
+  .topnav-row { display: flex; align-items: center; gap: 16px; max-width: 1400px; margin: 0 auto; }
+  .logo { font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--ink); border: 1.5px solid var(--ink); padding: 3px 8px; border-radius: 3px; }
   .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-  .tab {
-    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
-    padding: 6px 10px; border-radius: 3px; cursor: pointer;
-    color: var(--ink-muted);
-    background: transparent; border: 1px solid transparent;
-    transition: all 0.15s;
-    font-weight: 500;
-  }
+  .tab { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 10px; border-radius: 3px; cursor: pointer; color: var(--ink-muted); background: transparent; border: 1px solid transparent; transition: all 0.15s; font-weight: 500; }
   .tab:hover { background: var(--bg); color: var(--ink); }
   .tab.active { background: var(--ink); color: var(--surface); }
   .tab-num { font-family: var(--mono); font-size: 10px; opacity: 0.6; margin-right: 4px; }
 
-  /* ── System status strip ───────────────────────────────── */
-  .status-strip {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 8px 20px;
-    font-family: var(--mono); font-size: 11px;
-  }
-  .status-row { display: flex; gap: 20px; flex-wrap: wrap; max-width: 1400px; margin: 0 auto; align-items: center; color: var(--ink-muted); }
-  .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  /* ── Status strip ─────────────────────────────────────── */
+  .status-strip { background: var(--surface); border-bottom: 1px solid var(--border); padding: 7px 20px; font-family: var(--mono); font-size: 10.5px; }
+  .status-row { display: flex; gap: 16px; flex-wrap: wrap; max-width: 1400px; margin: 0 auto; align-items: center; color: var(--ink-muted); }
+  .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
   .ok { background: var(--success); }
   .warn { background: var(--warning); }
-  .err { background: var(--error); }
   .status-label { color: var(--ink); font-weight: 500; }
   .status-sep { color: var(--ink-light); }
 
-  /* ── Sections ──────────────────────────────────────────── */
+  /* ── Sections ─────────────────────────────────────────── */
   .section {
     max-width: 1400px; margin: 0 auto;
-    padding: 32px 24px 48px;
+    padding: 40px 28px 56px;
     display: none;
     animation: fadeIn 0.2s ease;
+    min-height: 70vh;
   }
   .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* ── Section header ───────────────────────────────────── */
+  .kicker { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-light); margin-bottom: 8px; }
+  h1 {
+    font-size: 44px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05;
+    margin: 0 0 8px;
   }
+  .tagline { font-size: 18px; color: var(--ink-muted); font-weight: 400; line-height: 1.4; margin: 0 0 32px; max-width: 720px; }
+  h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-light); margin: 36px 0 14px; }
 
-  h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 6px; }
-  h2 { font-size: 17px; font-weight: 600; letter-spacing: 0.01em; margin: 28px 0 10px; color: var(--ink); }
-  h3 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); margin: 20px 0 8px; }
-  .kicker { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-light); margin-bottom: 4px; }
-  .lead { font-size: 15px; color: var(--ink-muted); margin-bottom: 24px; }
-
-  p { margin: 0 0 12px; }
-
-  code { font-family: var(--mono); font-size: 12px; background: var(--surface); padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; }
-  pre { font-family: var(--mono); font-size: 12px; background: var(--surface); padding: 12px 16px; border: 1px solid var(--border); border-radius: 4px; overflow-x: auto; line-height: 1.5; margin: 10px 0; }
-  pre code { background: none; border: none; padding: 0; }
-  .comment { color: var(--ink-light); font-style: italic; }
-  .kw { color: var(--disc); }
-
-  ul { padding-left: 20px; margin: 0 0 12px; }
-  ul li { margin-bottom: 4px; }
-
-  /* ── Cards / grid layouts ──────────────────────────────── */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 12px 0; }
-  @media (max-width: 900px) {
-    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  /* ── Hero metrics ─────────────────────────────────────── */
+  .hero-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0 32px; }
+  @media (max-width: 900px) { .hero-metrics { grid-template-columns: repeat(2, 1fr); } }
+  .hm {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 20px 18px;
   }
-  .card {
-    background: var(--surface);
+  .hm .val { font-family: var(--mono); font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+  .hm .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted); margin-top: 10px; font-weight: 500; }
+
+  /* ── Big icon rows (forces, pillars) ──────────────────── */
+  .icon-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 18px 0; }
+  @media (max-width: 900px) { .icon-row { grid-template-columns: 1fr; } }
+  .icard {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 22px;
+    border-top: 4px solid var(--border);
+  }
+  .icard.disc { border-top-color: var(--disc); }
+  .icard.stud { border-top-color: var(--stud); }
+  .icard.eval { border-top-color: var(--eval); }
+  .icard.pers { border-top-color: var(--pers); }
+  .icard .icon { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); }
+  .icard h3 { font-size: 20px; font-weight: 700; margin: 6px 0 8px; letter-spacing: -0.01em; }
+  .icard p { font-size: 14px; color: var(--ink-muted); margin: 0; line-height: 1.5; }
+
+  /* ── Pipeline visual ──────────────────────────────────── */
+  .pipeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 24px 0; }
+  @media (max-width: 900px) { .pipeline { grid-template-columns: repeat(3, 1fr); } }
+  .stage {
+    background: var(--surface); border-radius: 6px;
+    padding: 18px 14px; position: relative;
+    border-top: 4px solid var(--border);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 14px 16px;
   }
-  .card h4 { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; margin: 0 0 6px; text-transform: uppercase; }
-  .card p { font-size: 13px; color: var(--ink-muted); margin: 0; }
+  .stage.s1, .stage.s2 { border-top: 4px solid var(--disc); }
+  .stage.s3 { border-top: 4px solid var(--stud); }
+  .stage.s4, .stage.s5 { border-top: 4px solid var(--eval); }
+  .stage.s6 { border-top: 4px solid var(--pers); }
+  .stage .num { font-family: var(--mono); font-size: 11px; color: var(--ink-light); font-weight: 600; }
+  .stage .name { font-size: 18px; font-weight: 700; margin: 4px 0 6px; letter-spacing: -0.01em; }
+  .stage .tag { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 500; }
+  .stage .count { font-family: var(--mono); font-size: 22px; font-weight: 800; margin-top: 10px; letter-spacing: -0.01em; }
+  .stage .count .sub { font-size: 10px; color: var(--ink-muted); margin-left: 2px; font-weight: 500; }
 
-  /* Color variants for cards */
-  .card.disc { border-left: 3px solid var(--disc); }
-  .card.stud { border-left: 3px solid var(--stud); }
-  .card.eval { border-left: 3px solid var(--eval); }
-  .card.pers { border-left: 3px solid var(--pers); }
-  .card.success { border-left: 3px solid var(--success); }
-  .card.warn { border-left: 3px solid var(--warning); }
-  .card.err { border-left: 3px solid var(--error); }
-
-  /* ── Stage pipeline diagram ────────────────────────────── */
-  .pipeline {
-    display: flex; gap: 6px; align-items: stretch;
-    margin: 16px 0; flex-wrap: wrap;
-  }
-  .stage-box {
-    flex: 1; min-width: 110px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 12px;
-    font-size: 11px;
-    position: relative;
-  }
-  .stage-box.s1, .stage-box.s2 { border-top: 3px solid var(--disc); }
-  .stage-box.s3 { border-top: 3px solid var(--stud); }
-  .stage-box.s4, .stage-box.s5 { border-top: 3px solid var(--eval); }
-  .stage-box.s6 { border-top: 3px solid var(--pers); }
-  .stage-box .num { font-family: var(--mono); font-size: 10px; color: var(--ink-light); }
-  .stage-box .name { font-weight: 600; font-size: 13px; margin: 2px 0 4px; }
-  .stage-box .desc { color: var(--ink-muted); font-size: 11px; }
-  .stage-box .meta { font-family: var(--mono); font-size: 10px; color: var(--ink-light); margin-top: 4px; }
-
-  /* ── Tables ────────────────────────────────────────────── */
-  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12.5px; }
-  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); }
-  th { font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); }
-  td.mono { font-family: var(--mono); font-size: 11px; }
-  td.num { font-family: var(--mono); text-align: right; }
-
-  /* ── ASCII art / diagrams ──────────────────────────────── */
-  .ascii {
-    font-family: var(--mono); font-size: 10.5px; line-height: 1.35;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
-    padding: 14px; white-space: pre; overflow-x: auto;
-    margin: 10px 0;
-  }
-
-  /* ── Callouts ──────────────────────────────────────────── */
-  .callout {
-    border-left: 3px solid var(--ink);
-    background: var(--surface);
-    padding: 10px 14px;
-    margin: 12px 0;
-    font-size: 13px;
-  }
-  .callout.info { border-color: var(--disc); }
-  .callout.good { border-color: var(--success); }
-  .callout.warn { border-color: var(--warning); }
-  .callout strong { color: var(--ink); }
-
-  /* ── Metrics ───────────────────────────────────────────── */
-  .metric {
-    display: inline-block;
-    padding: 8px 12px;
-    margin: 0 8px 8px 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    min-width: 90px;
-  }
-  .metric .val { font-family: var(--mono); font-size: 18px; font-weight: 700; line-height: 1; color: var(--ink); }
-  .metric .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); margin-top: 2px; }
-
-  /* ── Footer hint ───────────────────────────────────────── */
-  .kbd-hint {
-    position: fixed; bottom: 12px; right: 16px;
-    font-family: var(--mono); font-size: 10px;
-    color: var(--ink-light);
-    background: var(--surface);
-    padding: 4px 8px; border: 1px solid var(--border); border-radius: 3px;
-    z-index: 50; opacity: 0.75;
-  }
-  kbd {
-    display: inline-block;
-    padding: 0 4px;
-    font-family: var(--mono);
-    font-size: 10px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 2px;
+  /* ── Topology ASCII ───────────────────────────────────── */
+  .topo {
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.45;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 20px; white-space: pre; overflow-x: auto;
+    margin: 20px 0;
     color: var(--ink);
   }
+
+  /* ── Layer cards (3 tiers) ────────────────────────────── */
+  .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  @media (max-width: 900px) { .layers { grid-template-columns: 1fr; } }
+  .layer {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 22px;
+    border-left: 5px solid var(--border);
+  }
+  .layer.one { border-left-color: var(--disc); }
+  .layer.two { border-left-color: var(--stud); }
+  .layer.three { border-left-color: var(--eval); }
+  .layer .tag { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted); font-weight: 600; }
+  .layer h3 { font-size: 20px; margin: 6px 0 6px; letter-spacing: -0.01em; font-weight: 700; }
+  .layer p { font-size: 13.5px; color: var(--ink-muted); margin: 0; }
+
+  /* ── Redis hub ────────────────────────────────────────── */
+  .redis-hub { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 20px 0; max-width: 640px; }
+  .redis-hub .center {
+    background: var(--ink); color: var(--surface); border-radius: 6px;
+    padding: 22px 28px; text-align: center;
+  }
+  .redis-hub .center .t { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.7; }
+  .redis-hub .center .n { font-size: 28px; font-weight: 800; margin: 6px 0 0; letter-spacing: -0.02em; }
+  .redis-roles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  @media (max-width: 700px) { .redis-roles { grid-template-columns: repeat(2, 1fr); } }
+  .rrole { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 10px; text-align: center; }
+  .rrole .role-n { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .rrole .role-k { font-family: var(--mono); font-size: 10px; color: var(--ink-muted); }
+
+  /* ── Timeline (Kimi migrations) ──────────────────────── */
+  .timeline { position: relative; margin: 32px 0; padding: 0 10px; }
+  .tl-line { position: absolute; top: 24px; left: 20px; right: 20px; height: 2px; background: var(--border); }
+  .tl-stops { display: flex; justify-content: space-between; position: relative; }
+  .tl-stop { flex: 1; text-align: center; max-width: 220px; }
+  .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); margin: 17px auto 10px; position: relative; z-index: 2; }
+  .tl-dot.stud { background: var(--stud); }
+  .tl-dot.eval { background: var(--eval); }
+  .tl-stop .t { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-muted); }
+  .tl-stop .l { font-size: 14px; font-weight: 600; margin-top: 4px; }
+  .tl-stop .s { font-size: 11.5px; color: var(--ink-muted); margin-top: 3px; }
+
+  /* ── Budget bars (rate limit patience) ────────────────── */
+  .budget-wrap { margin: 18px 0; }
+  .budget-row { display: grid; grid-template-columns: 140px 1fr 80px; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .budget-row:last-child { border-bottom: none; }
+  .budget-label { font-size: 13px; font-weight: 600; }
+  .budget-label .t { display: block; font-family: var(--mono); font-size: 10px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; font-weight: 500; }
+  .budget-bar { height: 18px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .budget-fill { height: 100%; background: var(--disc); }
+  .budget-fill.warn { background: var(--error); }
+  .budget-num { font-family: var(--mono); font-size: 13px; font-weight: 700; text-align: right; }
+
+  /* ── Experiments: big numbers ─────────────────────────── */
+  .xp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+  @media (max-width: 900px) { .xp-grid { grid-template-columns: 1fr; } }
+  .xp {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 22px;
+    border-top: 4px solid var(--border);
+  }
+  .xp.disc { border-top-color: var(--disc); }
+  .xp.stud { border-top-color: var(--stud); }
+  .xp.eval { border-top-color: var(--eval); }
+  .xp.pers { border-top-color: var(--pers); }
+  .xp .xp-tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-muted); font-weight: 600; }
+  .xp .xp-q { font-size: 14px; font-weight: 500; margin: 6px 0 12px; color: var(--ink); line-height: 1.4; }
+  .xp .xp-a { font-family: var(--mono); font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  .xp .xp-note { font-size: 11px; color: var(--ink-muted); margin-top: 6px; }
+
+  /* ── M5-4 bar chart (latency) ─────────────────────────── */
+  .lat-chart { margin: 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
+  .lat-row { display: grid; grid-template-columns: 70px 1fr 80px 80px 80px; gap: 10px; align-items: center; padding: 6px 0; font-family: var(--mono); font-size: 12px; }
+  .lat-hd { color: var(--ink-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 4px; }
+  .lat-bar { height: 14px; background: var(--border); border-radius: 2px; position: relative; overflow: hidden; }
+  .lat-fill { height: 100%; background: var(--eval); }
+  .lat-fill.warn { background: var(--warning); }
+  .lat-fill.err { background: var(--error); }
+  .lat-k { font-weight: 700; }
+  .lat-cell { text-align: right; color: var(--ink-muted); }
+  .lat-cell.bad { color: var(--error); font-weight: 700; }
+
+  /* ── Incident list (sec 7) ────────────────────────────── */
+  .incidents { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 14px; }
+  .inc { display: grid; grid-template-columns: 40px 1fr 1fr; gap: 14px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; align-items: center; }
+  .inc .inum { font-family: var(--mono); font-size: 14px; font-weight: 800; color: var(--ink-light); }
+  .inc .isym { font-size: 13px; font-weight: 600; }
+  .inc .ires { font-size: 12.5px; color: var(--ink-muted); font-family: var(--mono); }
+
+  /* ── Lessons big list ─────────────────────────────────── */
+  .lessons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
+  @media (max-width: 900px) { .lessons { grid-template-columns: 1fr; } }
+  .lesson { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; border-left: 3px solid var(--ink); }
+  .lesson h4 { font-size: 14px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .lesson p { font-size: 12.5px; color: var(--ink-muted); margin: 0; line-height: 1.45; }
+
+  /* ── Pillar quote blocks ──────────────────────────────── */
+  .pillar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+  @media (max-width: 900px) { .pillar-grid { grid-template-columns: 1fr; } }
+  .pillar {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 26px 22px;
+    border-top: 5px solid var(--border);
+  }
+  .pillar.disc { border-top-color: var(--disc); }
+  .pillar.eval { border-top-color: var(--eval); }
+  .pillar.pers { border-top-color: var(--pers); }
+  .pillar .pn { font-family: var(--mono); font-size: 11px; color: var(--ink-muted); letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; }
+  .pillar h3 { font-size: 22px; font-weight: 800; margin: 6px 0 10px; letter-spacing: -0.02em; line-height: 1.15; }
+  .pillar p { font-size: 13.5px; color: var(--ink-muted); margin: 0; line-height: 1.5; }
+
+  /* ── Signature one-liner ──────────────────────────────── */
+  .oneline {
+    font-size: 20px; font-weight: 600; line-height: 1.4; letter-spacing: -0.01em;
+    margin: 28px 0 12px;
+    max-width: 820px;
+  }
+  .oneline .acc { color: var(--disc); }
+  .oneline .acc.eval { color: var(--eval); }
+  .oneline .acc.pers { color: var(--pers); }
+
+  /* ── Plain text when unavoidable ──────────────────────── */
+  code { font-family: var(--mono); font-size: 12px; background: var(--surface); padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; }
+
+  /* ── Keyboard hint ────────────────────────────────────── */
+  .kbd-hint { position: fixed; bottom: 12px; right: 16px; font-family: var(--mono); font-size: 10px; color: var(--ink-light); background: var(--surface); padding: 4px 8px; border: 1px solid var(--border); border-radius: 3px; z-index: 50; opacity: 0.75; }
+  kbd { display: inline-block; padding: 0 4px; font-family: var(--mono); font-size: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 2px; color: var(--ink); }
 </style>
 </head>
 <body>
 
-<!-- ── Top Navigation (always visible) ─────────────────── -->
 <nav class="topnav">
   <div class="topnav-row">
     <span class="logo">FLAIR</span>
@@ -219,430 +255,377 @@
       <button class="tab active" data-section="1"><span class="tab-num">1</span>Problem</button>
       <button class="tab" data-section="2"><span class="tab-num">2</span>Architecture</button>
       <button class="tab" data-section="3"><span class="tab-num">3</span>Pipeline</button>
-      <button class="tab" data-section="4"><span class="tab-num">4</span>Redis + MapReduce</button>
+      <button class="tab" data-section="4"><span class="tab-num">4</span>Redis</button>
       <button class="tab" data-section="5"><span class="tab-num">5</span>Kimi</button>
       <button class="tab" data-section="6"><span class="tab-num">6</span>Experiments</button>
       <button class="tab" data-section="7"><span class="tab-num">7</span>Lessons</button>
+      <button class="tab" data-section="8"><span class="tab-num">8</span>Why It Works</button>
     </div>
   </div>
 </nav>
 
-<!-- ── System Status Strip ─────────────────────────────── -->
 <div class="status-strip">
   <div class="status-row">
     <span><span class="status-dot ok"></span><span class="status-label">ALB</span> flair2-dev-alb</span>
     <span class="status-sep">·</span>
-    <span><span class="status-dot ok"></span><span class="status-label">ECS</span> API 2/2 healthy · Worker 2/2 healthy</span>
+    <span><span class="status-dot ok"></span><span class="status-label">ECS</span> API 2/2 · Worker 2/2</span>
     <span class="status-sep">·</span>
     <span><span class="status-dot ok"></span><span class="status-label">ElastiCache</span> cache.t3.micro</span>
     <span class="status-sep">·</span>
-    <span><span class="status-dot ok"></span><span class="status-label">Kimi</span> Allegretto · K2.6-code-preview</span>
+    <span><span class="status-dot ok"></span><span class="status-label">Kimi</span> Allegretto · K2.6</span>
     <span class="status-sep">·</span>
-    <span style="color: var(--ink-light)">us-west-2 · account 314727362981 · main @ latest</span>
+    <span style="color: var(--ink-light)">us-west-2 · main @ latest</span>
   </div>
 </div>
 
-<!-- ─────────────────────────────────────────────────────────
-     SECTION 1 — PROBLEM & DESIGN FORCES
-───────────────────────────────────────────────────────── -->
+<!-- ═════════════════════════════════════════════════════════
+     1 · PROBLEM
+═══════════════════════════════════════════════════════════ -->
 <section class="section active" id="s1">
   <div class="kicker">01 · Problem</div>
-  <h1>Flair2 — AI Campaign Studio</h1>
-  <p class="lead">Generate social media marketing campaigns from viral video analysis. One user click triggers ~260 LLM calls and live streams the work. This shape forces a distributed system.</p>
+  <h1>One click.<br/>260 LLM calls.<br/>Live.</h1>
+  <p class="tagline">That shape forces a distributed system.</p>
 
-  <div class="grid-2">
-    <div>
-      <h2>What the user sees</h2>
-      <p>Enter a creator profile. Watch a 6-stage AI pipeline analyze 100 viral TikTok videos, generate candidate scripts, simulate 42 personas voting, and personalize the winners to the creator's voice. All in real time.</p>
-      <div class="metric"><div class="val">260</div><div class="lbl">LLM calls / run</div></div>
-      <div class="metric"><div class="val">~15s</div><div class="lbl">typical runtime</div></div>
-      <div class="metric"><div class="val">100</div><div class="lbl">real TikTok inputs</div></div>
-      <div class="metric"><div class="val">42</div><div class="lbl">predefined personas</div></div>
+  <div class="hero-metrics">
+    <div class="hm"><div class="val">100</div><div class="lbl">Real viral TikToks analyzed</div></div>
+    <div class="hm"><div class="val">42</div><div class="lbl">Personas vote on scripts</div></div>
+    <div class="hm"><div class="val">~15s</div><div class="lbl">Typical end-to-end</div></div>
+    <div class="hm"><div class="val">20×</div><div class="lbl">Concurrent LLM workers</div></div>
+  </div>
+
+  <h2>Three design forces</h2>
+  <div class="icon-row">
+    <div class="icard disc">
+      <div class="icon">Force 1</div>
+      <h3>Work is slow.</h3>
+      <p>260 LLM calls × 2–5s each. Can't hold an HTTP request open for minutes.</p>
     </div>
-    <div>
-      <h2>Three design forces</h2>
-      <ul>
-        <li><strong>Work is slow.</strong> 260 calls × 2–5s each = minutes, not milliseconds. Can't hold an HTTP request open that long.</li>
-        <li><strong>User needs live progress.</strong> A 15-second spinner is unacceptable. Must push events as each stage completes.</li>
-        <li><strong>Work fans out per request.</strong> S1 analyzes N videos concurrently. S4 has M personas voting concurrently. Need MapReduce coordination inside a single request.</li>
-      </ul>
-      <div class="callout info">
-        Every architectural decision that follows is a response to one of these three forces. No force → no need for the pattern.
+    <div class="icard stud">
+      <div class="icon">Force 2</div>
+      <h3>Progress is live.</h3>
+      <p>A 15-second spinner is unacceptable. Push every event to the browser in real time.</p>
+    </div>
+    <div class="icard eval">
+      <div class="icon">Force 3</div>
+      <h3>Work fans out.</h3>
+      <p>S1 analyzes N videos concurrently. S4 has M personas voting concurrently. MapReduce inside one request.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     2 · ARCHITECTURE
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="kicker">02 · Architecture</div>
+  <h1>Three layers of distribution.</h1>
+  <p class="tagline">Each solves a different problem. Knowing which layer is sick is half of operating the system.</p>
+
+  <div class="topo">                          Internet
+                             │
+                         ┌───┴───┐
+                         │  ALB  │
+                         └───┬───┘
+                   ┌─────────┼─────────┐
+              ┌────┴────┐          ┌───┴────┐
+              │   API   │          │   API  │  FastAPI · ECS Fargate
+              └────┬────┘          └───┬────┘  2–6 tasks · autoscale
+                   └─────────┬─────────┘
+                             │
+                   ┌─────────┴─────────┐
+                   │    ElastiCache    │  Redis 7
+                   │   queue · state   │  5 roles, 1 server
+                   │  stream · cache   │
+                   │   · semaphore     │
+                   └─────────┬─────────┘
+                   ┌─────────┼─────────┐
+              ┌────┴────┐          ┌───┴────┐
+              │ Worker  │          │ Worker │  Celery · ECS Fargate
+              └────┬────┘          └───┬────┘  2–4 tasks · concurrency=4
+                   └─────────┬─────────┘
+                             │
+                             ▼
+                          Kimi API  (Anthropic Messages, k2.5)</div>
+
+  <div class="layers">
+    <div class="layer one">
+      <div class="tag">Layer 1</div>
+      <h3>Edge ↔ API</h3>
+      <p>Browser to ALB to healthy API task. Availability + load balancing.</p>
+    </div>
+    <div class="layer two">
+      <div class="tag">Layer 2</div>
+      <h3>API ↔ Workers</h3>
+      <p>API enqueues, returns in milliseconds. Workers run the long work.</p>
+    </div>
+    <div class="layer three">
+      <div class="tag">Layer 3</div>
+      <h3>Worker ↔ Worker</h3>
+      <p>Concurrent tasks coordinate via atomic counters + SETNX. No locks.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     3 · PIPELINE
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="kicker">03 · Pipeline</div>
+  <h1>Six stages.<br/>Two MapReduce cycles.</h1>
+  <p class="tagline">S1 and S4 fan out. S2 and S5 reduce. S3 generates, S6 personalizes.</p>
+
+  <div class="pipeline">
+    <div class="stage s1"><div class="num">S1</div><div class="name">Discover</div><div class="tag">Map</div><div class="count">100<span class="sub">calls</span></div></div>
+    <div class="stage s2"><div class="num">S2</div><div class="name">Aggregate</div><div class="tag">Reduce · Python</div><div class="count">0<span class="sub">calls</span></div></div>
+    <div class="stage s3"><div class="num">S3</div><div class="name">Generate</div><div class="tag">Sequential</div><div class="count">20<span class="sub">calls</span></div></div>
+    <div class="stage s4"><div class="num">S4</div><div class="name">Vote</div><div class="tag">Map · 100 concurrent</div><div class="count">42<span class="sub">calls</span></div></div>
+    <div class="stage s5"><div class="num">S5</div><div class="name">Rank</div><div class="tag">Reduce · Python</div><div class="count">0<span class="sub">calls</span></div></div>
+    <div class="stage s6"><div class="num">S6</div><div class="name">Personalize</div><div class="tag">Map</div><div class="count">10<span class="sub">calls</span></div></div>
+  </div>
+
+  <div class="oneline" style="margin-top:40px;">
+    Resilience baked in: <span class="acc eval">skip-and-continue</span>, <span class="acc eval">95% completion threshold</span>, <span class="acc eval">S4 checkpointing</span>, <span class="acc eval">30s stall detection with API probe</span>.
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     4 · REDIS + COORDINATION
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="kicker">04 · Coordination</div>
+  <h1>Redis is the nervous system.</h1>
+  <p class="tagline">Five roles. One server. Single-writer orchestrator. No locks.</p>
+
+  <div class="redis-hub">
+    <div class="center">
+      <div class="t">ElastiCache · cache.t3.micro</div>
+      <div class="n">Redis 7</div>
+    </div>
+    <div class="redis-roles">
+      <div class="rrole"><div class="role-n">Broker</div><div class="role-k">celery · db=1</div></div>
+      <div class="rrole"><div class="role-n">State</div><div class="role-k">run:{id}:*</div></div>
+      <div class="rrole"><div class="role-n">Stream</div><div class="role-k">sse:{id}</div></div>
+      <div class="rrole"><div class="role-n">Semaphore</div><div class="role-k">≤29 in-flight</div></div>
+      <div class="rrole"><div class="role-n">Cache</div><div class="role-k">SETNX idempotency</div></div>
+    </div>
+  </div>
+
+  <h2>The counter pattern (distributed barrier)</h2>
+  <div class="oneline">
+    <code>INCR</code> is atomic. 100 concurrent workers → unique sequence numbers.<br/>
+    At 95%, <code>SETNX</code> guards the transition — <span class="acc">exactly once</span>, even under races.
+  </div>
+
+  <h2>Stream, not pub/sub</h2>
+  <div class="oneline">
+    Streams persist, support cursors, replay. Reconnect mid-run → <code>Last-Event-ID</code> resumes from exactly that cursor. <span class="acc eval">Multi-tab safe, zero extra code.</span>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     5 · KIMI
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="kicker">05 · Kimi Integration</div>
+  <h1>Two SDK migrations.<br/>Zero stage code touched.</h1>
+  <p class="tagline">The provider abstraction paid for itself twice.</p>
+
+  <div class="timeline">
+    <div class="tl-line"></div>
+    <div class="tl-stops">
+      <div class="tl-stop">
+        <div class="tl-dot"></div>
+        <div class="t">Day 1</div>
+        <div class="l">Gemini</div>
+        <div class="s">google-genai SDK</div>
+      </div>
+      <div class="tl-stop">
+        <div class="tl-dot stud"></div>
+        <div class="t">PR #95</div>
+        <div class="l">Kimi · OpenAI SDK</div>
+        <div class="s">Gemini 500s + rate limits → switch</div>
+      </div>
+      <div class="tl-stop">
+        <div class="tl-dot eval"></div>
+        <div class="t">PR ~#130</div>
+        <div class="l">Kimi · Anthropic SDK</div>
+        <div class="s">OpenAI shim deprecated → migrate</div>
       </div>
     </div>
   </div>
 
-  <h2>V1 (hackathon) → V2 (engineered)</h2>
-  <table>
-    <thead><tr><th>V1</th><th>V2</th><th>Why it changed</th></tr></thead>
-    <tbody>
-      <tr><td class="mono">monolithic main.py</td><td class="mono">modular (api/pipeline/workers)</td><td>Module boundaries = change boundaries</td></tr>
-      <tr><td class="mono">in-memory state</td><td class="mono">Redis + Celery</td><td>Process death = state death</td></tr>
-      <tr><td class="mono">sequential pipeline</td><td class="mono">MapReduce fan-out</td><td>Sequential 260 calls ≈ 15 min. Concurrent ≈ 15s.</td></tr>
-      <tr><td class="mono">Gemini only</td><td class="mono">pluggable provider registry</td><td>Migrated Gemini → Kimi in one PR</td></tr>
-      <tr><td class="mono">no tests, no CI</td><td class="mono">111 tests + GitHub Actions</td><td>Locally-works, prod-breaks ended</td></tr>
-      <tr><td class="mono">Google Cloud Run</td><td class="mono">AWS ECS + ElastiCache + ALB</td><td>Richer distributed-systems story</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- ─────────────────────────────────────────────────────────
-     SECTION 2 — ARCHITECTURE
-───────────────────────────────────────────────────────── -->
-<section class="section" id="s2">
-  <div class="kicker">02 · Architecture</div>
-  <h1>Three Layers of Distribution</h1>
-  <p class="lead">Each layer solves a different problem. Understanding which layer is hurting is half of operating the system.</p>
-
-  <div class="ascii">                          Internet
-                             │
-                         ┌───┴───┐
-                         │  ALB  │  (Application Load Balancer)
-                         └───┬───┘
-                             │
-                    ┌────────┼────────┐
-              ┌─────┴─────┐   ┌──────┴──────┐
-              │  API Task │   │  API Task   │  FastAPI · ECS Fargate (2-6)
-              │  (FastAPI)│   │  (FastAPI)  │  autoscale @ CPU > 60%
-              └─────┬─────┘   └─────┬───────┘
-                    └────────┬──────┘
-                             │
-                    ┌────────┴────────┐
-                    │   ElastiCache   │  Redis cache.t3.micro
-                    │   (Redis 7)     │  queue · state · stream · cache · limiter
-                    └────────┬────────┘
-                             │
-                    ┌────────┼────────┐
-              ┌─────┴──────┐ ┌───────┴─────┐
-              │  Worker    │ │  Worker     │  Celery · ECS Fargate (2-4)
-              │  (Celery)  │ │  (Celery)   │  concurrency=4 per task
-              └─────┬──────┘ └─────┬───────┘
-                    └────────┬─────┘
-                             │
-                    ┌────────┴────────┐
-                    │    Kimi API     │  Anthropic Messages API
-                    │ (Moonshot AI)   │  k2.5 · semaphore-capped at 29
-                    └─────────────────┘
-
-
-  Frontend:   Astro + React islands (static build) → S3 website hosting
-  Terraform:  ~50 AWS resources, all managed, state in S3 bucket</div>
-
-  <div class="grid-3">
-    <div class="card disc">
-      <h4>Layer 1 — Edge ↔ API</h4>
-      <p>Browser talks to ALB over HTTPS. ALB distributes to healthy API tasks. Solves availability + load balancing.</p>
-    </div>
-    <div class="card stud">
-      <h4>Layer 2 — API ↔ Workers</h4>
-      <p>API enqueues to Redis, returns in milliseconds. Workers pull tasks and run them elsewhere. Solves long-running work.</p>
-    </div>
-    <div class="card eval">
-      <h4>Layer 3 — Worker ↔ Worker</h4>
-      <p>Multiple workers process tasks for one run concurrently. Coordinate via atomic Redis counters + SETNX transition guards. Solves MapReduce inside one request.</p>
-    </div>
-  </div>
-
-  <h2>Redis — five hats on one server</h2>
-  <table>
-    <thead><tr><th>Role</th><th>Redis feature</th><th>Key pattern</th><th>DB</th></tr></thead>
-    <tbody>
-      <tr><td>Celery broker</td><td class="mono">LPUSH / BLPOP</td><td class="mono">celery</td><td class="mono">db=1</td></tr>
-      <tr><td>Pipeline state</td><td class="mono">SET / GET</td><td class="mono">run:{id}:*</td><td class="mono">db=0</td></tr>
-      <tr><td>SSE event stream</td><td class="mono">XADD / XREAD</td><td class="mono">sse:{id}</td><td class="mono">db=0</td></tr>
-      <tr><td>Concurrency semaphore</td><td class="mono">atomic counter</td><td class="mono">semaphore:{provider}</td><td class="mono">db=0</td></tr>
-      <tr><td>Idempotency cache</td><td class="mono">SETNX</td><td class="mono">s1_result:*, etc.</td><td class="mono">db=0</td></tr>
-    </tbody>
-  </table>
-
-  <div class="callout warn">
-    <strong>Clever and dangerous.</strong> One Redis instance wearing five hats simplifies ops but creates a single point of failure. At production scale, broker and stream would split onto dedicated instances.
-  </div>
-</section>
-
-<!-- ─────────────────────────────────────────────────────────
-     SECTION 3 — PIPELINE
-───────────────────────────────────────────────────────── -->
-<section class="section" id="s3">
-  <div class="kicker">03 · Pipeline</div>
-  <h1>Six Stages, Two MapReduce Cycles</h1>
-  <p class="lead">S1/S4 fan out (map). S2/S5 aggregate (reduce). S3 generates scripts sequentially. S6 personalizes top results.</p>
-
-  <div class="pipeline">
-    <div class="stage-box s1">
-      <div class="num">S1</div>
-      <div class="name">Discover</div>
-      <div class="desc">Analyze each video. Extract hook, pacing, retention mechanics.</div>
-      <div class="meta">MAP · 100 LLM calls · concurrent</div>
-    </div>
-    <div class="stage-box s2">
-      <div class="num">S2</div>
-      <div class="name">Aggregate</div>
-      <div class="desc">Group patterns by hook+pacing. Rank by frequency.</div>
-      <div class="meta">REDUCE · 0 LLM calls · Python only</div>
-    </div>
-    <div class="stage-box s3">
-      <div class="num">S3</div>
-      <div class="name">Generate</div>
-      <div class="desc">Write candidate scripts, one per pattern, on creator's niche.</div>
-      <div class="meta">SEQUENTIAL · 20 LLM calls</div>
-    </div>
-    <div class="stage-box s4">
-      <div class="num">S4</div>
-      <div class="name">Vote</div>
-      <div class="desc">42 personas each pick top-5 scripts.</div>
-      <div class="meta">MAP · 42 LLM calls · concurrent</div>
-    </div>
-    <div class="stage-box s5">
-      <div class="num">S5</div>
-      <div class="name">Rank</div>
-      <div class="desc">Weighted Borda count (rank-1 = 5pt … rank-5 = 1pt).</div>
-      <div class="meta">REDUCE · 0 LLM calls · Python only</div>
-    </div>
-    <div class="stage-box s6">
-      <div class="num">S6</div>
-      <div class="name">Personalize</div>
-      <div class="desc">Rewrite top-N scripts in creator's voice. Generate video prompts.</div>
-      <div class="meta">MAP · 10 LLM calls · concurrent</div>
-    </div>
-  </div>
-
-  <div class="grid-2">
-    <div>
-      <h2>Creator profile shapes S3 + S6</h2>
-      <p>The creator's <strong>niche</strong>, <strong>content themes</strong>, and <strong>recent topics</strong> are injected into S3's prompt, so scripts come out on-topic. S6 then personalizes the winners with the creator's <strong>tone</strong>, <strong>vocabulary</strong>, and <strong>catchphrases</strong>.</p>
-      <p>Before this fix: Kitchen Confident got productivity scripts in cooking vocabulary. After: actual on-topic cooking content.</p>
-    </div>
-    <div>
-      <h2>Resilience baked in</h2>
-      <ul>
-        <li><strong>Skip-and-continue:</strong> one un-analyzable video doesn't kill the run — it's marked skipped and S2 aggregates the rest.</li>
-        <li><strong>95% completion threshold:</strong> stragglers don't block transitions. S1→S2 fires when 95 of 100 complete. SETNX guards exactly-once dispatch.</li>
-        <li><strong>S4 checkpointing:</strong> every vote writes a checkpoint. Crash mid-S4 resumes from there — saves 30-73% of LLM calls.</li>
-        <li><strong>Silent failure is not allowed:</strong> if workers stall for 30s, frontend probes the API and tells the user specifically why.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="callout info">
-    <strong>Total shape:</strong> 260 LLM calls → 15 seconds on 20-way concurrency. Limited by Kimi's concurrency ceiling, not our CPU or network. The semaphore + retry-budget-per-error-class (next section) keeps us inside that ceiling.
-  </div>
-</section>
-
-<!-- ─────────────────────────────────────────────────────────
-     SECTION 4 — REDIS + MAPREDUCE
-───────────────────────────────────────────────────────── -->
-<section class="section" id="s4">
-  <div class="kicker">04 · Coordination</div>
-  <h1>Redis as the Nervous System</h1>
-  <p class="lead">Every coordination primitive goes through Redis. Single-writer orchestrator + atomic counters + SETNX guards = MapReduce without locks.</p>
-
-  <div class="grid-2">
-    <div>
-      <h2>The counter pattern (distributed barrier)</h2>
-<pre><code><span class="comment"># When an S1 task completes:</span>
-done = await redis.incr(f"run:{id}:s1:done")
-
-<span class="comment"># Check if threshold crossed:</span>
-needed = math.ceil(num_videos * 0.95)
-if done &gt;= needed:
-    <span class="comment"># SETNX ensures exactly-once transition</span>
-    if await redis.setnx(f"run:{id}:s2:triggered", "1"):
-        s2_aggregate_task.delay(run_id)</code></pre>
-      <p><code>INCR</code> is atomic — 100 concurrent workers never collide. SETNX ensures only one of them fires the transition.</p>
-    </div>
-    <div>
-      <h2>The semaphore (concurrency limit)</h2>
-<pre><code><span class="comment"># Before every Kimi call:</span>
-async with _acquire_provider_slot(redis, "kimi"):
-    pattern = await s1_analyze(video, provider)
-<span class="comment"># Auto-releases on exit</span>
-
-<span class="comment"># max_slots=29 — Kimi's ceiling is 30, we leave one slot</span>
-<span class="comment"># of headroom to avoid racing with the limit</span></code></pre>
-      <p>Any number of Celery workers can pull tasks. The semaphore caps in-flight LLM calls so we never trigger Kimi's concurrency throttle.</p>
-    </div>
-  </div>
-
-  <h2>Single-writer orchestrator</h2>
-  <p>Every state write and every SSE event goes through one code path — the <code>Orchestrator</code>. Workers report completions via callbacks (<code>on_s1_complete</code>, <code>on_s4_complete</code>); only the orchestrator mutates <code>run:{id}:*</code> keys or appends to the SSE stream. No locks, no races.</p>
-
-  <div class="callout good">
-    <strong>Same principle as:</strong> Raft leaders, event sourcing, database write-ahead logs, Node.js event loops. Mutation through one writer &gt; mutation through many writers with coordination.
-  </div>
-
-  <h2>SSE via Redis Streams (not pub/sub)</h2>
-  <p>Streams persist, support cursors, and handle replay. A browser that reconnects mid-run sends <code>Last-Event-ID</code>; the server resumes from exactly that cursor. Late-joining tabs replay from the beginning. Multi-tab safe with no extra work.</p>
-<pre><code><span class="comment"># SSE manager — blocks 5s for new events, then re-checks for disconnect</span>
-entries = await redis.xread({f"sse:{id}": last_id}, block=5000)
-for entry_id, fields in entries:
-    yield ServerSentEvent(id=entry_id, event=fields["event"], data=fields["data"])
-    last_id = entry_id</code></pre>
-</section>
-
-<!-- ─────────────────────────────────────────────────────────
-     SECTION 5 — KIMI
-───────────────────────────────────────────────────────── -->
-<section class="section" id="s5">
-  <div class="kicker">05 · Kimi Integration</div>
-  <h1>Two SDK Migrations, Zero Stage Changes</h1>
-  <p class="lead">The provider abstraction paid for itself twice. When the LLM backend changed — both the provider AND the SDK — no pipeline code moved.</p>
-
-  <div class="grid-2">
-    <div>
-      <h2>Migration 1 — Gemini → Kimi</h2>
-      <p>Gemini had intermittent 500s and tight rate limits. Kimi Code offered better availability on a subscription plan. <strong>PR #95</strong>: one-line change in the registry, Terraform secret swap. Zero stage code touched.</p>
-    </div>
-    <div>
-      <h2>Migration 2 — OpenAI SDK → Anthropic SDK</h2>
-      <p>Kimi's OpenAI-compatible route went dead — started returning a misleading "temperature" error. The real surface moved to an Anthropic Messages API shape at <code>/coding/v1/messages</code>. Rewrote just the <code>KimiProvider</code> to use <code>AsyncAnthropic</code>. Zero stage code touched again.</p>
-    </div>
-  </div>
-
   <h2>Retry budget per error class</h2>
-  <p>Most 429s aren't quota exhaustion — they're transient concurrency throttling that clears in 10–30 seconds. A fast retry budget (1s/2s/4s total 7s) is too impatient. A slow budget is wrong for parse errors. So we split them:</p>
-
-  <div class="grid-2">
-    <div class="card warn">
-      <h4>Fast budget — schema/parse errors</h4>
-      <p style="font-family: var(--mono); font-size: 11px;">3 attempts · 1s / 2s / 4s</p>
-      <p>Transient noise. Retry aggressively. Total ~7s.</p>
+  <div class="budget-wrap">
+    <div class="budget-row">
+      <div class="budget-label">Parse / schema<span class="t">transient noise</span></div>
+      <div class="budget-bar"><div class="budget-fill" style="width: 7%"></div></div>
+      <div class="budget-num">~7s</div>
     </div>
-    <div class="card err">
-      <h4>Slow budget — 429 rate limits</h4>
-      <p style="font-family: var(--mono); font-size: 11px;">4 attempts · 8s / 20s / 45s / 90s + ±30% jitter</p>
-      <p>Real throttling. Be patient. Total ~165s at provider + ~5 Celery retries = ~10 min of patience.</p>
+    <div class="budget-row">
+      <div class="budget-label">Rate limit (429)<span class="t">real throttling</span></div>
+      <div class="budget-bar"><div class="budget-fill warn" style="width: 100%"></div></div>
+      <div class="budget-num">~165s</div>
     </div>
   </div>
 
-  <div class="callout info">
-    <strong>Jitter prevents thundering herd.</strong> When 42 S4 voters all hit the rate limit within milliseconds and all retry on the same backoff schedule, they all get throttled again. ±30% jitter desynchronizes them.
+  <div class="oneline" style="margin-top: 20px;">
+    Transient noise deserves fast retries.<br/>
+    Upstream throttling deserves patience.<br/>
+    <span class="acc">One budget can't satisfy both.</span>
   </div>
-
-  <h2>The User-Agent whitelist</h2>
-  <p>Kimi's coding endpoint is gated by User-Agent — only approved clients (Kimi CLI, Claude Code, Roo Code) can use it. We spoof <code>User-Agent: claude-code/0.1.0</code> via <code>default_headers</code>. This is fragile — Kimi could tighten validation at any time — but it's the documented way the ecosystem uses it.</p>
 </section>
 
-<!-- ─────────────────────────────────────────────────────────
-     SECTION 6 — EXPERIMENTS
-───────────────────────────────────────────────────────── -->
+<!-- ═════════════════════════════════════════════════════════
+     6 · EXPERIMENTS
+═══════════════════════════════════════════════════════════ -->
 <section class="section" id="s6">
   <div class="kicker">06 · Experiments</div>
-  <h1>Distributed Systems, Empirically</h1>
-  <p class="lead">Seven experiments across four questions. Measuring what the design claims to buy.</p>
+  <h1>Measured, not assumed.</h1>
+  <p class="tagline">Seven experiments. Four findings. One honest bottleneck.</p>
 
-  <h2>M5 — Pipeline resilience (fakeredis, local)</h2>
-  <div class="grid-3">
-    <div class="card disc">
-      <h4>M5-1 · Backpressure</h4>
-      <p>Does the rate limiter prevent API storms under K concurrent users?</p>
-      <p style="margin-top:6px;"><strong>Result:</strong> without limiter, 90% error rate at K=10. With limiter: 0%.</p>
+  <h2>M5 · Pipeline resilience</h2>
+  <div class="xp-grid">
+    <div class="xp disc">
+      <div class="xp-tag">M5-1 · Backpressure</div>
+      <div class="xp-q">Does the rate limiter prevent API storms at K=10?</div>
+      <div class="xp-a">90% → 0%</div>
+      <div class="xp-note">errors, without → with limiter</div>
     </div>
-    <div class="card stud">
-      <h4>M5-2 · Failure recovery</h4>
-      <p>When a worker crashes mid-S4, how much work does the checkpoint save?</p>
-      <p style="margin-top:6px;"><strong>Result:</strong> 30–73% of LLM calls saved depending on crash timing. Sibling runs unaffected.</p>
+    <div class="xp stud">
+      <div class="xp-tag">M5-2 · Failure recovery</div>
+      <div class="xp-q">How much work does S4 checkpoint save on crash?</div>
+      <div class="xp-a">30–73%</div>
+      <div class="xp-note">LLM calls saved depending on crash timing</div>
     </div>
-    <div class="card eval">
-      <h4>M5-3 · Cache concurrency</h4>
-      <p>Does SETNX caching prevent redundant LLM calls under K concurrent users?</p>
-      <p style="margin-top:6px;"><strong>Result:</strong> LLM call count fixed at NUM_VIDEOS regardless of K. 99% savings at K=100.</p>
+    <div class="xp eval">
+      <div class="xp-tag">M5-3 · Cache concurrency</div>
+      <div class="xp-q">SETNX dedup — how well does it scale?</div>
+      <div class="xp-a">99%</div>
+      <div class="xp-note">LLM calls saved at K=100 concurrent users</div>
     </div>
   </div>
 
-  <h2>M5-4 — API load test (Locust against AWS)</h2>
-  <table>
-    <thead><tr><th>K users</th><th>p50</th><th>p95</th><th>p99</th><th>RPS</th><th>Failures</th></tr></thead>
-    <tbody>
-      <tr><td>10</td><td class="num">35 ms</td><td class="num">51 ms</td><td class="num">190 ms</td><td class="num">4.8</td><td class="num">0</td></tr>
-      <tr><td>50</td><td class="num">35 ms</td><td class="num">59 ms</td><td class="num">100 ms</td><td class="num">48</td><td class="num">0</td></tr>
-      <tr><td>100</td><td class="num">34 ms</td><td class="num">61 ms</td><td class="num">140 ms</td><td class="num">48</td><td class="num">0</td></tr>
-      <tr><td>500 sustained</td><td class="num">77 ms</td><td class="num">12 000 ms</td><td class="num">18 000 ms</td><td class="num">130</td><td class="num">18</td></tr>
-    </tbody>
-  </table>
-  <p style="font-size:12px; color:var(--ink-muted);"><em>Placeholder: Jess is re-running with latest code; numbers to be updated.</em></p>
-
-  <h2>M6 — ElastiCache under real concurrency</h2>
-  <div class="grid-3">
-    <div class="card eval">
-      <h4>M6-1 · Latency</h4>
-      <p>SETNX p50: 0.4ms, p99 &lt;2ms. ~10× slower than fakeredis but well within SLA.</p>
+  <h2>M5-4 · API load test (AWS Locust)</h2>
+  <div class="lat-chart">
+    <div class="lat-row lat-hd">
+      <span>K users</span><span></span><span>p50</span><span>p95</span><span>p99</span>
     </div>
-    <div class="card eval">
-      <h4>M6-2 · SETNX atomicity</h4>
-      <p>Exactly 1 winner at K=10–1000. Fails at K=5000 due to client connection pool exhaustion — not a Redis fault.</p>
+    <div class="lat-row">
+      <span class="lat-k">10</span>
+      <div class="lat-bar"><div class="lat-fill" style="width: 2%"></div></div>
+      <span class="lat-cell">35 ms</span><span class="lat-cell">51 ms</span><span class="lat-cell">190 ms</span>
     </div>
-    <div class="card eval">
-      <h4>M6-3 · Memory pressure</h4>
-      <p>Peak usage stays well under cache.t3.micro limit across all tested scales.</p>
+    <div class="lat-row">
+      <span class="lat-k">50</span>
+      <div class="lat-bar"><div class="lat-fill" style="width: 3%"></div></div>
+      <span class="lat-cell">35 ms</span><span class="lat-cell">59 ms</span><span class="lat-cell">100 ms</span>
+    </div>
+    <div class="lat-row">
+      <span class="lat-k">100</span>
+      <div class="lat-bar"><div class="lat-fill" style="width: 3.5%"></div></div>
+      <span class="lat-cell">34 ms</span><span class="lat-cell">61 ms</span><span class="lat-cell">140 ms</span>
+    </div>
+    <div class="lat-row">
+      <span class="lat-k">500</span>
+      <div class="lat-bar"><div class="lat-fill err" style="width: 100%"></div></div>
+      <span class="lat-cell">77 ms</span><span class="lat-cell bad">12 s</span><span class="lat-cell bad">18 s</span>
     </div>
   </div>
 
-  <h2>Cross-experiment findings</h2>
-  <ol>
-    <li><strong>Redis connection pool is the system-wide bottleneck at scale.</strong> Both M5-4 (API p99 = 18s at K=500) and M6-2 (SETNX fails at K=5000) point to the same root cause — connection pool exhaustion. Fix is pool sizing, not instance scaling.</li>
-    <li><strong>CPU is the wrong auto-scaling metric for Workers.</strong> Worker CPU peaked at 7.14% under the heaviest load. Workers are IO-bound on LLM calls. The correct signal is Celery queue depth.</li>
-    <li><strong>fakeredis hides real failure modes.</strong> M5-3 passed at K=100,000 in fakeredis. M6-2 failed at K=5,000 on ElastiCache. Connection pools are invisible in the simulator.</li>
-    <li><strong>Auto-scaling works but needs the right metric.</strong> ECS correctly detected CPU overload and added tasks. But CPU wasn't the bottleneck.</li>
-  </ol>
+  <h2>The four findings</h2>
+  <div class="lessons">
+    <div class="lesson"><h4>1. Redis connection pool is the system bottleneck</h4><p>Both M5-4 (p99=18s at K=500) and M6-2 (SETNX fails at K=5000) trace to the same root. Fix is pool sizing.</p></div>
+    <div class="lesson"><h4>2. CPU is the wrong metric for IO-bound workers</h4><p>Worker CPU peaked at 7.14% under max load. Workers wait on Kimi. Correct signal: Celery queue depth.</p></div>
+    <div class="lesson"><h4>3. fakeredis hides real failure modes</h4><p>M5-3 passed at K=100,000 locally. M6-2 failed at K=5,000 on real Redis. Pools are invisible in simulators.</p></div>
+    <div class="lesson"><h4>4. Auto-scaling works — wrong metric wastes it</h4><p>ECS correctly added tasks on CPU overload. But CPU wasn't the bottleneck. Right reflex, wrong signal.</p></div>
+  </div>
 </section>
 
-<!-- ─────────────────────────────────────────────────────────
-     SECTION 7 — LESSONS
-───────────────────────────────────────────────────────── -->
+<!-- ═════════════════════════════════════════════════════════
+     7 · LESSONS
+═══════════════════════════════════════════════════════════ -->
 <section class="section" id="s7">
   <div class="kicker">07 · Lessons</div>
-  <h1>Things That Broke and What They Taught</h1>
-  <p class="lead">Every incident left a fingerprint. Here are the ones worth carrying forward.</p>
+  <h1>What broke.<br/>What it taught.</h1>
+  <p class="tagline">Ten production incidents, condensed. Process over talent.</p>
 
-  <div class="grid-2">
-    <div>
-      <h2>Process lessons</h2>
-      <ul>
-        <li><strong>Hard branch protection works.</strong> GitHub ruleset physically blocked direct pushes and required a reviewer. 112 merged PRs, all reviewed. Neither of us could ship without the other reading the diff.</li>
-        <li><strong>Interface contract (issue #71) up front.</strong> Every Redis key, every SSE event, every API route specified before anyone wrote the corresponding code. Let Sam and Jess work in parallel for weeks and integrate cleanly.</li>
-        <li><strong>Conventional commits.</strong> <code>feat:</code> / <code>fix:</code> / <code>chore:</code> / <code>docs:</code>. Makes git history greppable. "What did we change about Celery?" is a one-line search.</li>
-        <li><strong>Test failure paths explicitly.</strong> M5-2 validated checkpoint recovery <em>before</em> any real crash. The first production crash saved 50% of LLM calls on the first try.</li>
-      </ul>
+  <h2>Ten incidents</h2>
+  <div class="incidents">
+    <div class="inc"><span class="inum">01</span><span class="isym">Gemini 500s + rate limits</span><span class="ires">→ switch to Kimi (registry paid off)</span></div>
+    <div class="inc"><span class="inum">02</span><span class="isym">S1 always 500s in prod</span><span class="ires">→ .dockerignore excluded data/ (4 PRs)</span></div>
+    <div class="inc"><span class="inum">03</span><span class="isym">Kimi all requests fail with weird error</span><span class="ires">→ migrate OpenAI SDK → Anthropic Messages</span></div>
+    <div class="inc"><span class="inum">04</span><span class="isym">Workers deployed, pipeline silently hangs</span><span class="ires">→ Celery never imported tasks module</span></div>
+    <div class="inc"><span class="inum">05</span><span class="isym">Frontend faked progress when stuck</span><span class="ires">→ stall detector + API probe diagnosis</span></div>
+    <div class="inc"><span class="inum">06</span><span class="isym">"ELB already exists" on every deploy</span><span class="ires">→ Terraform state drift → idempotent import</span></div>
+    <div class="inc"><span class="inum">07</span><span class="isym">S4 fails at persona ~40 with 429</span><span class="ires">→ semaphore + retry budget per error class</span></div>
+    <div class="inc"><span class="inum">08</span><span class="isym">One bad video kills whole S1 run</span><span class="ires">→ skip-and-continue + 95% threshold</span></div>
+    <div class="inc"><span class="inum">09</span><span class="isym">Pipeline hangs at 99/100</span><span class="ires">→ ceil(N × 0.95) transition with SETNX</span></div>
+    <div class="inc"><span class="inum">10</span><span class="isym">"Start Pipeline" bounces to home</span><span class="ires">→ S3 routing: path → query param</span></div>
+  </div>
+
+  <h2>Process discipline that held</h2>
+  <div class="lessons">
+    <div class="lesson"><h4>Hard branch protection</h4><p>GitHub ruleset physically blocked direct pushes. 112 merged PRs, all cross-reviewed.</p></div>
+    <div class="lesson"><h4>Interface contract up front</h4><p>Every Redis key, every SSE event specified before writing the code. Let two devs ship in parallel for weeks.</p></div>
+    <div class="lesson"><h4>Test failure paths explicitly</h4><p>M5-2 validated checkpoint recovery before any real crash. First crash saved 50% of calls.</p></div>
+    <div class="lesson"><h4>Single-writer discipline</h4><p>Orchestrator is the only code path that mutates run state. No races, no locks.</p></div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     8 · WHY IT WORKS
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="kicker">08 · Business case</div>
+  <h1>We don't guess.</h1>
+  <p class="tagline">Three pillars, each grounded in real data. Base-rate improvement, not a guarantee.</p>
+
+  <div class="pillar-grid">
+    <div class="pillar disc">
+      <div class="pn">Pillar 1</div>
+      <h3>Learn from winners.</h3>
+      <p>S1 extracts structural patterns from 100 real viral TikToks. Every generated script is shaped by what already went viral.</p>
     </div>
-    <div>
-      <h2>Technical lessons</h2>
-      <ul>
-        <li><strong>"X-compatible API" claims expire.</strong> Kimi's OpenAI-compatible shim went dead. The abstraction let us migrate to Anthropic's SDK in ~30 lines.</li>
-        <li><strong>Connection pools are invisible bottlenecks.</strong> Tail latency spikes with nothing obviously saturated = bounded resource exhaustion. Instrument pools explicitly.</li>
-        <li><strong>Retry budget per error class.</strong> Transient noise needs fast retries. Upstream throttling needs patience. One budget can't satisfy both.</li>
-        <li><strong>Single-writer discipline beats locks.</strong> The orchestrator is the only code path that mutates run state. No races, no locks, no bugs.</li>
-        <li><strong>Don't fake progress.</strong> If workers stalled, show the user specifically why — don't let the UI simulate activity that isn't happening.</li>
-        <li><strong>Skip-and-continue &gt; fail-the-run.</strong> At N=100 the probability of at least one bad input approaches 1. Design for partial failure from day one.</li>
-      </ul>
+    <div class="pillar eval">
+      <div class="pn">Pillar 2</div>
+      <h3>Test with the right crowd.</h3>
+      <p>300 personas matching Canadian demographics + adoption. At run-time, pick the 100 most relevant to the creator's niche.</p>
+    </div>
+    <div class="pillar pers">
+      <div class="pn">Pillar 3</div>
+      <h3>Close the loop.</h3>
+      <p>Posted videos report real outcomes. Next run's prompts calibrate toward what actually worked. Reality is the final judge.</p>
     </div>
   </div>
 
-  <h2>Ten production incidents, condensed</h2>
-  <table>
-    <thead><tr><th>#</th><th>Symptom</th><th>Root cause</th><th>Fix</th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>Gemini 500s + rate limits</td><td>Provider instability</td><td>Switch to Kimi (registry paid off)</td></tr>
-      <tr><td>2</td><td>S1 always 500s in prod</td><td><code>.dockerignore</code> excluded <code>data/</code></td><td>4 PRs to fully root-cause</td></tr>
-      <tr><td>3</td><td>All Kimi requests return misleading "temperature" error</td><td>OpenAI shim deprecated</td><td>Migrate to Anthropic Messages API</td></tr>
-      <tr><td>4</td><td>Workers deployed, pipeline silently hangs</td><td>Celery never imported task module</td><td>One-line fix in <code>celery_app.py</code></td></tr>
-      <tr><td>5</td><td>Frontend faked progress when backend stalled</td><td>Stage events don't mean stage is working</td><td>Single-writer events + 30s stall detector + API probe</td></tr>
-      <tr><td>6</td><td>"ELB already exists" on every deploy</td><td>Terraform state drift</td><td>Idempotent import workflow (~50 resources)</td></tr>
-      <tr><td>7</td><td>S4 fails at persona 40 with 429</td><td>Concurrency throttle + impatient retry</td><td>Semaphore cap + retry budget per error class</td></tr>
-      <tr><td>8</td><td>One bad video kills whole S1 run</td><td>Schema-strict validation</td><td>Skip-and-continue + 95% threshold</td></tr>
-      <tr><td>9</td><td>Pipeline hangs at 99/100</td><td>10-min retry for one straggler</td><td>ceil(N × 0.95) threshold with SETNX guard</td></tr>
-      <tr><td>10</td><td>"Start Pipeline" bounces to home page</td><td>S3 website serves ROOT index.html on 404</td><td>Query-param routing (<code>?id=...</code>)</td></tr>
-    </tbody>
-  </table>
+  <h2>The navigation analogy</h2>
+  <div class="icon-row">
+    <div class="icard disc">
+      <div class="icon">Chart</div>
+      <h3>The routes that worked.</h3>
+      <p>You're not drawing a line across open water. You're following lanes with recorded crossings.</p>
+    </div>
+    <div class="icard eval">
+      <div class="icon">Crew</div>
+      <h3>The passengers aboard.</h3>
+      <p>A representative sample of who you'll actually carry. Their preferences predict real reactions.</p>
+    </div>
+    <div class="icard pers">
+      <div class="icon">Compass</div>
+      <h3>The reading from the voyage.</h3>
+      <p>Every posted video is a new fix. The next voyage uses the updated bearing.</p>
+    </div>
+  </div>
 
-  <h2>The bigger picture</h2>
-  <div class="callout info">
-    <strong>The system works because of the abstractions, not despite them.</strong> Every "premature abstraction" in this repo paid for itself. Provider registry paid off twice. Single-writer orchestrator eliminated whole classes of race conditions. Interface contract let two people work independently. When abstractions match the domain's natural joints, they're not overhead — they're the only thing that makes change affordable.
+  <div class="oneline" style="margin-top: 36px; font-size: 22px;">
+    Most tools give you a chart.<br/>
+    Some add a crew.<br/>
+    <span class="acc pers">Flair2 gives you all three — and a compass that updates every time you sail.</span>
   </div>
 </section>
 
 <div class="kbd-hint">
-  <kbd>1</kbd>–<kbd>7</kbd> jump · <kbd>←</kbd> <kbd>→</kbd> prev/next
+  <kbd>1</kbd>–<kbd>8</kbd> jump · <kbd>←</kbd> <kbd>→</kbd> prev/next
 </div>
 
 <script>
@@ -658,28 +641,18 @@ for entry_id, fields in entries:
     window.scrollTo(0, 0);
   }
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => show(tab.dataset.section));
-  });
+  tabs.forEach(tab => { tab.addEventListener('click', () => show(tab.dataset.section)); });
 
-  // Keyboard: 1-7 for direct jump, arrows for prev/next
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     const current = Array.from(sections).findIndex(s => s.classList.contains('active')) + 1;
-    if (e.key >= '1' && e.key <= '7') {
-      show(e.key);
-    } else if (e.key === 'ArrowRight' && current < 7) {
-      show(current + 1);
-    } else if (e.key === 'ArrowLeft' && current > 1) {
-      show(current - 1);
-    }
+    if (e.key >= '1' && e.key <= '8') { show(e.key); }
+    else if (e.key === 'ArrowRight' && current < 8) { show(current + 1); }
+    else if (e.key === 'ArrowLeft' && current > 1) { show(current - 1); }
   });
 
-  // Deep link on load
   const hash = window.location.hash;
-  if (hash.match(/^#s[1-7]$/)) {
-    show(hash.slice(2));
-  }
+  if (hash.match(/^#s[1-8]$/)) { show(hash.slice(2)); }
 </script>
 
 </body>
