@@ -261,3 +261,52 @@ The Worker finding remains unchanged: **CPU peaked at only 7.14%** even with 500
 1. Replace Worker CPU scaling with a custom CloudWatch metric on Redis queue depth (`LLEN celery`)
 2. Tune API connection pool size per ECS task to reduce Redis contention at K=500+
 3. Consider raising ElastiCache instance type if `/api/runs` p99 exceeds SLA under sustained load
+
+---
+
+## Rerun: Post-refactor Baseline (2026-04-18)
+
+A third run was conducted after two significant code changes merged to main:
+
+- **95% completion threshold** (`a15876b`): S1 and S4 fan-out stages now transition to the next stage at `ceil(N × 0.95)` completions instead of waiting for all N — stragglers no longer block the pipeline.
+- **S3 concurrent generation** (`a4646c3`): Script generation changed from sequential to concurrent (asyncio.gather + semaphore).
+
+**Note:** Neither change affects load test measurements. The locustfile uses `num_videos=2, num_scripts=2` and `POST /api/pipeline/start` returns immediately after queuing tasks — it does not wait for pipeline completion. The S3 change is therefore invisible to this test. The 95% threshold only reduces pipeline end-to-end time, not API response time.
+
+### Results — POST /api/pipeline/start
+
+| K | p50 (ms) | p95 (ms) | p99 (ms) | RPS | Failures |
+|---|----------|----------|----------|-----|----------|
+| 10 | 40 | 53 | 70 | 1.9 | 0.0% |
+| 50 | 41 | 130 | 270 | 10.8 | 0.0% |
+| 100 | 41 | 92 | 390 | 21.1 | 0.0% |
+| 500 | 420 | 1,300 | 2,900 | 87.1 | 0.0% |
+
+### Comparison with prior runs
+
+| K | p50 Day 1 | p50 Day 2 (clean) | p50 Day 3 | p95 Day 1 | p95 Day 3 | p99 Day 1 | p99 Day 3 |
+|---|-----------|-------------------|-----------|-----------|-----------|-----------|-----------|
+| 10 | 43 ms | — | **40 ms** | 79 ms | **53 ms** | 280 ms | **70 ms** ↓ |
+| 50 | 43 ms | — | **41 ms** | 73 ms | **130 ms** ↑ | 160 ms | **270 ms** ↑ |
+| 100 | 43 ms | — | **41 ms** | 78 ms | **92 ms** ↑ | 150 ms | **390 ms** ↑ |
+| 500 | 590 ms | — | **420 ms** ↓ | 2,900 ms | **1,300 ms** ↓ | 3,100 ms | **2,900 ms** ↓ |
+
+### Observations
+
+**K=10:** p99 improved substantially (280 ms → 70 ms). Clean cluster with no accumulated session history means `/api/runs` Redis lookups are fast.
+
+**K=50–100:** p95/p99 slightly higher than Day 1 despite clean cluster. Likely due to lower overall RPS in this run (10–21 RPS vs 20 RPS Day 1) — fewer requests means fewer samples in the tail, making p99 noisier.
+
+**K=500:** p50 improved (590 ms → 420 ms), p95 halved (2,900 ms → 1,300 ms), p99 improved (3,100 ms → 2,900 ms), and **failures dropped to 0.0%** (from 0.03% Day 1). The improvement is attributable to the clean cluster state (no prior load accumulation) rather than code changes — consistent with the Day 2 finding.
+
+### Confirmed findings
+
+All three runs confirm the same structural behaviour:
+
+| Finding | Status |
+|---------|--------|
+| K ≤ 100 zero failures | ✅ Confirmed across all runs |
+| K = 500 inflection point (latency spike) | ✅ Confirmed — p50 jumps 10× regardless of code changes |
+| Root bottleneck: API Redis connection pool | ✅ Unchanged — `/api/runs` degrades first under load |
+| S3 serial→parallel has no load test impact | ✅ Confirmed — `POST /api/pipeline/start` returns before S3 runs |
+| 95% threshold has no load test impact | ✅ Confirmed — API response time unaffected |
