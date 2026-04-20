@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Flair2 — AI Campaign Studio",
+    title="Flair2 — AI Script Studio",
     version="0.1.0",
     lifespan=lifespan,
 )

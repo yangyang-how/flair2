@@ -49,7 +49,7 @@ By the end, you should be able to:
 | # | Article | Core lesson |
 |---|---------|-------------|
 | 14 | [The Provider Abstraction](14-the-provider-abstraction.md) | Registry pattern, Protocol classes, coding to an interface with a real payoff. |
-| 15 | [Kimi and OpenAI Compatibility](15-kimi-and-openai-compatibility.md) | API compatibility as an industry pattern, `default_headers`, provider migration. |
+| 15 | [Kimi and the Anthropic Messages API](15-kimi-and-openai-compatibility.md) | Bending a vendor SDK to a non-default endpoint, UA allowlists, content-block responses. |
 | 16 | [Rate Limiting a Shared Upstream](16-rate-limiting.md) | Token bucket, Redis INCR+EXPIRE, centralized vs distributed rate limiting. |
 
 ## Part VI — Redis

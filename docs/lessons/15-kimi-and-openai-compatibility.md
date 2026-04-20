@@ -1,26 +1,26 @@
-# 15. Kimi and the Anthropic Messages Migration
+# 15. Kimi and the Anthropic Messages API
 
-> Industry-standard APIs come and go. Between the hackathon prototype and today, Flair2 migrated its LLM client twice — first to OpenAI's chat/completions schema, then to Anthropic's Messages API. This article explains why both moves happened, what the current wiring looks like, and the transferable lesson about coding against an interface.
+> Kimi (Moonshot AI) is Flair2's production LLM. Its coding endpoint speaks the Anthropic Messages API shape, gated on a User-Agent allowlist. This article walks through how the provider is wired, why each knob is set the way it is, and the transferable lessons about coding against an API you don't own.
 
-## Two migrations in one project
+## The endpoint, the SDK, and the UA allowlist
 
-When the Kimi provider was first added, Kimi's coding endpoint exposed an OpenAI-compatible `chat/completions` route. That made integration cheap: use the OpenAI Python SDK, swap `base_url`, done. Many Chinese LLM providers did this to attract developers already using OpenAI's SDK.
+Kimi exposes several surfaces. The one Flair2 uses is **Kimi For Coding** at `https://api.kimi.com/coding`. That endpoint speaks the **Anthropic Messages API** at `/coding/v1/messages` — same request shape, same response shape, same content-block structure as calling Claude directly. Because the shape matches, Flair2 reaches it with the standard `anthropic` Python SDK (`AsyncAnthropic`) and just overrides `base_url`.
 
-Then Kimi's endpoint quietly changed. The OpenAI-shaped route started returning a misleading error — `"only 0.6 is allowed for this model"` — for every request regardless of temperature. The real surface moved to an Anthropic Messages API shape at `/coding/v1/messages`. So we migrated again, this time to the Anthropic Python SDK.
+Two non-obvious things about that endpoint:
 
-This sequence is now permanently documented in the provider file's docstring:
+1. **It's gated on User-Agent.** Only approved coding agents (Claude Code, Kimi CLI, Roo Code, Cline, etc.) are allowed through. Unknown clients get a 403 with the message *"Kimi For Coding is currently only available for Coding Agents."* We set `default_headers={"User-Agent": "claude-code/0.1.0"}` to land on the allowlist.
+2. **The base URL stops at `/coding`, not `/coding/v1`.** The Anthropic SDK appends `/v1/messages` itself. Adding `/v1` to the base URL yields a silent 404.
+
+The docstring on the provider file calls this out for anyone reading the code cold:
 
 ```python
 """Kimi (Moonshot AI) reasoning provider via the Anthropic Messages API.
 
-Kimi's coding endpoint migrated to an Anthropic-compatible schema
-(see /coding/v1/messages). The legacy OpenAI /chat/completions shim
-now returns a misleading "only 0.6 is allowed for this model" error
-for every request, regardless of temperature — a dead surface.
+Kimi's coding endpoint uses an Anthropic-compatible schema
+(see /coding/v1/messages). Requires a coding-agent User-Agent
+on the allowlist, or the endpoint returns 403.
 """
 ```
-
-**The transferable lesson:** LLM provider APIs are not stable contracts. Public pricing pages and "OpenAI compatible" claims can change month to month. Design your provider abstraction so migrations are one file's worth of work.
 
 ## The current wiring
 
@@ -45,21 +45,19 @@ class KimiProvider:
         return self._client
 ```
 
-Three things changed from the OpenAI era:
+Three details worth understanding in that block:
 
-### 1. Different SDK
+### 1. `AsyncAnthropic`, lazily constructed
 
-`AsyncAnthropic` instead of `OpenAI`. Same pattern (base_url + default_headers), different package. The rest of the provider code — retry logic, rate-limit handling, JSON parsing — didn't change because it doesn't depend on the SDK.
+The SDK client is created on first use, not on import. That means importing `providers/kimi.py` is free — no network, no auth validation, no side effects. You pay the cost only when a task actually calls the provider. This matters for tests and for cold-start latency on worker tasks.
 
-### 2. Different endpoint shape
+### 2. `base_url` stops at `/coding`
 
-`base_url` stops at `/coding`, not `/coding/v1`, because the Anthropic SDK appends `/v1/messages` automatically. Getting this wrong silently breaks everything with a 404.
+The Anthropic SDK appends `/v1/messages` automatically. If you write `base_url="https://api.kimi.com/coding/v1"`, the final URL becomes `/coding/v1/v1/messages` and you get a silent 404 for every request. Read the SDK's URL-composition rules before setting `base_url`.
 
-### 3. Different request/response shape
+### 3. Content-block responses, not plain strings
 
-Requests use `client.messages.create(...)` with `messages=[...]` and `max_tokens` (required in Anthropic's API, optional in OpenAI's). Responses are `Message` objects with a `content` list of content blocks — each block has a `type` ("text", "tool_use", etc.) and a `text` attribute for text blocks.
-
-Flair2 only cares about text, so it flattens the content blocks:
+`client.messages.create(...)` returns a `Message` object with a `content` list. Each block has a `type` (`"text"`, `"tool_use"`, etc.) and a `text` attribute for text blocks. Flair2 only cares about text, so it flattens the blocks:
 
 ```python
 def _extract_text(response) -> str:
@@ -71,21 +69,17 @@ def _extract_text(response) -> str:
     return "".join(parts)
 ```
 
-## The User-Agent whitelist (still required)
+## The User-Agent allowlist
 
-Kimi's coding endpoint is gated on User-Agent. Only approved coding agents (Kimi CLI, Claude Code, Roo Code, etc.) can use it. Unrecognized clients get 403: *"Kimi For Coding is currently only available for Coding Agents."*
+The UA header is the other piece of this that trips up newcomers. The endpoint returns 403 for anything it doesn't recognize, and nothing in the Anthropic SDK forces you to set a UA — so if you follow the SDK's quickstart with Kimi's `base_url`, every request fails and the error message ("Kimi For Coding is currently only available for Coding Agents") points you in an unhelpful direction.
 
-The `default_headers={"User-Agent": "claude-code/0.1.0"}` line is the whitelist workaround. Same fragility it had during the OpenAI era — if Kimi tightens validation, the spoof breaks. Nothing about migrating to Anthropic's SDK fixed this; it's an endpoint policy, not an SDK behavior.
+`default_headers={"User-Agent": "claude-code/0.1.0"}` solves it. The value has to match an entry on Kimi's internal allowlist. It's an endpoint policy, not an SDK behavior, so it survives any SDK change — keep it in mind any time you touch this file.
 
-## The registry abstraction paid off twice
+## Why the abstraction isolates this
 
-Because every stage calls `provider.generate_text(...)` through the `ReasoningProvider` Protocol ([Article 14](14-the-provider-abstraction.md)), **two SDK migrations didn't touch any stage code.** S1, S3, S4, S6 have no idea which SDK sits behind the provider. The only files that changed across migrations:
+All of the above — the SDK choice, the `base_url` quirk, the UA header, the content-block flattening — lives entirely inside `providers/kimi.py`. Stages S1, S3, S4, S6 don't know any of it. They call `provider.generate_text(...)` through the `ReasoningProvider` Protocol ([Article 14](14-the-provider-abstraction.md)) and get a plain string back.
 
-- `providers/kimi.py` — the SDK wrapper
-- `pyproject.toml` — the dependency (anthropic instead of openai)
-- Tests that specifically asserted OpenAI SDK behavior
-
-Every other part of the codebase — orchestrator, workers, stages, frontend — was unaffected. This is the dividend of programming to an interface. When the interface is stable and the implementation changes, only the implementation file changes.
+That's the dividend of programming to an interface. If Kimi's endpoint tightens its UA policy, if the content-block response shape evolves, if a future provider uses a different SDK — the change lives in one file. The rest of the codebase doesn't notice.
 
 ## Model IDs
 
@@ -97,7 +91,7 @@ The coding endpoint accepts multiple model aliases:
 | `kimi-for-coding/k2p5` | Coding-specific variant of K2.5 |
 | `kimi-k2.5` | General-purpose K2.5 (accepted on coding endpoint since Kimi unified their credit pool in April 2026) |
 
-The code uses `kimi-for-coding` as the default. All three currently work because Kimi unified billing across Kimi Code, Kimi Chat, Agent, and PPT — the coding endpoint will accept general models too.
+The code uses `kimi-for-coding` as the default. All three currently work because Kimi unified billing across Kimi Code, Kimi Chat, Agent, and PPT, so the coding endpoint accepts general models too.
 
 ## Retry & rate-limit behavior
 
@@ -105,15 +99,15 @@ Provider-level retries are covered in [Article 16](16-rate-limiting.md). Key det
 
 ## What you should take from this
 
-1. **"X-compatible API" claims are promises with an expiration date.** OpenAI compatibility worked for Kimi until it didn't. Don't hardcode to the shape; hide it behind an interface.
+1. **`base_url` + `default_headers` is how you bend a vendor SDK to a non-default endpoint.** Both OpenAI's and Anthropic's Python SDKs expose these. You don't need a custom HTTP client to target a compatible endpoint; the existing SDK already does everything.
 
-2. **`base_url` + `default_headers` is a pattern, not an SDK feature.** Both OpenAI's and Anthropic's Python SDKs expose it. If you're using one, you can use the other. The migration was ~30 lines.
+2. **Read the SDK's URL-composition rules before setting `base_url`.** The Anthropic SDK appends `/v1/messages` itself. Getting this wrong is silent — you get a 404 with no useful diagnostic.
 
-3. **Endpoint policies (UA whitelist) survive SDK migrations.** When you switch clients, carry forward the policy workarounds or you'll be debugging a 403 for an hour.
+3. **Endpoint policies (like UA allowlists) live outside SDK abstractions.** No amount of Protocol + Registry purity saves you from a 403. Document the policy workaround in the provider file so future readers don't spend an hour debugging auth.
 
-4. **Provider code is churn-heavy; stage code shouldn't be.** Two migrations, zero changes to S1-S6. The interface pays for itself in rewrite-avoidance.
+4. **Content-block responses are the Anthropic SDK's native shape, not a Kimi quirk.** If you ever call Claude directly, the same flattening logic applies.
 
-5. **Document the history in the docstring.** The "legacy OpenAI shim returns a misleading error" comment in `kimi.py` is load-bearing. Six months from now, somebody will try the OpenAI route again and be confused — the comment tells them why not to.
+5. **Lazy client construction keeps imports side-effect-free.** `_get_client()` is called on first use, not at module load. Your tests and cold starts thank you.
 
 ---
 

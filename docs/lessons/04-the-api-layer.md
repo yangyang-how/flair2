@@ -16,7 +16,7 @@ This pattern has a name: **non-blocking request handling**. Learn to spot it eve
 
 ```python
 app = FastAPI(
-    title="Flair2 — AI Campaign Studio",
+    title="Flair2 — AI Script Studio",
     version="0.1.0",
     lifespan=lifespan,
 )
