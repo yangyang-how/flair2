@@ -32,7 +32,7 @@ We started from a V1 hackathon prototype (`gemini-social-asset`) and rewrote it 
 | Apr 15–18 | S1 grid viz, S4 vote matrix, observability | Deploy hardening, Terraform state import, destroy workflow | First E2E with full viz + resilience |
 | Apr 18–20 | Business-case doc, deck iterations, Campaign → Script rename across deck/frontend/backend, lessons-series refresh | M5-distributed-patterns experiments (fan-out, stragglers, idempotency), experiment overview, PDF export, M5-4 rerun | Final submission package |
 
-**PR split:** Sam 77 (61%), Jess 50 (39%). Every PR reviewed by the other.
+**Review discipline:** all 127 merged PRs passed through code review by the other team member before merging — enforced by branch protection on `main` (see below).
 
 ## Problems Encountered & How We Broke Them Down
 
