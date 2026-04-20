@@ -1,4 +1,4 @@
-# Why Flair2 Can Help Create Winning Campaigns
+# Why Flair2 Can Help Creators Ship Winning Videos
 
 A short-form video succeeds when three things line up: **the structure resembles what already went viral**, **the audience actually wants it**, and **the creator learns from each posted result**. Most marketing tools pick one of these. Flair2 stacks all three, and each one is grounded in real data rather than intuition.
 
@@ -61,7 +61,7 @@ Code: `backend/app/pipeline/prompts/s3_prompts.py` (S3_FEEDBACK_SECTION), `s4_pr
 
 ## The Navigation Analogy
 
-Think of launching a campaign as navigating a ship to a destination.
+Think of shipping a video as navigating a ship to a destination.
 
 - **The chart** — S1 and S2 give you routes that past ships actually used to reach similar destinations. You're not drawing a line across open water; you're following lanes with recorded crossings.
 - **The crew aboard** — S4's voters are a representative sample of the passengers you'll carry. If your destination is the college-student market, your crew is weighted with college students. Their preferences aboard predict how the real passengers will react.
@@ -73,7 +73,7 @@ A one-shot content generator gives you a chart. A panel of simulated voters give
 
 ### Claims the system supports today
 
-- Pattern extraction from real viral videos is implemented and runs on every campaign.
+- Pattern extraction from real viral videos is implemented and runs on every generation.
 - The 300-persona pool reflects Canadian demographics and social-media adoption, and the relevance selector picks the 100 most aligned with the creator's niche.
 - Every stage is structurally designed to accept performance feedback; the API endpoint, data model, and prompt templates all exist in production.
 

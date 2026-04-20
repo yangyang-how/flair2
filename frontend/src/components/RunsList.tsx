@@ -72,7 +72,7 @@ export default function RunsList() {
           href="/create"
           className="font-ui text-[11px] uppercase tracking-[0.1em] text-[var(--stud-b)] hover:underline"
         >
-          Start a campaign →
+          Start a run →
         </a>
       </div>
     );
