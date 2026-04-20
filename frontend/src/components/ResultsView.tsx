@@ -1,5 +1,5 @@
 /**
- * Results View — V2 campaign output display.
+ * Results View — V2 script output display.
  *
  * V2 output is TEXT, not images: video scripts (hook/body/payoff),
  * personalized versions in the creator's voice, and video prompts
@@ -54,7 +54,7 @@ export default function ResultsView({ runId }: ResultsViewProps) {
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Spinner size="lg" />
         <p className="font-body text-lg text-[var(--color-text-muted)]">
-          Loading your campaign...
+          Loading your scripts...
         </p>
       </div>
     );
@@ -98,7 +98,7 @@ export default function ResultsView({ runId }: ResultsViewProps) {
           Top ranked by {results.results.length > 1 ? "audience vote" : "evaluation"}
         </p>
         <h2 className="font-display text-[clamp(28px,5vw,48px)] tracking-[0.06em] mt-2">
-          Campaign Results
+          Your Scripts
         </h2>
         {winner && (
           <p className="font-body mx-auto mt-3 max-w-lg text-lg text-[var(--color-text-muted)]">
