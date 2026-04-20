@@ -4,9 +4,9 @@
 
 ## The product
 
-Flair2 is an AI Campaign Studio. A user enters a brand name and a creator profile. The system analyzes a dataset of viral videos, extracts structural patterns, generates candidate marketing scripts based on those patterns, has 100 simulated personas vote on the scripts, ranks the winners, and personalizes the top scripts to the creator's voice. Then the user watches the results appear in real time.
+Flair2 is an AI Script Studio for short-form video. A creator enters a profile — tone, niche, audience, catchphrases — and with one click the system returns **ten ready-to-shoot video scripts** to pick from. Under the hood it analyzes 100 real viral TikToks, extracts structural patterns, generates candidate scripts shaped by those patterns, has a panel of 42 personas vote, ranks the winners, and personalizes the top scripts into the creator's voice. The user watches the results appear in real time.
 
-One click. Six stages. Roughly 261 LLM API calls. ~500,000 tokens of work. The user sees live progress as each stage completes.
+One click. Six stages. Roughly 260 LLM API calls. ~500,000 tokens of work. The user sees live progress as each stage completes.
 
 That description — one click, many calls, live progress — is the entire reason a distributed architecture exists here. If it were one LLM call returning one result, you'd write a Python script.
 
@@ -43,22 +43,6 @@ A useful discipline: before accepting a complex design, try to break it with sim
 **"Just poll from the frontend."** Instead of SSE streaming, the frontend could hit `GET /api/status` every 2 seconds. This works but wastes bandwidth, adds latency (up to 2 seconds of delay per event), and doesn't scale well to many concurrent watchers. SSE is strictly better for unidirectional server-to-client streaming.
 
 Each simpler approach fails on at least one of the three forces. That's why the architecture is what it is.
-
-## V1 to V2: what changed and why
-
-Flair2 is a V2 rewrite of an earlier hackathon prototype ([gemini-social-asset](https://github.com/yangyang-how/gemini-social-asset)). Understanding what V1 got wrong tells you what V2 is designed to prevent:
-
-| V1 | V2 | Why it changed |
-|----|-----|---------------|
-| Monolithic `main.py` | Separated modules (`api/`, `pipeline/`, `workers/`, `infra/`) | One file with everything means you can't change one part without risking all parts. Module boundaries are change boundaries. |
-| In-memory state | Redis-backed state | Process dies, state dies. Redis survives process restarts. |
-| Sequential pipeline | Concurrent workers with MapReduce | S1 analyzing 100 videos one-by-one takes 100x longer than analyzing them concurrently. |
-| Gemini only | Pluggable provider registry (Kimi is live) | Gemini had intermittent 500s and rate limit issues. The registry pattern made switching to Kimi a one-line change. |
-| No tests | pytest with unit + integration + experiment coverage | V1 "worked" locally and broke in production. Tests are how you know it still works after changes. |
-| Google Cloud Run | AWS (ECS Fargate, ElastiCache, ALB, S3) | Course requirement + richer distributed systems story. |
-| `.DS_Store` and `__pycache__` committed | `.gitignore` from day one | Hygiene. Never commit generated files. |
-
-The pattern to notice: **every V2 decision exists to prevent a specific V1 failure mode.** When you design systems, you should be able to name the failure each design choice prevents. If you can't, you're adding complexity without justification.
 
 ## The two-person team
 

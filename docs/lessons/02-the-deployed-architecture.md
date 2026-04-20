@@ -4,11 +4,9 @@
 
 ## A note on honesty
 
-The original architecture doc (`design/architecture.md`) says the backend deploys to Railway and the frontend to Cloudflare Pages. In reality, the backend runs on AWS ECS Fargate with ElastiCache Redis, and the frontend is an S3 static website. The Gemini API is mentioned throughout the design docs and experiment reports — in reality, the production provider is Kimi (Moonshot AI), accessed over Kimi's coding endpoint using the Anthropic Messages API. The architecture doc hasn't been updated.
+The original architecture doc (`design/architecture.md`) describes one topology; the deployed system differs in several places. Design docs freeze at the moment they were written — `git log`, `grep`, and `terraform plan` are more trustworthy than any markdown file.
 
-This is the single most common documentation failure in software: **design docs freeze at the point they were written.** Always verify against the code and the infrastructure. `git log`, `grep`, and `terraform plan` are more trustworthy than any markdown file.
-
-This article describes the real system as of April 2026, verified against code and PR history.
+This article describes the real system as of April 2026, verified against code and infrastructure.
 
 ## The topology
 
@@ -110,9 +108,9 @@ This article describes the real system as of April 2026, verified against code a
 **File:** `backend/app/providers/kimi.py`
 **File:** `backend/app/providers/registry.py`
 
-**How it connects:** Kimi's coding endpoint speaks the **Anthropic Messages API** at `/coding/v1/messages`. The `KimiProvider` uses the `AsyncAnthropic` client with `base_url="https://api.kimi.com/coding"` and a `default_headers` override for User-Agent (Kimi's endpoint whitelists approved coding agents — Claude Code, Kimi CLI, etc.). An earlier version of the endpoint spoke OpenAI's `chat/completions` schema; that surface went dead in early 2026 and we migrated to Anthropic's SDK. See [Article 15](15-kimi-and-openai-compatibility.md) for the migration story.
+**How it connects:** Kimi's coding endpoint speaks the **Anthropic Messages API** at `/coding/v1/messages`. The `KimiProvider` uses the `AsyncAnthropic` client with `base_url="https://api.kimi.com/coding"` and a `default_headers` override for User-Agent (Kimi's endpoint whitelists approved coding agents — Claude Code, Kimi CLI, etc.). See [Article 15](15-kimi-and-openai-compatibility.md) for the full wiring.
 
-**The migration stories:** Plural, now. First Gemini → Kimi (PR #95: "remove Gemini secret requirement"), driven by Gemini's intermittent 500s and rate-limit issues. Then OpenAI SDK → Anthropic SDK, driven by Kimi deprecating their OpenAI-compatible shim. Both migrations only touched `providers/kimi.py` because every stage calls through the `ReasoningProvider` Protocol. The `GeminiProvider` class still exists; it's just not wired up in production.
+**Why provider choice is isolated:** every stage calls through the `ReasoningProvider` Protocol, so the specific SDK and endpoint shape live in exactly one file (`providers/kimi.py`). A `GeminiProvider` class also exists in the registry but isn't wired up in production — it's available if you pass `reasoning_model: "gemini"` at run time.
 
 ### Frontend (Astro + React on S3)
 

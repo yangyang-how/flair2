@@ -53,7 +53,7 @@ frontend/src/pages/
 └── results.astro    # Results display
 ```
 
-**`index.astro`:** the landing page with three blobs (Discover, Generate, Evaluate) that link to `/create`. Uses the V1 design language — rounded blobs with stage numbers, color-coded by pipeline phase. Pure static HTML + CSS.
+**`index.astro`:** the landing page with three blobs (Discover, Generate, Evaluate) that link to `/create`. Rounded blobs with stage numbers, color-coded by pipeline phase. Pure static HTML + CSS.
 
 **`create.astro`:** the pipeline creation form. The user enters creator profile details and selects a reasoning model. This page embeds a React island for the form (which needs JavaScript for dynamic validation and submission).
 
@@ -91,13 +91,13 @@ useEffect(() => {
 
 The browser's native `EventSource` API handles SSE — connection management, reconnection, `Last-Event-ID` — for free. The React component just subscribes to events and updates state.
 
-## V1 design language (PR #114, #115)
+## Design language lives in CSS, not in components
 
-The V1 prototype had a distinctive visual style — rounded blobs, a custom color palette, specific typography. PR #114 ("feat: V1 design language — blobs, typography, color-coded pipeline") ported this visual identity to V2.
+The frontend has a distinctive visual identity — rounded "blob" shapes for pipeline phases, custom typography pairings, a color palette keyed to each stage (Discover/Generate/Evaluate/Personalize). All of it is defined in Tailwind utility classes and CSS custom properties on `:root`, not baked into component JSX.
 
-PR #115 ("feat: restyle ResultsView + VotingAnimation for V2 text-based output") adapted the V1 components for V2's different data shape: V1 generated images, V2 generates text scripts. The visual language (colors, shapes, animations) stayed the same; the content rendering changed.
+That separation matters: the voting animation, the pipeline visualizer, and the results view all render completely different data shapes, but they share one visual system. If a new view needs to be added — or an existing view needs to render a different payload — the styling doesn't have to be rewritten. Presentation and data rendering are independent concerns.
 
-**Design lesson:** the visual identity is a separate concern from the data rendering. V1's design language could be applied to V2's different content because the styling was in CSS/Tailwind, not hardcoded into the data display logic. Separation of presentation from content.
+**Design lesson:** keep visual identity in the styling layer (CSS, Tailwind, design tokens) rather than hardcoding it into components. Components should render data; the style system should decide how it looks.
 
 ## Why S3, not a real hosting platform
 
@@ -105,19 +105,29 @@ PR #115 ("feat: restyle ResultsView + VotingAnimation for V2 text-based output")
 
 The frontend is hosted on S3 with static website hosting enabled. The build output (`frontend/dist/`) is synced to S3 via `aws s3 sync`.
 
-**Why S3 over CloudFront (CDN):** PR #107 simplified from S3 + CloudFront to S3-only. CloudFront adds caching, edge distribution, and custom domains. For a course project with limited traffic and no custom domain, S3 direct hosting is sufficient. CloudFront adds configuration complexity (cache invalidation, SSL certificates, origin access identity) that isn't justified at this scale.
+**Why S3 over CloudFront (CDN):** CloudFront adds caching, edge distribution, and custom domains — and a lot of operational surface (cache invalidation, SSL certificates, origin access identity). For a course project with limited traffic and no custom domain, S3 direct hosting is sufficient. The tradeoff would flip at real traffic or with a branded domain.
 
-**Why S3 over Cloudflare Pages:** the architecture doc mentions Cloudflare Pages. The `@astrojs/cloudflare` package is still in `package.json`. But deployment went to S3 because the rest of the infrastructure was on AWS — keeping everything in one cloud provider simplifies IAM, networking, and CI/CD.
+**Why S3 over Vercel/Netlify/Cloudflare Pages:** these platforms are faster to set up (connect GitHub, auto-deploy) but they sit outside the AWS infrastructure that Terraform manages for the rest of Flair2. Keeping everything in one cloud provider and one IaC tree simplifies IAM, networking, and CI/CD.
 
-**Why S3 over Vercel/Netlify:** these platforms are easier to set up (connect GitHub, auto-deploy). But Flair2's terraform-managed infrastructure approach requires all resources to be defined as code. S3 static hosting integrates naturally with the existing Terraform setup.
+## The `crypto.randomUUID` fallback
 
-## The `crypto.randomUUID` fix (PR #121)
+The frontend generates client-side session IDs with `crypto.randomUUID()`. That API is only available in **secure contexts** (HTTPS or `localhost`). S3 static website hosting serves over plain HTTP unless you put CloudFront in front of it — so on the deployed site, `crypto.randomUUID` is `undefined`.
 
-A fun edge case: the frontend used `crypto.randomUUID()` to generate session IDs. This API is only available in **secure contexts** (HTTPS or localhost). S3 static website hosting serves over HTTP, not HTTPS (unless you add CloudFront). On HTTP, `crypto.randomUUID()` is undefined.
+The client-side code guards for that:
 
-PR #121 added a fallback: check if `crypto.randomUUID` exists, and if not, generate a UUID using `Math.random()`. This is less cryptographically secure but sufficient for session IDs in a prototype.
+```typescript
+function generateSessionId(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for non-secure contexts (S3 over HTTP)
+  return "sess_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+```
 
-**The lesson:** browser APIs often have security context requirements that are invisible in development (where you're on `localhost`, a secure context) and only surface in production (where you might be on HTTP). Test in the same context you deploy to.
+Less cryptographically strong than `crypto.randomUUID`, but sufficient for session IDs in a prototype and — crucially — works on the deployment surface.
+
+**The lesson:** browser APIs often have security-context requirements that are invisible in local development (where `localhost` counts as secure) and only surface in production. Test in the same context you deploy to, or guard for the feature at runtime.
 
 ## Why not a full SPA
 
@@ -140,7 +150,7 @@ Flair2 has three pages. Most content is static. Interactive components are conce
 
 2. **Static output simplifies deployment.** No Node.js server, no containers, no port management. Just files on S3. The simplest deployment is the one with the fewest moving parts.
 
-3. **Design language is separable from data rendering.** V1's visual identity applied to V2's different content because styling was in CSS, not in the data layer.
+3. **Design language is separable from data rendering.** Keep visual identity in CSS and design tokens, not baked into components. The same style system can render completely different data shapes.
 
 4. **Test in the deployment context.** Browser APIs that work on `localhost` may fail on HTTP in production. `crypto.randomUUID()` is the case study.
 

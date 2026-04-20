@@ -1,16 +1,12 @@
 # 14. The Provider Abstraction
 
-> Flair2 switched its entire LLM backend from Gemini to Kimi in one PR. The reason it was possible is a 30-line abstraction layer that most developers would dismiss as "premature." This article explains why it wasn't, and teaches you the design pattern behind it.
+> No code in Flair2's pipeline names a specific LLM vendor. Stages ask a `ReasoningProvider` for text; the concrete provider is chosen at runtime from configuration. This article explains why that shape matters and how the ~30 lines that make it work are structured.
 
-## The payoff story
+## The shape of the abstraction
 
-PR #95: "chore: remove Gemini secret requirement, Kimi-only deployment."
+The pipeline never writes `KimiProvider` or `GeminiProvider`. It writes `ReasoningProvider`. The specific implementation is chosen at runtime — per pipeline run — from the `reasoning_model` field in the request config.
 
-Here's what changed: the Terraform config stopped provisioning a Gemini API key, and the default reasoning model in the frontend was set to "kimi." That's it. No stage functions were modified. No task definitions changed. No tests broke (except the ones specifically testing GeminiProvider).
-
-The switch was possible because no code in the pipeline says `KimiProvider` or `GeminiProvider`. It says `ReasoningProvider`. The specific implementation is chosen at runtime, from configuration.
-
-**Cost of the abstraction:** ~30 lines of code (the Protocol class + the registry). **Payoff:** hours of migration work avoided, plus the ability to switch providers again in the future without touching business logic.
+**Cost:** ~30 lines of code (the Protocol class + the registry). **What it buys:** callers don't depend on SDKs, credentials, or endpoint shapes. Stage code stays readable and focused on prompts and parsing. Swapping or adding a provider is a one-file change, never a cross-codebase refactor.
 
 ## The Protocol class
 
@@ -161,7 +157,7 @@ class KimiProvider:
         return self._client
 ```
 
-Kimi speaks the **Anthropic Messages API** on its coding endpoint. We use the `AsyncAnthropic` client with a custom `base_url`. (An earlier version of Kimi spoke OpenAI's chat/completions schema instead — that surface went dead and the client had to migrate. [Article 15](15-kimi-and-openai-compatibility.md) covers the migration history and why the abstraction let us do it with a ~30-line change.)
+Kimi speaks the **Anthropic Messages API** on its coding endpoint. We use the `AsyncAnthropic` client with a custom `base_url` and a User-Agent header Kimi's endpoint requires. [Article 15](15-kimi-and-openai-compatibility.md) covers the full wiring and the User-Agent whitelist.
 
 ### GeminiProvider (`providers/gemini.py`)
 
@@ -218,19 +214,19 @@ A second Protocol for video generation. Currently has no implementations — the
 
 The registry already has a `_video_providers` dict and a `register_video` function. Adding a video provider would follow the exact same pattern as the reasoning providers.
 
-## When abstraction is premature vs prescient
+## When abstraction is premature vs justified
 
-The common objection: "You only have two providers. This is premature abstraction. Just use Kimi directly."
+The common objection: "Two providers isn't enough to justify an interface. Just call Kimi directly."
 
-Here's why it wasn't premature:
+Here's why the abstraction earns its keep:
 
-1. **The switch actually happened.** Gemini → Kimi migration was driven by Gemini's intermittent 500s and rate limit issues. Without the abstraction, every stage function would have needed modification.
+1. **The interface is dictated by the domain, not speculation.** Every LLM provider takes a prompt and returns text. The shape of `generate_text(prompt, schema) -> str` isn't a guess — it's the only shape the domain allows.
 
-2. **The cost was trivial.** Protocol class: 15 lines. Registry: 20 lines. Zero runtime overhead. The abstraction doesn't add complexity to the codebase — it removes it from every stage function.
+2. **The cost is trivial.** Protocol class: 15 lines. Registry: 20 lines. Zero runtime overhead. The abstraction doesn't add complexity to the codebase — it removes it from every stage function, which no longer has to know or care about SDKs, auth headers, or endpoint shapes.
 
-3. **The interface was obvious.** All LLM providers do the same thing: take a prompt, return text. The interface didn't require speculation — it was dictated by the domain.
+3. **Provider wiring is inherently churn-heavy.** LLM APIs shift — endpoints move, SDKs get deprecated, auth policies tighten. Keeping that churn confined to one file is the whole point.
 
-**When abstraction IS premature:** when you're guessing at the interface. If you don't know what the methods should look like, an abstraction will be wrong. Wait until you have two concrete implementations and extract the commonality.
+**When abstraction IS premature:** when you're guessing at the interface. If you don't know what the methods should look like, an abstraction will be wrong. Wait until you have one concrete implementation you trust, then name the interface it demanded.
 
 **Rule of thumb:** abstract when (a) the interface is obvious from the domain, (b) you have at least one concrete implementation, and (c) the cost of the abstraction is small relative to the cost of changing callers later.
 
@@ -240,7 +236,7 @@ Here's why it wasn't premature:
 
 2. **The Registry pattern is a Strategy + Factory hybrid.** Dictionary mapping names to classes. Adding a provider is one line. Listing providers is one function call.
 
-3. **Abstraction pays for itself when the switch actually happens.** The Gemini → Kimi migration is the proof. Without the abstraction, it would have been a week of find-and-replace across stage functions, tests, and error handling.
+3. **Abstraction pays for itself by confining churn.** Provider wiring shifts — endpoints move, SDKs get deprecated, auth policies tighten. Without the Protocol + Registry, each shift would ripple across every stage function, test, and error handler. With it, the churn lives in exactly one file.
 
 4. **The interface should be dictated by the domain, not the implementation.** All LLM providers take prompts and return text. That's the interface. Implementation details (SDK choice, auth mechanism, retry strategy) are hidden behind it.
 
