@@ -1,6 +1,6 @@
-# AI Campaign Studio (Flair2) — Project Plan
+# AI Script Studio (Flair2) — Project Plan
 
-> Multi-stage AI pipeline that generates social media marketing campaigns.
+> Multi-stage AI pipeline that generates short-form video scripts for creators.
 > Two-person team: Sam (pipeline + frontend) and Jess (infrastructure + distributed systems).
 
 ---

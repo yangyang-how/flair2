@@ -1,6 +1,6 @@
 # CS6650 Distributed Systems — Milestone 1 Report
 
-**Project:** Flair2 — AI Campaign Studio
+**Project:** Flair2 — AI Script Studio for Short-Form Video
 **Team:** Sam Wu, Jess
 **Repository:** [github.com/yangyang-how/flair2](https://github.com/yangyang-how/flair2)
 **Date:** March 28, 2026
