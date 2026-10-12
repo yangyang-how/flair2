@@ -90,6 +90,8 @@ This article describes the real system as of April 2026, verified against code a
 
 **The danger of one Redis:** Convenient but risky. If Redis goes down, everything stops — the queue, the state, the SSE stream, the rate limiter, the cache. You've created a single point of failure wearing five hats. For a prototype and a course project, this is fine. For production at scale, you'd split the broker onto a separate Redis instance at minimum.
 
+
+
 ### Worker Tasks (Celery on ECS Fargate)
 
 **What they are:** Python processes running a Celery worker. They pull tasks from the Redis broker, call the LLM (Kimi), write results back to Redis, and notify the orchestrator.
